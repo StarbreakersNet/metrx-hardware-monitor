@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "dgSpecHash": "KypZC+194Lm1ivjxidM+Zrx7s7I2SuywL3ZXeB44o/xw5ZIky5qIX5CK17dUvf9w3FKu88LPxM7DurusoYUwBA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\MBeno\\source\\repos\\StarbreakersNet Hardware Monitor\\StarbreakersNet Hardware Monitor\\StarbreakersNet Hardware Monitor.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.codedom\\6.0.0\\system.codedom.6.0.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.io\\4.3.0\\system.io.4.3.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.management\\6.0.0\\system.management.6.0.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.net.http\\4.3.4\\system.net.http.4.3.4.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.runtime\\4.3.0\\system.runtime.4.3.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.security.cryptography.algorithms\\4.3.0\\system.security.cryptography.algorithms.4.3.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.security.cryptography.encoding\\4.3.0\\system.security.cryptography.encoding.4.3.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.security.cryptography.primitives\\4.3.0\\system.security.cryptography.primitives.4.3.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.security.cryptography.x509certificates\\4.3.0\\system.security.cryptography.x509certificates.4.3.0.nupkg.sha512",
+    "C:\\Users\\MBeno\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}

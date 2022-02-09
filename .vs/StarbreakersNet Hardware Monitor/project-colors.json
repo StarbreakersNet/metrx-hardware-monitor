@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "9a9d6cef-572d-4dcf-ac40-c06dad06dadd": {
+      "ProjectGuid": "9a9d6cef-572d-4dcf-ac40-c06dad06dadd",
+      "DisplayName": "StarbreakersNet Hardware Monitor",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
