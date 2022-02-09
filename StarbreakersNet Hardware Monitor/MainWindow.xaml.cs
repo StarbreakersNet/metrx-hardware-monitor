@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using OpenHardwareMonitor.Hardware;
+using System.Diagnostics;
 
 namespace StarbreakersNet_Hardware_Monitor
 {
@@ -35,31 +36,83 @@ namespace StarbreakersNet_Hardware_Monitor
             public void VisitSensor(ISensor sensor) { }
             public void VisitParameter(IParameter parameter) { }
         }
-        static void GetSystemInfo()
+        float cpu_temp;
+        string cpu_name;
+        float gpu_temp;
+        string gpu_name;
+
+        Task task;
+        Computer computer;
+        UpdateVisitor updateVisitor;
+
+        void GetSystemInfo()
         {
-            UpdateVisitor updateVisitor = new UpdateVisitor();
-            Computer computer = new Computer();
-            computer.Open();
-            computer.CPUEnabled = true;
             computer.Accept(updateVisitor);
             for (int i = 0; i < computer.Hardware.Length; i++)
             {
                 if (computer.Hardware[i].HardwareType == HardwareType.CPU)
                 {
+                    //Trace.WriteLine("HardwareType.CPU " + computer.Hardware[i].Sensors.Length);
                     for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
                     {
                         if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
-                            Console.WriteLine(computer.Hardware[i].Sensors[j].Name + ":" + computer.Hardware[i].Sensors[j].Value.ToString() + "\r");
+                        {
+                            //Trace.WriteLine(computer.Hardware[i].Sensors[j].Name + " " + computer.Hardware[i].Sensors[j].Identifier);
+                            cpu_temp = computer.Hardware[i].Sensors[j].Value.Value;
+                            cpu_name = computer.Hardware[i].Sensors[j].Name;
+                        }
+                    }
+                }
+                else if (computer.Hardware[i].HardwareType == HardwareType.GpuNvidia)
+                {
+                    //Trace.WriteLine("HardwareType.GpuNvidia " + computer.Hardware[i].Sensors.Length);
+                    for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
+                    {
+                        if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
+                        {
+                            //Trace.WriteLine(computer.Hardware[i].Sensors[j].Name + " " + computer.Hardware[i].Sensors[j].Identifier);
+                            gpu_temp = computer.Hardware[i].Sensors[j].Value.Value;
+                            gpu_name = computer.Hardware[i].Sensors[j].Name;
+                        }
                     }
                 }
             }
-            computer.Close();
+        }
+
+        void InitOpenHardwareMonitor()
+        {
+            updateVisitor = new UpdateVisitor();
+            computer = new Computer();
+            computer.Open();
+            computer.CPUEnabled = true;
+            computer.GPUEnabled = true;
         }
 
         public MainWindow()
         {
             InitializeComponent();
-            GetSystemInfo();
+            InitOpenHardwareMonitor();
+
+            task = new Task(() =>
+            {
+                while (true)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                    GetSystemInfo();
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        label_CPU.Content = $"{cpu_name} = {cpu_temp} °C";
+                        label_GPU.Content = $"{gpu_name} = {gpu_temp} °C";
+                    });
+                }
+            });
+            task.Start();
+        }
+
+        ~MainWindow()
+        {
+            computer.Close();
         }
     }
 }
