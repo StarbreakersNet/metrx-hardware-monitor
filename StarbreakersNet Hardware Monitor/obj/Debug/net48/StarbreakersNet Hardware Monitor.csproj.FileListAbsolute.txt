@@ -1,0 +1,20 @@
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\bin\Debug\net48\StarbreakersNet Hardware Monitor.exe.config
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\bin\Debug\net48\StarbreakersNet Hardware Monitor.exe
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\bin\Debug\net48\StarbreakersNet Hardware Monitor.pdb
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\bin\Debug\net48\System.CodeDom.dll
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\bin\Debug\net48\OpenHardwareMonitorLib.dll
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.csproj.AssemblyReference.cache
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.csproj.SuggestedBindingRedirects.cache
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\MainWindow.g.cs
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\App.g.cs
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor_MarkupCompile.cache
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor_MarkupCompile.lref
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\MainWindow.baml
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.g.resources
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.AssemblyInfoInputs.cache
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.AssemblyInfo.cs
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.csproj.CoreCompileInputs.cache
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.csproj.CopyComplete
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.exe
+C:\Users\MBeno\source\repos\StarbreakersNet Hardware Monitor\StarbreakersNet Hardware Monitor\obj\Debug\net48\StarbreakersNet Hardware Monitor.pdb

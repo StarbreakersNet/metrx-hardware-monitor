@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>StarbreakersNet_Hardware_Monitor</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+	<LangVersion>preview</LangVersion>
+	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<StartupObject>StarbreakersNet_Hardware_Monitor.App</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="6.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Threading" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="OpenHardwareMonitorLib">
+      <HintPath>OpenHardwareMonitorLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
