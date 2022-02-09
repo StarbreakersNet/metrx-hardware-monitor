@@ -2,6 +2,8 @@
 
 Logiciel de monitoring complet d'un ordinateur.
 
+http://openhardwaremonitor.org/wordpress/wp-content/uploads/2011/04/OpenHardwareMonitor-WMI.pdf
+
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
