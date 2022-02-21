@@ -10,13 +10,7 @@
 	<StartupObject>StarbreakersNet_Hardware_Monitor.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Management" Version="6.0.0" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Threading" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="OpenHardwareMonitorLib">
-      <HintPath>OpenHardwareMonitorLib.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\BackendLib\BackendLib.csproj" />
+    <ProjectReference Include="..\Backend\Backend.csproj" />
   </ItemGroup>
 </Project>
