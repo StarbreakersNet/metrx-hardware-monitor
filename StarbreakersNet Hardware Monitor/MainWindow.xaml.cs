@@ -12,7 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using OpenHardwareMonitor.Hardware;
 using System.Diagnostics;
 
 namespace StarbreakersNet_Hardware_Monitor
@@ -22,97 +21,24 @@ namespace StarbreakersNet_Hardware_Monitor
     /// </summary>
     public partial class MainWindow : Window
     {
-        public class UpdateVisitor : IVisitor
-        {
-            public void VisitComputer(IComputer computer)
-            {
-                computer.Traverse(this);
-            }
-            public void VisitHardware(IHardware hardware)
-            {
-                hardware.Update();
-                foreach (IHardware subHardware in hardware.SubHardware) subHardware.Accept(this);
-            }
-            public void VisitSensor(ISensor sensor) { }
-            public void VisitParameter(IParameter parameter) { }
-        }
-        float cpu_temp;
-        string cpu_name;
-        float gpu_temp;
-        string gpu_name;
-
-        Task task;
-        Computer computer;
-        UpdateVisitor updateVisitor;
-
-        void GetSystemInfo()
-        {
-            computer.Accept(updateVisitor);
-            for (int i = 0; i < computer.Hardware.Length; i++)
-            {
-                if (computer.Hardware[i].HardwareType == HardwareType.CPU)
-                {
-                    //Trace.WriteLine("HardwareType.CPU " + computer.Hardware[i].Sensors.Length);
-                    for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
-                    {
-                        if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
-                        {
-                            //Trace.WriteLine(computer.Hardware[i].Sensors[j].Name + " " + computer.Hardware[i].Sensors[j].Identifier);
-                            cpu_temp = computer.Hardware[i].Sensors[j].Value.Value;
-                            cpu_name = computer.Hardware[i].Sensors[j].Name;
-                        }
-                    }
-                }
-                else if (computer.Hardware[i].HardwareType == HardwareType.GpuNvidia)
-                {
-                    //Trace.WriteLine("HardwareType.GpuNvidia " + computer.Hardware[i].Sensors.Length);
-                    for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
-                    {
-                        if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
-                        {
-                            //Trace.WriteLine(computer.Hardware[i].Sensors[j].Name + " " + computer.Hardware[i].Sensors[j].Identifier);
-                            gpu_temp = computer.Hardware[i].Sensors[j].Value.Value;
-                            gpu_name = computer.Hardware[i].Sensors[j].Name;
-                        }
-                    }
-                }
-            }
-        }
-
-        void InitOpenHardwareMonitor()
-        {
-            updateVisitor = new UpdateVisitor();
-            computer = new Computer();
-            computer.Open();
-            computer.CPUEnabled = true;
-            computer.GPUEnabled = true;
-        }
+        private StarbreakersNet.HardwareMonitor.SystemInfosServer server;
 
         public MainWindow()
         {
             InitializeComponent();
-            InitOpenHardwareMonitor();
 
-            task = new Task(() =>
+            server = new StarbreakersNet.HardwareMonitor.SystemInfosServer();
+            server.getNewSystemInfos += infos =>
             {
-                while (true)
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    System.Threading.Thread.Sleep(1000);
-                    GetSystemInfo();
+                    label_CPU.Content = $"CPU : {infos.cpuInfos[0].temperature} °C";
+                    label_GPU.Content = $"GPU : {infos.gpuInfos[0].temperature} °C";
+                });
+            };
+            server.Start();
 
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        label_CPU.Content = $"{cpu_name} = {cpu_temp} °C";
-                        label_GPU.Content = $"{gpu_name} = {gpu_temp} °C";
-                    });
-                }
-            });
-            task.Start();
-        }
-
-        ~MainWindow()
-        {
-            computer.Close();
+            Application.Current.Exit += (s, e) => { server.Stop(); };
         }
     }
 }
