@@ -1,0 +1,42 @@
+export default [
+  {
+    type: "select",
+    icon: "wave-square",
+    label: "Fréquence de rafraichissement",
+    description: "Défini la fréquence de rafraichissement des données",
+    options: [
+      { label: "500ms", value: 500 },
+      { label: "1s", value: 1000 },
+      { label: "2s", value: 2000 },
+      { label: "3s", value: 3000 },
+      { label: "4s", value: 4000 },
+      { label: "5s", value: 5000 },
+      { label: "10s", value: 10000 },
+      { label: "20s", value: 20000 },
+      { label: "30s", value: 30000 },
+      { label: "1min", value: 60000 },
+    ],
+    storePath: ["settings", "nodeFrequency"],
+  },
+  {
+    type: "number",
+    icon: "table-columns",
+    label: "Nombre de colonnes",
+    description: "Défini le nombre de colonnes pour l'affichage des graphiques",
+    storePath: ["settings", "graphColumns"],
+  },
+  {
+    type: "switch",
+    icon: "chart-area",
+    label: "Heures des graphiques",
+    description: "Affiche sur l'axe des abscisses l'heure de la donnée",
+    storePath: ["settings", "showXLabel"],
+  },
+  {
+    type: "switch",
+    icon: "heading",
+    label: "Titres des graphiques",
+    description: "Affiche le titre des graphiques",
+    storePath: ["settings", "showChartTitle"],
+  },
+];
