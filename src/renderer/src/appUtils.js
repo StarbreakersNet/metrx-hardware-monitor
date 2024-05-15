@@ -7,10 +7,16 @@ export class Loader {
   constructor() {
     this.count = 0;
     this.loading = false;
+    this.minDelay = 500;
   }
 
-  stop() {
-    if (this.count > 0) {
+  async stop() {
+    const elapsed = Date.now() - this.startTimestamp;
+    if (this.count > 1) {
+      this.count--;
+      this.setLoading();
+    } else if (this.count === 1) {
+      await delay(this.minDelay);
       this.count--;
       this.setLoading();
     }
@@ -18,12 +24,17 @@ export class Loader {
 
   start() {
     this.count++;
+    this.startTimestamp = Date.now();
     this.setLoading();
   }
 
   setLoading() {
     this.loading = this.count > 0;
   }
+}
+
+export function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function formatBytes(bytes, decimals = 2) {
