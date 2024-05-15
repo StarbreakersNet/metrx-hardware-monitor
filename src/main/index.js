@@ -1,8 +1,9 @@
-import { app, shell, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { join } from "path";
-import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import installExtension from "electron-devtools-installer";
+import useUpdater from "./updater";
 
 function createWindow() {
   // Create the browser window.
@@ -37,6 +38,19 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  // Handle dialogs for renderer
+  ipcMain.handle("dialog", (event, method, params) => {
+    dialog[method](params);
+  });
+
+  // Handle build type for renderer
+  ipcMain.handle("build_type", () => {
+    return app.getVersion();
+  });
+
+  // Handle auto updater
+  useUpdater(app, mainWindow);
 }
 
 // This method will be called when Electron has finished

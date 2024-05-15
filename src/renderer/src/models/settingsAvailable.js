@@ -1,5 +1,12 @@
 export default [
   {
+    type: "switch",
+    icon: "sync",
+    label: "Mise à jour automatique",
+    description: "Vérifie si une mise à jour est disponible au démarrage de l'application",
+    storePath: ["settings", "autoUpdate"],
+  },
+  {
     type: "select",
     icon: "wave-square",
     label: "Fréquence de rafraichissement",

@@ -8,8 +8,9 @@ import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
 import { registerTheme } from "echarts";
 import { darkTheme } from "naive-ui";
-import { computed, onBeforeMount, onBeforeUpdate, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeMount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import Updater from "@renderer/Updater.vue";
 
 const router = useRouter();
 const system = useSystemStore();
@@ -19,7 +20,7 @@ const menuConfig = reactive({
   collapsedWidth: 64,
 });
 const version = computed(() => {
-  return system.info.app?.name + " " + system.info.app?.version;
+  return "v" + system.info.app?.version;
 });
 const menuOptions = computed(() => {
   return [
@@ -51,27 +52,13 @@ const menuOptions = computed(() => {
           type: "group",
           label: version.value,
           key: "version",
+          disabled: true,
         },
       ],
     },
   ];
 });
 const themeSelector = ref(!!user.settings.theme);
-const buildType = computed(() => {
-  let variable = import.meta.env.MODE;
-  let label = variable.toLowerCase()
-
-  switch (variable) {
-    case "development":
-      return "Dev";
-    case "beta":
-      return "Beta";
-    case "production":
-      return "Live";
-    default:
-      return label.charAt(0).toUpperCase() + label.slice(1);
-  }
-});
 
 watch(themeSelector, value => {
   if (value) {
@@ -162,14 +149,7 @@ onMounted(async () => {
                 </template>
               </n-popover>
             </n-tag>
-            <n-tag :bordered="false" type="primary">
-              <template #avatar>
-                <font-awesome-icon :icon="['fas', 'code-branch']" />
-              </template>
-              <n-space size="small">
-                {{ buildType }}
-              </n-space>
-            </n-tag>
+            <updater />
           </n-flex>
         </n-flex>
       </n-layout-footer>

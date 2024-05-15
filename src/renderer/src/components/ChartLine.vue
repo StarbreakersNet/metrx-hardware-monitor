@@ -50,6 +50,7 @@ const props = defineProps({
 
 const seriesData = ref([]);
 const option = ref({
+  animation: false,
   tooltip: {
     trigger: "axis",
     axisPointer: {

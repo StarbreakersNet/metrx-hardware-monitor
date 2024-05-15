@@ -1,8 +1,13 @@
-import { contextBridge } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
 import Si from "systeminformation";
 
 // Custom APIs for renderer
+const electron = {
+  ...electronAPI,
+  dialog: (method, config) => ipcRenderer.invoke("dialog", method, config),
+  getBuildType: () => ipcRenderer.invoke("build_type"),
+};
 const api = {
   ...Si,
 };
@@ -12,14 +17,14 @@ const api = {
 // just add to the DOM global.
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld("electron", electronAPI);
+    contextBridge.exposeInMainWorld("electron", electron);
     contextBridge.exposeInMainWorld("api", api);
     contextBridge.exposeInMainWorld("vite", import.meta.env);
   } catch (error) {
     console.error(error);
   }
 } else {
-  window.electron = electronAPI;
+  window.electron = electron;
   window.api = api;
   window.vite = import.meta.env;
 }

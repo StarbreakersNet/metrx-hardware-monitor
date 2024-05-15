@@ -10,6 +10,7 @@ export const useUserStore = defineStore(
     const settings = reactive({
       theme: darkTheme,
       isDark: true,
+      autoUpdate: false,
       nodeFrequency: 1000,
       graphColumns: 2,
       showChartTitle: true,
