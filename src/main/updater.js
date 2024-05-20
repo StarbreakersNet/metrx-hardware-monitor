@@ -15,7 +15,7 @@ export default function useUpdater(app, window) {
   );
 
   autoUpdater.on("checking-for-update", () => {
-    window.webContents.send("update-status", "Vérification des mises à jour...1");
+    window.webContents.send("update-status", "Vérification des mises à jour...");
   });
 
   autoUpdater.on("update-available", () => {

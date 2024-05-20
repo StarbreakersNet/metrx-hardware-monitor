@@ -36,6 +36,10 @@ linux:
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
+deb:
+  artifactName: ${name}-${version}-${arch}.${ext}
+snap:
+  artifactName: ${name}-${version}-${arch}.${ext}
 npmRebuild: false
 publish:
   provider: generic

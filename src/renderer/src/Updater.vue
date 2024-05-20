@@ -2,8 +2,10 @@
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useUserStore } from "@renderer/stores/user";
 import AppUtils from "@renderer/appUtils";
+import { useSystemStore } from "@renderer/stores/system";
 
 const userStore = useUserStore();
+const systemStore = useSystemStore();
 
 const dialogTitle = ref("Updater");
 const isUpdateAvailable = ref(false);
@@ -57,7 +59,7 @@ function initListener() {
 
 async function checkForUpdates() {
   loaders.main.start();
-  let version = await window.electron.getBuildType();
+  let version = systemStore.info.app?.version;
   console.log("[Updater]: Vérification des mises à jour pour la version " + version);
   window.electron.ipcRenderer.send("check-for-updates", {
     beta: version.includes("beta"),
@@ -65,19 +67,30 @@ async function checkForUpdates() {
 }
 
 const buildType = computed(() => {
-  let variable = import.meta.env.MODE;
-  let label = variable.toLowerCase();
+  const mode = import.meta.env.MODE?.toLowerCase();
+  const version = systemStore.info.app?.version;
 
-  switch (variable) {
-    case "development":
-      return "Dev";
-    case "beta":
-      return "Beta";
-    case "production":
-      return "Live";
-    default:
-      return label.charAt(0).toUpperCase() + label.slice(1);
+  if (mode && version) {
+    const types = {
+      stable: "Stable",
+      beta: "Beta",
+      alpha: "Alpha",
+    };
+
+    for (const type in types) {
+      if (version.includes(type)) {
+        return types[type];
+      }
+    }
+
+    return types.stable;
+  } else {
+    return "";
   }
+});
+
+const isDev = computed(() => {
+  return import.meta.env.MODE === "development";
 });
 
 onBeforeMount(() => {
@@ -106,11 +119,22 @@ onBeforeUnmount(() => {
     <template #avatar>
       <font-awesome-icon :icon="['fas', 'code-branch']" />
     </template>
-    <n-flex align="center" size="small">
-      <n-space size="small">
-        {{ buildType }}
-      </n-space>
-      <n-popover v-if="isHovered" :show-arrow="false" trigger="hover">
+    <n-flex v-if="buildType" align="center" size="small">
+      <n-popover v-if="isDev" :show-arrow="false" trigger="hover">
+        <template #trigger>
+          <font-awesome-icon :icon="['fas', 'tools']" />
+        </template>
+        Environnement de développement
+      </n-popover>
+      <n-popover :show-arrow="false" trigger="hover">
+        <template #trigger>
+            {{ buildType }}
+        </template>
+        <template #default>
+            Type de version
+        </template>
+      </n-popover>
+      <n-popover :show-arrow="false" trigger="hover">
         <template #trigger>
           <n-button
             :bordered="false"
@@ -120,7 +144,7 @@ onBeforeUnmount(() => {
             <font-awesome-icon icon="sync-alt" />
           </n-button>
         </template>
-        Vérifier les mises à jour
+        Cliquer pour vérifier les mises à jour
       </n-popover>
       <n-popover v-if="isUpdateAvailable" :show-arrow="false" trigger="hover">
         <template #trigger>
@@ -135,6 +159,7 @@ onBeforeUnmount(() => {
         Une mise à jour est disponible. Cliquez pour la télécharger.
       </n-popover>
     </n-flex>
+    <font-awesome-icon v-else :icon="['fas', 'spinner']" spin />
   </n-tag>
 </template>
 

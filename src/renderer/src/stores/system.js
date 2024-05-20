@@ -33,8 +33,8 @@ export const useSystemStore = defineStore("system", () => {
   async function initStaticMetrics() {
     let initialObj = {};
     initialObj.app = {
-      name: window.electron.process.env.npm_package_name,
-      version: window.electron.process.env.npm_package_version,
+      name: await window.electron.app.getName(),
+      version: await window.electron.app.getVersion()
     };
     initialObj.versions = window.electron.process.versions;
     info.value = initialObj;

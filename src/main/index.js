@@ -1,9 +1,12 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, nativeImage } from "electron";
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import icon from "../../resources/icon.png?asset";
 import installExtension from "electron-devtools-installer";
 import useUpdater from "./updater";
+import useTray from "./tray";
+
+const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
+const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
 
 function createWindow() {
   // Create the browser window.
@@ -12,7 +15,7 @@ function createWindow() {
     height: 1000,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === "linux" ? { icon } : {}),
+    ...(process.platform === "linux" ? { appIcon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
@@ -45,12 +48,16 @@ function createWindow() {
   });
 
   // Handle build type for renderer
-  ipcMain.handle("build_type", () => {
+  ipcMain.handle("get_app_version", () => {
     return app.getVersion();
+  });
+  ipcMain.handle("get_app_name", () => {
+    return app.getName();
   });
 
   // Handle auto updater
   useUpdater(app, mainWindow);
+  useTray(trayIcon, mainWindow);
 }
 
 // This method will be called when Electron has finished
@@ -58,7 +65,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId("com.electron");
+  electronApp.setAppUserModelId("com.hardwaremonitor");
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

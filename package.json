@@ -1,5 +1,6 @@
 {
   "name": "sb-hardware-monitor",
+  "productName": "Hardware Monitor",
   "version": "1.0.0",
   "description": "Monitor computer information on Windows, MacOS or Linux in an Electron application",
   "main": "./out/main/index.js",

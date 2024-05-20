@@ -4,9 +4,12 @@ import Si from "systeminformation";
 
 // Custom APIs for renderer
 const electron = {
+  app: {
+    getName: () => ipcRenderer.invoke("get_app_name"),
+    getVersion: () => ipcRenderer.invoke("get_app_version"),
+  },
   ...electronAPI,
   dialog: (method, config) => ipcRenderer.invoke("dialog", method, config),
-  getBuildType: () => ipcRenderer.invoke("build_type"),
 };
 const api = {
   ...Si,

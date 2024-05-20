@@ -1,71 +1,132 @@
 stages:
   - Build
-  - Upload
   - Release
 
-build:
+prepare_build:
   stage: Build
-  image: electronuserland/builder:wine
-  before_script:
-    - npm install
+  image: node
   script:
-    - export VERSION=$(node -e "console.log(require('./package.json').version)")
-    - if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then export VERSION="${VERSION}-beta"; fi
+    - VERSION=$(node -e "console.log(require('./package.json').version)")
+    - if [ "$CI_COMMIT_REF_NAME" = "develop" ]; then VERSION=$VERSION-beta; fi
     - echo "VERSION=$VERSION" >> variables.env
-    - export APPNAME=$(node -e "console.log(require('./package.json').productName)")
-    - if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then export APPNAME="${APPNAME}-beta"; fi
+    - APPNAME=$(node -e "console.log(require('./package.json').name)")
+    - if [ "$CI_COMMIT_REF_NAME" = "develop" ]; then APPNAME=$APPNAME-beta; fi
     - echo "APPNAME=$APPNAME" >> variables.env
-    - npm run build:win
-    - npm run build:linux
   artifacts:
     reports:
       dotenv: variables.env
+  only:
+    - main
+    - develop
+
+build_binaries:
+  stage: Build
+  image: electronuserland/builder:wine
+  allow_failure: false
+  needs: ["prepare_build"]
+  dependencies: ["prepare_build"]
+  before_script:
+    - echo "Package version $VERSION"
+    - npm version "$VERSION" --no-git-tag-version
+    - npm install
+  script:
+    - set -e # Exit immediately if a command exits with a non-zero status
+    - npm run build:win
+    - npm run build:linux
+  artifacts:
     name: $CI_COMMIT_REF_SLUG
     paths:
       - $CI_PROJECT_DIR/dist/*.*
+    expire_in: 1 week
     when: on_success
   only:
-    - main # Specific branch build change branch according your repo
+    - main
     - develop
 
-variables:
-  LINUX_BINARY: '${APPNAME}-${VERSION}.AppImage'
-  WIN_BINARY: '${APPNAME}-${VERSION}.exe'
-  PACKAGE_REGISTRY_URL: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${APPNAME}/${VERSION}'
-  PACKAGE_REGISTRY_URL_YML: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${APPNAME}'
-
-upload:
-  stage: Upload
-  needs:
-    - job: build
-      artifacts: true
-  rules:
-    - if: $CI_COMMIT_TAG
-      when: never # Do not run this job when a tag is created manually
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Run this job when when commits are pushed to the default branch
-  script:
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "./dist/${LINUX_BINARY}" "${PACKAGE_REGISTRY_URL}/${LINUX_BINARY}"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "./dist/${WIN_BINARY}" "${PACKAGE_REGISTRY_URL}/${WIN_BINARY}"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "./dist/latest.yml" "${PACKAGE_REGISTRY_URL_YML}/latest.yml"'
-    - echo "${PACKAGE_REGISTRY_URL_YML}/latest.yml"
-
-auto-release-main:
-  image: registry.gitlab.com/gitlab-org/release-cli
-  needs:
-    - job: build
-      artifacts: true
-    - job: upload
-      artifacts: true
+upload-to-registry:
   stage: Release
+  image: curlimages/curl:latest
+  allow_failure: false
+  needs: ["prepare_build", "build_binaries"]
+  dependencies: ["prepare_build", "build_binaries"]
   rules:
     - if: $CI_COMMIT_TAG
       when: never # Do not run this job when a tag is created manually
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Run this job when when commits are pushed to the default branch
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
+      when: always # Run this job when commits are pushed to the default branch or develop
+    - when: never
+  script:
+    - ls -la dist
+    - BINARY_WIN="${CI_PROJECT_NAME}-${VERSION}-setup.exe"
+    - echo "BINARY_WIN=$BINARY_WIN" >> variables.env
+    - BINARY_LINUX="${CI_PROJECT_NAME}-${VERSION}.AppImage"
+    - echo "BINARY_LINUX=$BINARY_LINUX" >> variables.env
+    - BINARY_DEB="${CI_PROJECT_NAME}-${VERSION}-amd64.deb"
+    - echo "BINARY_DEB=$BINARY_DEB" >> variables.env
+    - BINARY_SNAP="${CI_PROJECT_NAME}-${VERSION}-amd64.snap"
+    - echo "BINARY_SNAP=$BINARY_SNAP" >> variables.env
+    - PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${APPNAME}/${VERSION}"
+    - echo "PACKAGE_REGISTRY_URL=$PACKAGE_REGISTRY_URL" >> variables.env
+    - echo "Uploading $BINARY_WIN with url ${PACKAGE_REGISTRY_URL}/${BINARY_WIN}"
+    - |
+      curl -f \
+      --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file dist/${BINARY_WIN} \
+      "${PACKAGE_REGISTRY_URL}/${BINARY_WIN}"
+    - echo "Uploading $BINARY_LINUX with url ${PACKAGE_REGISTRY_URL}/${BINARY_LINUX}"
+    - |
+      curl -f \
+      --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file dist/${BINARY_LINUX} \
+      "${PACKAGE_REGISTRY_URL}/${BINARY_LINUX}"
+    - echo "Uploading $BINARY_DEB with url ${PACKAGE_REGISTRY_URL}/${BINARY_DEB}"
+    - |
+      curl -f \
+      --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file dist/${BINARY_DEB} \
+      "${PACKAGE_REGISTRY_URL}/${BINARY_DEB}"
+    - echo "Uploading $BINARY_SNAP with url ${PACKAGE_REGISTRY_URL}/${BINARY_SNAP}"
+    - |
+      curl -f \
+      --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file dist/${BINARY_SNAP} \
+      "${PACKAGE_REGISTRY_URL}/${BINARY_SNAP}"
+    - echo "Binaries uploaded"
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+auto-release:
+  stage: Release
+  image: registry.gitlab.com/gitlab-org/release-cli
+  allow_failure: false
+  needs: ["prepare_build", "build_binaries", "upload-to-registry"]
+  dependencies: ["prepare_build", "build_binaries", "upload-to-registry"]
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never # Do not run this job when a tag is created manually
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
+      when: always # Run this job when when commits are pushed to the default branch
+    - when: never
   script:
     - echo "Release $VERSION"
-    - |
-      release-cli create --name "Release $VERSION" --tag-name v$VERSION \
-      --description 'Created using the release-cli. $CI_COMMIT_TITLE' --ref $CI_COMMIT_SHA \
-      --assets-link "{\"name\":\"${APPNAME}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${WIN_BINARY}\"}" \
-      --assets-link "{\"name\":\"${APPNAME} Linux\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_BINARY}\"}" \
-      --assets-link "{\"name\":\"${APPNAME} Latest\",\"url\":\"${PACKAGE_REGISTRY_URL_YML}/latest.yml\"}"
+    - echo "Creating release"
+  release:
+    name: v$VERSION
+    tag_name: $VERSION
+    ref: $CI_COMMIT_REF_NAME
+    description: 'Created using the release-cli.'
+    assets:
+      links:
+        - name: $BINARY_WIN
+          url: $PACKAGE_REGISTRY_URL/$BINARY_WIN
+          link_type: package
+        - name: $BINARY_LINUX
+          url: $PACKAGE_REGISTRY_URL/$BINARY_LINUX
+          link_type: package
+        - name: $BINARY_DEB
+          url: $PACKAGE_REGISTRY_URL/$BINARY_DEB
+          link_type: package
+        - name: $BINARY_SNAP
+          url: $PACKAGE_REGISTRY_URL/$BINARY_SNAP
+          link_type: package
