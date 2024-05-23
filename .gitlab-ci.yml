@@ -12,6 +12,9 @@ prepare_build:
     - APPNAME=$(node -e "console.log(require('./package.json').name)")
     - if [ "$CI_COMMIT_REF_NAME" = "develop" ]; then APPNAME=$APPNAME-beta; fi
     - echo "APPNAME=$APPNAME" >> variables.env
+    - YML=latest
+    - if [ "$CI_COMMIT_REF_NAME" = "develop" ]; then YML=beta; fi
+    - echo "YML=$YML" >> variables.env
   artifacts:
     reports:
       dotenv: variables.env
@@ -65,7 +68,11 @@ upload-to-registry:
     - echo "BINARY_DEB=$BINARY_DEB" >> variables.env
     - BINARY_SNAP="${CI_PROJECT_NAME}-${VERSION}-amd64.snap"
     - echo "BINARY_SNAP=$BINARY_SNAP" >> variables.env
-    - PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${APPNAME}/${VERSION}"
+    - YML_WIN="${YML}.yml"
+    - echo "YML_WIN=$YML_WIN" >> variables.env
+    - YML_LINUX="${YML}-linux.yml"
+    - echo "YML_LINUX=$YML_LINUX" >> variables.env
+    - PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/Build/${YML}"
     - echo "PACKAGE_REGISTRY_URL=$PACKAGE_REGISTRY_URL" >> variables.env
     - echo "Uploading $BINARY_WIN with url ${PACKAGE_REGISTRY_URL}/${BINARY_WIN}"
     - |
@@ -91,7 +98,19 @@ upload-to-registry:
       --header "JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file dist/${BINARY_SNAP} \
       "${PACKAGE_REGISTRY_URL}/${BINARY_SNAP}"
-    - echo "Binaries uploaded"
+    - echo "Uploading $YML_WIN with url ${PACKAGE_REGISTRY_URL}/${YML_WIN}"
+    - |
+      curl -f \
+      --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file dist/${YML_WIN} \
+      "${PACKAGE_REGISTRY_URL}/${YML_WIN}"
+    - echo "Uploading $YML_LINUX with url ${PACKAGE_REGISTRY_URL}/${YML_LINUX}"
+    - |
+      curl -f \
+      --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file dist/${YML_LINUX} \
+      "${PACKAGE_REGISTRY_URL}/${YML_LINUX}"
+    - echo "Binaries and YML files uploaded to registry"
   artifacts:
     reports:
       dotenv: variables.env
@@ -130,3 +149,9 @@ auto-release:
         - name: $BINARY_SNAP
           url: $PACKAGE_REGISTRY_URL/$BINARY_SNAP
           link_type: package
+        - name: $YML_WIN
+          url: $PACKAGE_REGISTRY_URL/$YML_WIN
+          link_type: other
+        - name: $YML_LINUX
+          url: $PACKAGE_REGISTRY_URL/$YML_LINUX
+          link_type: other
