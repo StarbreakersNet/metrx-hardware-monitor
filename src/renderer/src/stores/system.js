@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 
 export const useSystemStore = defineStore("system", () => {
   const user = useUserStore();
+  const app = ref({});
   const info = ref({});
   const metrics = ref({});
   const interval = computed(() => user.settings.nodeFrequency ?? 1000);
@@ -30,19 +31,14 @@ export const useSystemStore = defineStore("system", () => {
     return obj;
   });
 
-  async function initStaticMetrics() {
-    let initialObj = {};
-    initialObj.app = {
+  async function init() {
+    app.value = {
       name: await window.electron.app.getName(),
-      version: await window.electron.app.getVersion()
+      version: await window.electron.app.getVersion(),
     };
-    initialObj.versions = window.electron.process.versions;
-    info.value = initialObj;
-    await getAsyncStaticMetrics(info.value);
-  }
 
-  async function getAsyncStaticMetrics(obj) {
-    Object.assign(obj, await window.api.getStaticData());
+    info.value = await window.api.getStaticData();
+    Object.assign(info.value.versions, window.electron.process.versions);
   }
 
   function storeCallback(apiData) {
@@ -60,9 +56,10 @@ export const useSystemStore = defineStore("system", () => {
 
   return {
     interval,
+    app,
     info,
     metrics,
-    initStaticMetrics,
+    init,
     nodeUsed,
   };
 });

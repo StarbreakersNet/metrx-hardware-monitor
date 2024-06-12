@@ -1,16 +1,17 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, nativeImage } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, shell } from "electron";
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import installExtension from "electron-devtools-installer";
 import useUpdater from "./updater";
 import useTray from "./tray";
+import { StatefullBrowserWindow } from "stateful-electron-window";
 
 const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
 const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
 
 function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  const mainWindow = new StatefullBrowserWindow({
     width: 960,
     height: 1000,
     show: false,
@@ -54,6 +55,9 @@ function createWindow() {
   ipcMain.handle("get_app_name", () => {
     return app.getName();
   });
+  ipcMain.handle("open_devtools", () => {
+    return mainWindow.webContents.openDevTools();
+  });
 
   // Handle auto updater
   useUpdater(app, mainWindow);
@@ -64,8 +68,21 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Check if the app is already running
+  const gotTheLock = app.requestSingleInstanceLock();
   // Set app user model id for windows
   electronApp.setAppUserModelId("com.hardwaremonitor");
+
+  if (!gotTheLock) {
+    app.quit();
+  } else {
+    createWindow();
+  }
+
+  // Change userData folder name for development
+  if (is.dev) {
+    app.setPath("userData", app.getPath("userData") + " Dev");
+  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -74,12 +91,27 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  createWindow();
-
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+
+  // This will catch the second instance
+  // We send a signal to the first instance to focus the window
+  app.on("second-instance", (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    const allWindows = BrowserWindow.getAllWindows();
+
+    if (allWindows.length > 0) {
+      const win = allWindows[0];
+
+      if (win.isMinimized()) {
+        win.show();
+      }
+
+      win.focus();
+    }
   });
 });
 
