@@ -7,6 +7,7 @@ const electron = {
   app: {
     getName: () => ipcRenderer.invoke("get_app_name"),
     getVersion: () => ipcRenderer.invoke("get_app_version"),
+    openDevTools: () => ipcRenderer.invoke("open_devtools"),
   },
   ...electronAPI,
   dialog: (method, config) => ipcRenderer.invoke("dialog", method, config),

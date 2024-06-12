@@ -1,7 +1,7 @@
 {
   "name": "sb-hardware-monitor",
   "productName": "Hardware Monitor",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Monitor computer information on Windows, MacOS or Linux in an Electron application",
   "main": "./out/main/index.js",
   "author": "TheRedfoox",
@@ -32,6 +32,7 @@
     "lodash": "^4.17.21",
     "pinia": "^2.1.6",
     "pinia-plugin-persistedstate": "^3.2.1",
+    "stateful-electron-window": "^1.0.0",
     "systeminformation": "^5.18.12",
     "vue-echarts": "^6.6.9",
     "vue-router": "^4.3.0"

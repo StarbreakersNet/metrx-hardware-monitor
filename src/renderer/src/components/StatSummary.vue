@@ -1,5 +1,5 @@
 <script setup>
-import { formatBytes, formatValue, getValueUnit } from "@renderer/appUtils";
+import { formatValue, getValueUnit } from "@renderer/appUtils";
 import { useSystemStore } from "@renderer/stores/system";
 import { NA } from "naive-ui";
 import { h, ref, watch } from "vue";
@@ -197,6 +197,7 @@ watch(system, () => {
     :columns="columns"
     :data="listSummary"
     :render-cell="renderCell"
+    :row-key="row => row.label"
     children-key="listEntry"
     default-expand-all
     size="small" />

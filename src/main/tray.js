@@ -2,6 +2,7 @@ import { app, Menu, Tray } from "electron";
 
 export default function useTray(trayIcon, mainWindow) {
   let tray = new Tray(trayIcon);
+  let isQuitting = false;
   const buildContextMenu = () => {
     const openAtLogin = app.getLoginItemSettings().openAtLogin;
 
@@ -39,17 +40,21 @@ export default function useTray(trayIcon, mainWindow) {
         },
       },
     ]);
-  }
+  };
   tray.setToolTip(app.getName());
   tray.setContextMenu(buildContextMenu());
   tray.on("double-click", () => {
     mainWindow.show();
   });
 
-  mainWindow.on("minimize", (event) => {
-    setTimeout(() => {
+  app.on("before-quit", () => {
+    isQuitting = true;
+  });
+
+  mainWindow.on("close", event => {
+    if (!isQuitting) {
+      event.preventDefault();
       mainWindow.hide();
-    }, 500);
+    }
   });
 }
-
