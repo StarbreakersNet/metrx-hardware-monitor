@@ -9,11 +9,14 @@ import { StatefullBrowserWindow } from "stateful-electron-window";
 const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
 const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
 
+let mainWindow;
+
 function createWindow() {
-  // Create the browser window.
-  const mainWindow = new StatefullBrowserWindow({
+  let windowOptions = {
     width: 960,
     height: 1000,
+    minWidth: 500,
+    minHeight: 500,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === "linux" ? { appIcon } : {}),
@@ -21,7 +24,13 @@ function createWindow() {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
     },
-  });
+  };
+  // Create the browser window.
+  if (is.dev) {
+    mainWindow = new BrowserWindow(windowOptions);
+  } else {
+    mainWindow = new StatefullBrowserWindow(windowOptions);
+  }
 
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();
@@ -91,7 +100,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  app.on("activate", function () {
+  app.on("activate", function() {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -101,17 +110,11 @@ app.whenReady().then(() => {
   // We send a signal to the first instance to focus the window
   app.on("second-instance", (event, commandLine, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
-    const allWindows = BrowserWindow.getAllWindows();
-
-    if (allWindows.length > 0) {
-      const win = allWindows[0];
-
-      if (win.isMinimized()) {
-        win.show();
-      }
-
-      win.focus();
+    if (mainWindow.isMinimized() || !mainWindow.isVisible()) {
+      mainWindow.show();
     }
+
+    mainWindow.focus();
   });
 });
 

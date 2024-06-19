@@ -1,10 +1,16 @@
 <script setup>
-import { formatValue, getValueUnit } from "@renderer/appUtils";
+import { formatValue, getValueUnit, Loader } from "@renderer/appUtils";
 import { useSystemStore } from "@renderer/stores/system";
-import { NA } from "naive-ui";
-import { h, ref, watch } from "vue";
+import { NA, useLoadingBar } from "naive-ui";
+import { computed, h, onMounted, reactive, ref, watch } from "vue";
+import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
 
 const system = useSystemStore();
+const loaders = reactive({
+  main: new Loader(),
+});
+const loading = computed(() => loaders.main.loading);
+const loadingBar = useLoadingBar();
 
 const listSummary = ref([]);
 const columns = [
@@ -47,6 +53,8 @@ function setSummary() {
       listEntry,
       link: "https://systeminformation.io/general.html",
     });
+    loaders.main.stop();
+    loadingBar.finish();
   }
 
   if (system.metrics.currentLoad || system.info.cpu) {
@@ -187,8 +195,12 @@ function getUsage(used, total, unit) {
   );
 }
 
-watch(system, () => {
-  setSummary();
+onMounted(() => {
+  loadingBar.start();
+  loaders.main.start();
+  watch(system, () => {
+    setSummary();
+  });
 });
 </script>
 
@@ -196,11 +208,16 @@ watch(system, () => {
   <n-data-table
     :columns="columns"
     :data="listSummary"
+    :loading="loading"
     :render-cell="renderCell"
     :row-key="row => row.label"
     children-key="listEntry"
     default-expand-all
-    size="small" />
+    size="small">
+    <template #loading>
+      <loader-spinner />
+    </template>
+  </n-data-table>
 </template>
 
 <style lang="sass" scoped>

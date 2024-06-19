@@ -2,10 +2,13 @@
 import ChartLine from "@renderer/components/ChartLine.vue";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useLoadingBar } from "naive-ui";
+import AppSpin from "@renderer/components/AppSpin.vue";
 
 const system = useSystemStore();
 const user = useUserStore();
+const loadingBar = useLoadingBar();
 
 const listSummary = ref([]);
 
@@ -131,6 +134,7 @@ function setSummary() {
   }
 
   listSummary.value = list;
+  loadingBar.finish();
 }
 
 function getEntryList(list, { title, description, icon, value, unit, min, max }) {
@@ -139,30 +143,42 @@ function getEntryList(list, { title, description, icon, value, unit, min, max })
   }
 }
 
-watch(system, () => {
-  setSummary();
+function getAnimationDelay(index) {
+  return `transition-delay: ${index * 0.05}s;`;
+}
+
+onMounted(() => {
+  loadingBar.start();
+  watch(system, () => {
+    setSummary();
+  });
 });
 </script>
 
 <template>
-  <n-flex>
-    <n-grid :cols="colNumber" x-gap="14" y-gap="14">
-      <n-gi v-for="item in listSummary" :key="item.title">
-        <chart-line
-          :data="item.value"
-          :description="item.description"
-          :icon="item.icon"
-          :max="item.max"
-          :min="item.min"
-          :title="item.title"
-          :unit="item.unit" />
-      </n-gi>
-    </n-grid>
-  </n-flex>
+  <app-spin :show="listSummary.length <= 0">
+    <n-row :gutter="[14, 14]" class="graph-grid">
+      <transition-group name="fade-y" tag="span">
+        <n-col
+          v-for="(item, index) in listSummary"
+          :key="item.title"
+          :span="24 / colNumber"
+          :style="getAnimationDelay(index)">
+          <chart-line
+            :data="item.value"
+            :description="item.description"
+            :icon="item.icon"
+            :max="item.max"
+            :min="item.min"
+            :title="item.title"
+            :unit="item.unit" />
+        </n-col>
+      </transition-group>
+    </n-row>
+  </app-spin>
 </template>
 
 <style lang="sass" scoped>
-.graph-card
-  flex: 1
-  min-width: 25em
+.graph-grid
+  min-height: 20em
 </style>

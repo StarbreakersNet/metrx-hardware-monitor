@@ -1,6 +1,7 @@
 import { useUserStore } from "@renderer/stores/user";
 import { defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
+import staticData from "@renderer/models/staticData";
 
 export const useSystemStore = defineStore("system", () => {
   const user = useUserStore();
@@ -32,27 +33,41 @@ export const useSystemStore = defineStore("system", () => {
   });
 
   async function init() {
+    if (window.electron.process.platform === "win32") {
+      window.api.powerShellStart();
+    }
+
     app.value = {
       name: await window.electron.app.getName(),
       version: await window.electron.app.getVersion(),
     };
 
-    info.value = await window.api.getStaticData();
+    info.value = await getStaticData();
     Object.assign(info.value.versions, window.electron.process.versions);
+
+    watch(
+      [interval, nodeUsed],
+      () => {
+        clearInterval(observer.value);
+        observer.value = window.api.observe(nodeUsed.value, interval.value, storeCallback);
+      },
+      { immediate: true }
+    );
+  }
+
+  async function getStaticData() {
+    return await window.api.get(staticData)
   }
 
   function storeCallback(apiData) {
     metrics.value = apiData;
   }
 
-  watch(
-    [interval, nodeUsed],
-    () => {
-      clearInterval(observer.value);
-      observer.value = window.api.observe(nodeUsed.value, interval.value, storeCallback);
-    },
-    { immediate: true }
-  );
+  function destroy() {
+    if (window.electron.process.platform === "win32") {
+      window.api.powerShellRelease();
+    }
+  }
 
   return {
     interval,
@@ -60,6 +75,7 @@ export const useSystemStore = defineStore("system", () => {
     info,
     metrics,
     init,
+    destroy,
     nodeUsed,
   };
 });

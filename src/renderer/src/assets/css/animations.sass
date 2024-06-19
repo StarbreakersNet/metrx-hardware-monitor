@@ -1,0 +1,81 @@
+$timing-function: cubic-bezier(.9, 0, .1, 1)
+$default-duration: .5s
+
+.v-enter-active,
+.v-leave-active
+  transition: opacity 0.5s ease
+
+.v-enter-from,
+.v-leave-to
+  opacity: 0
+
+.scale-enter-active,
+.scale-leave-active
+  transition: transform 0.2s ease, opacity 0.2s ease
+
+.scale-enter-from,
+.scale-leave-to
+  transform: scale(0.95)
+  opacity: 0
+
+.shrink-enter-active,
+.shrink-leave-active
+  transition: transform 0.2s ease, opacity 0.2s ease
+
+.shrink-enter-from,
+.shrink-leave-to
+  transform: scale(1.05)
+  opacity: 0
+
+.flip-enter-active,
+.flip-leave-active
+  transition: transform 0.2s ease, opacity 0.2s ease
+
+.flip-enter-from,
+.flip-leave-to
+  transform: rotateY(-80deg)
+  opacity: 0
+
+.fade-x-enter-active,
+.fade-x-leave-to
+  transition: opacity 0.2s ease, transform 0.2s ease
+
+.fade-x-enter-from,
+.fade-x-leave-to
+  opacity: 0
+  transform: translateX(20px)
+
+.fade-y-enter-active,
+.fade-y-leave-to
+  transition: opacity 0.2s ease, transform 0.2s ease
+
+.fade-y-enter-from,
+.fade-y-leave-to
+  opacity: 0
+  transform: translateY(20px)
+
+.insert-enter-active,
+.insert-leave-active
+  transition: all .5s $timing-function
+  max-height: 100em
+  max-width: 100em
+
+.insert-enter-from,
+.insert-leave-to
+  opacity: 0 !important
+  transform: translateY(25%) !important
+  max-height: 0 !important
+  max-width: 0 !important
+
+.insert-side-enter-active,
+.insert-side-leave-active
+  transition: all .5s $timing-function
+  max-height: 100em
+  max-width: 100em
+
+.insert-side-enter-from,
+.insert-side-leave-to
+  opacity: 0 !important
+  transform: translateX(25%) !important
+  max-height: 0 !important
+  max-width: 0 !important
