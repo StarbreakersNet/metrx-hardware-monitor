@@ -241,6 +241,8 @@ watch(
   min-height: 8em
 
 .chart-card
+  min-width: 12em
+
   .chart-title-extra
     white-space: nowrap
 

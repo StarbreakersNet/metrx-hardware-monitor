@@ -13,6 +13,7 @@ export const useUserStore = defineStore(
       autoUpdate: false,
       nodeFrequency: 1000,
       graphColumns: 2,
+      showSideMenu: false,
       showChartTitle: true,
       showXLabel: false,
     });

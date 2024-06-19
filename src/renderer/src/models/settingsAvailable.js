@@ -46,4 +46,11 @@ export default [
     description: "Affiche le titre des graphiques",
     storePath: ["settings", "showChartTitle"],
   },
+  {
+    type: "switch",
+    icon: "bars",
+    label: "Menu latéral",
+    description: "Affiche le menu de l'application sur le côté gauche",
+    storePath: ["settings", "showSideMenu"],
+  },
 ];

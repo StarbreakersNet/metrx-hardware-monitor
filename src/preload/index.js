@@ -32,7 +32,3 @@ if (process.contextIsolated) {
   window.api = api;
   window.vite = import.meta.env;
 }
-
-if (process.platform === "win32") {
-  Si.powerShellStart();
-}
