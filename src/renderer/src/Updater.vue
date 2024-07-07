@@ -20,7 +20,7 @@ const downloadProgress = ref({
   bytesPerSecond: "",
   percent: 0,
 });
-const isUpdateAvailable = ref(false);
+const isUpdateAvailable = ref(true);
 const loaders = reactive({
   main: new AppUtils.Loader(),
 });
@@ -169,15 +169,15 @@ const buildType = computed(() => {
     const types = {
       stable: {
         label: "Live",
-        icon: "check-circle",
+        icon: "shield",
       },
       beta: {
         label: "Preview",
-        icon: "viale",
+        icon: "flask",
       },
       alpha: {
         label: "Nightly",
-        icon: "moon",
+        icon: "radiation",
       },
     };
 
@@ -188,9 +188,6 @@ const buildType = computed(() => {
   } else {
     return "loading";
   }
-});
-const isDev = computed(() => {
-  return mode.value === "development";
 });
 
 onBeforeMount(() => {
@@ -217,49 +214,53 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <n-tag :bordered="false" type="primary">
-    <template #avatar>
+  <n-tag :bordered="false" round type="primary">
+    <n-flex align="center" size="small">
       <n-popover v-if="buildType" :show-arrow="false" trigger="hover">
         <template #trigger>
           <FontAwesomeIcon :icon="['fas', buildType.icon]" />
         </template>
-        <template #default>Version {{ buildType.label }}</template>
+        <template #default>Version {{ buildType.label.toLowerCase() }} {{ version }}</template>
       </n-popover>
-    </template>
-    <font-awesome-icon v-if="buildType === 'loading'" :icon="['fas', 'spinner']" spin />
-    <n-flex v-else align="center" size="small">
-      <n-popover v-if="isDev" :show-arrow="false" trigger="hover">
-        <template #trigger>
-          <font-awesome-icon :icon="['fas', 'tools']" />
-        </template>
-        Environnement de développement
-      </n-popover>
-      <n-popover v-if="!isUpdateAvailable" :show-arrow="false" trigger="hover">
-        <template #trigger>
-          <n-button
-            :bordered="false"
-            :loading="loaders.main.loading"
-            size="tiny"
-            @click="checkForUpdates()">
-            <font-awesome-icon icon="sync-alt" />
-          </n-button>
-        </template>
-        Vérifier les mises à jour
-      </n-popover>
-      <n-popover v-if="isUpdateAvailable" :show-arrow="false" trigger="hover">
-        <template #trigger>
-          <n-button
-            :bordered="false"
-            :loading="loaders.main.loading"
-            size="tiny"
-            @click="installUpdate()">
-            <font-awesome-icon :color="theme.warningColor" beat-fade icon="download" />
-          </n-button>
-        </template>
-        Une mise à jour est disponible. Cliquez pour l'installer.
-      </n-popover>
+      <font-awesome-icon v-if="buildType === 'loading'" :icon="['fas', 'compass']" spin />
+      <transition v-else mode="out-in" name="insert">
+        <div v-if="!isUpdateAvailable">
+          <n-popover :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <n-button
+                :bordered="false"
+                :loading="loaders.main.loading"
+                size="tiny"
+                @click="checkForUpdates()">
+                <font-awesome-icon icon="sync-alt" />
+              </n-button>
+            </template>
+            <template #default>Vérifier les mises à jour</template>
+          </n-popover>
+        </div>
+        <n-flex v-else :size="0" align="center">
+          <n-text class="update-subtitle">Nouvelle version disponible</n-text>
+          <n-popover :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <n-button
+                :bordered="false"
+                :loading="loaders.main.loading"
+                size="tiny"
+                @click="installUpdate()">
+                <font-awesome-icon :color="theme.warningColor" beat-fade icon="download" />
+              </n-button>
+            </template>
+            <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>
+          </n-popover>
+        </n-flex>
+      </transition>
     </n-flex>
   </n-tag>
 </template>
 
-<style lang="sass"></style>
+<style lang="sass">
+.update-subtitle
+  font-size: 0.8em
+  font-weight: 400
+  color: var(--n-color-text)
+</style>

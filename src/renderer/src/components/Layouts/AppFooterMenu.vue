@@ -1,6 +1,6 @@
 <script setup>
 import Updater from "@renderer/Updater.vue";
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import { useUserStore } from "@renderer/stores/user";
 // import { darkTheme, lightTheme } from "naive-ui";
 import appMenuOptions from "@renderer/models/appMenuOptions";
@@ -58,7 +58,7 @@ function openDevtools() {
           </template>
         </n-switch>
       </transition>
-      <n-tag :bordered="false" type="primary" @click.right="openDevtools">
+      <n-tag :bordered="false" round type="primary" @click.right="openDevtools">
         <n-popover :show-arrow="false" placement="top" trigger="hover">
           <template #trigger>
             <font-awesome-icon :icon="['fas', 'bug']" />
@@ -82,6 +82,14 @@ function openDevtools() {
               </n-a>
             </n-space>
           </template>
+        </n-popover>
+      </n-tag>
+      <n-tag v-if="user.isEnvDev" :bordered="false" round type="primary">
+        <n-popover :show-arrow="false" trigger="hover">
+          <template #trigger>
+            <font-awesome-icon :icon="['fas', 'person-digging']" />
+          </template>
+          Environnement de développement
         </n-popover>
       </n-tag>
       <updater />
