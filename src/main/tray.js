@@ -1,10 +1,13 @@
 import { app, Menu, Tray } from "electron";
+import { getData, onDidChange, setData } from "./store";
 
 export default function useTray(trayIcon, mainWindow) {
   let tray = new Tray(trayIcon);
   let isQuitting = false;
+
   const buildContextMenu = () => {
-    const openAtLogin = app.getLoginItemSettings().openAtLogin;
+    const openAtLogin = getData("startOnLogin");
+    const openAsHidden = getData("startMinimized");
 
     return Menu.buildFromTemplate([
       {
@@ -23,11 +26,18 @@ export default function useTray(trayIcon, mainWindow) {
       {
         label: "Lancer au démarrage",
         type: "checkbox",
-        checked: app.getLoginItemSettings().openAtLogin,
+        checked: openAtLogin,
         click: () => {
-          app.setLoginItemSettings({
-            openAtLogin: !openAtLogin,
-          });
+          setData("startOnLogin", !openAtLogin);
+          tray.setContextMenu(buildContextMenu());
+        },
+      },
+      {
+        label: "Ouvrir minimisé",
+        type: "checkbox",
+        checked: openAsHidden,
+        click: () => {
+          setData("startMinimized", !openAsHidden);
           tray.setContextMenu(buildContextMenu());
         },
       },
@@ -41,6 +51,7 @@ export default function useTray(trayIcon, mainWindow) {
       },
     ]);
   };
+
   tray.setToolTip(app.getName());
   tray.setContextMenu(buildContextMenu());
   tray.on("double-click", () => {
@@ -56,5 +67,13 @@ export default function useTray(trayIcon, mainWindow) {
       event.preventDefault();
       mainWindow.hide();
     }
+  });
+
+  onDidChange("startOnLogin", newValue => {
+    tray.setContextMenu(buildContextMenu());
+  });
+
+  onDidChange("startMinimized", newValue => {
+    tray.setContextMenu(buildContextMenu());
   });
 }

@@ -7,6 +7,32 @@ export default [
     storePath: ["settings", "autoUpdate"],
   },
   {
+    type: "switch",
+    icon: "power-off",
+    label: "Lancer au démarrage",
+    description: "Lance l'application au démarrage de l'ordinateur",
+    storePath: ["electron", "startOnLogin"],
+  },
+  {
+    type: "switch",
+    icon: "compress",
+    label: "Ouvrir minimisé",
+    description: "Ouvre l'application en fond de tâche",
+    storePath: ["electron", "startMinimized"],
+  },
+  {
+    type: "select",
+    icon: "palette",
+    label: "Thème",
+    description: "Défini le thème de l'application",
+    options: [
+      { label: "Sombre", value: "dark" },
+      { label: "Clair", value: "light" },
+      { label: "Système", value: "system" },
+    ],
+    storePath: ["settings", "theme"],
+  },
+  {
     type: "select",
     icon: "wave-square",
     label: "Fréquence de rafraichissement",

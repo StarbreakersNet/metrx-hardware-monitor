@@ -1,47 +1,31 @@
 <script setup>
 import Updater from "@renderer/Updater.vue";
-import { computed, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import { useUserStore } from "@renderer/stores/user";
-import { darkTheme } from "naive-ui";
+// import { darkTheme, lightTheme } from "naive-ui";
 import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useSystemStore } from "@renderer/stores/system";
-import { renderFontAwesomeIcon } from "@renderer/appUtils";
 import { useRouter } from "vue-router";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { renderFontAwesomeIcon } from "@renderer/appUtils";
 
 const system = useSystemStore();
 const user = useUserStore();
 const router = useRouter();
 
-const themeSelector = ref(!!user.settings.theme);
-
-watch(themeSelector, value => {
-  if (value) {
-    user.settings.theme = darkTheme;
-    user.settings.isDark = true;
-  } else {
-    user.settings.theme = null;
-    user.settings.isDark = false;
-  }
+const themeSelector = computed({
+  get: () => user.settings.theme === "dark",
+  set: value => {
+    user.settings.theme = value ? "dark" : "light";
+  },
 });
 
 const version = computed(() => {
   return "v" + system.app.version;
 });
 const menuOptions = computed(() => {
-  // return [
-  //   {
-  //     label: "Menu",
-  //     key: "menu",
-  //     fas: "bars",
-  //     children: appMenuOptions(version.value),
-  //   },
-  // ];
   return appMenuOptions(version.value);
 });
-
-function toggleMenu() {
-  user.settings.showSideMenu = !user.settings.showSideMenu;
-}
 
 function openDevtools() {
   window.electron.app.openDevTools();
@@ -52,24 +36,28 @@ function openDevtools() {
   <n-flex align="center" class="app-menu" justify="space-between">
     <n-flex align="center">
       <transition name="fade-y">
-        <div v-if="!user.settings.showSideMenu">
-          <n-menu
-            :options="menuOptions"
-            :render-icon="renderFontAwesomeIcon"
-            mode="horizontal"
-            @update:value="router.push({ name: $event })" />
-        </div>
+        <n-menu
+          v-if="!user.settings.showSideMenu"
+          :options="menuOptions"
+          :render-icon="renderFontAwesomeIcon"
+          :value="router.currentRoute.value.name ?? null"
+          class="override-horizontal"
+          collapsed
+          mode="horizontal"
+          @update:value="router.push({ name: $event })" />
       </transition>
     </n-flex>
     <n-flex align="center" justify="end">
-      <n-switch v-model:value="themeSelector">
-        <template #checked>
-          <font-awesome-icon :icon="['fas', 'moon']" />
-        </template>
-        <template #unchecked>
-          <font-awesome-icon :icon="['fas', 'sun']" />
-        </template>
-      </n-switch>
+      <transition name="fade-y">
+        <n-switch v-if="user.settings.theme !== 'system'" v-model:value="themeSelector">
+          <template #checked>
+            <font-awesome-icon :icon="['fas', 'moon']" />
+          </template>
+          <template #unchecked>
+            <font-awesome-icon :icon="['fas', 'sun']" />
+          </template>
+        </n-switch>
+      </transition>
       <n-tag :bordered="false" type="primary" @click.right="openDevtools">
         <n-popover :show-arrow="false" placement="top" trigger="hover">
           <template #trigger>
@@ -104,16 +92,18 @@ function openDevtools() {
 <style lang="sass" scoped>
 ::v-deep()
   .n-menu--horizontal
-    width: unset
-    max-width: unset
-
-    .n-menu-item
+    .n-menu-item,
+    .n-submenu
+      margin: unset
       height: unset
 
       .n-menu-item-content
         height: unset
+        padding: 0 1em
 
-    .n-submenu
-      .n-menu-item
-        height: unset
+        .n-menu-item-content__icon
+          margin: unset !important
+
+        .n-menu-item-content-header
+          display: none !important
 </style>

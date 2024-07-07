@@ -67,7 +67,7 @@ function setSummary() {
         description: description,
         icon: "microchip",
         unit: "%",
-        value: controller.utilizationGpu,
+        value: controller.utilizationGpu ?? 0,
       });
 
       list.push({
@@ -87,7 +87,7 @@ function setSummary() {
         description: description,
         icon: "thermometer-half",
         unit: "°C",
-        value: controller.temperatureGpu,
+        value: controller.temperatureGpu ?? 0,
       });
 
       list.push({
@@ -97,7 +97,7 @@ function setSummary() {
         description: description,
         icon: "bolt",
         unit: "W",
-        value: controller.powerDraw,
+        value: controller.powerDraw ?? 0,
       });
 
       list.push({
@@ -117,7 +117,7 @@ function setSummary() {
         icon: "fan",
         description: description,
         unit: "%",
-        value: controller.fanSpeed,
+        value: controller.fanSpeed ?? 0,
       });
     });
   }
@@ -143,8 +143,11 @@ function getEntryList(list, { title, description, icon, value, unit, min, max })
   }
 }
 
-function getAnimationDelay(index) {
-  return `transition-delay: ${index * 0.05}s;`;
+function getFormatedStyle(index) {
+  return {
+    "transition-delay": index * 0.05 + "s",
+    "min-width": "calc(100% / " + (colNumber.value + 1) + ")",
+  };
 }
 
 onMounted(() => {
@@ -157,28 +160,32 @@ onMounted(() => {
 
 <template>
   <app-spin :show="listSummary.length <= 0">
-    <n-row :gutter="[14, 14]" class="graph-grid">
-      <transition-group name="fade-y" tag="span">
-        <n-col
-          v-for="(item, index) in listSummary"
-          :key="item.title"
-          :span="24 / colNumber"
-          :style="getAnimationDelay(index)">
-          <chart-line
-            :data="item.value"
-            :description="item.description"
-            :icon="item.icon"
-            :max="item.max"
-            :min="item.min"
-            :title="item.title"
-            :unit="item.unit" />
-        </n-col>
-      </transition-group>
-    </n-row>
+    <transition-group class="graph-grid" name="fade-y" tag="div">
+      <chart-line
+        v-for="(item, index) in listSummary"
+        :key="item.title"
+        :data="item.value"
+        :description="item.description"
+        :icon="item.icon"
+        :max="item.max"
+        :min="item.min"
+        :style="getFormatedStyle(index)"
+        :title="item.title"
+        :unit="item.unit"
+        class="graph-item" />
+    </transition-group>
   </app-spin>
 </template>
 
 <style lang="sass" scoped>
 .graph-grid
-  min-height: 20em
+  display: flex
+  flex-flow: row wrap
+  gap: 1em
+  min-height: 5em
+
+.graph-item
+  flex-grow: 1
+  flex-shrink: 1
+  flex-basis: 0
 </style>

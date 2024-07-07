@@ -71,18 +71,29 @@ export default function useUpdater(app, window) {
 
       if (process.env.NODE_ENV === "development") {
         window.webContents.send(
-          "update-error",
+          "update-cancelled",
           "Impossible de vérifier les mises à jour en mode développement"
         );
       } else {
         window.webContents.send("update-log", "[autoUpdater] Checking for updates...");
-        await autoUpdater.checkForUpdates();
+        await autoUpdater.checkForUpdatesAndNotify(getNotificationOptions());
         window.webContents.send("update-log", "[autoUpdater] Check for updates done");
       }
     } catch (error) {
       window.webContents.send("update-error", "Erreur lors de la vérification des mises à jour");
     }
   });
+}
+
+function getNotificationOptions() {
+  return {
+    title: "Une nouvelle mise à jour est prête à être installée",
+    body:
+      "La dernière version " +
+      " de " +
+      PackageJson.productName +
+      " a été téléchargée et sera automatiquement installée à la fermeture de l'application",
+  };
 }
 
 function getBinaryType() {
