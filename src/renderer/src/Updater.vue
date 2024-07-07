@@ -20,7 +20,7 @@ const downloadProgress = ref({
   bytesPerSecond: "",
   percent: 0,
 });
-const isUpdateAvailable = ref(true);
+const isUpdateAvailable = ref(false);
 const loaders = reactive({
   main: new AppUtils.Loader(),
 });
