@@ -1,10 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain, nativeImage, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell } from "electron";
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import installExtension from "electron-devtools-installer";
 import useUpdater from "./updater";
 import useTray from "./tray";
 import { StatefullBrowserWindow } from "stateful-electron-window";
+import { getData, initSettingsStore } from "./store";
 
 const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
 const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
@@ -33,7 +34,14 @@ function createWindow() {
   }
 
   mainWindow.on("ready-to-show", () => {
-    mainWindow.show();
+    if (!getData("startMinimized")) {
+      mainWindow.show();
+    }
+
+    nativeTheme.on("updated", () => {
+      const theme = nativeTheme.shouldUseDarkColors ? "dark" : "light";
+      mainWindow.webContents.send("os-theme-updated", theme);
+    });
   });
 
   mainWindow.webContents.setWindowOpenHandler(details => {
@@ -68,7 +76,7 @@ function createWindow() {
     return mainWindow.webContents.openDevTools();
   });
 
-  // Handle auto updater
+  initSettingsStore(app, mainWindow);
   useUpdater(app, mainWindow);
   useTray(trayIcon, mainWindow);
 }
@@ -80,7 +88,7 @@ app.whenReady().then(() => {
   // Check if the app is already running
   const gotTheLock = app.requestSingleInstanceLock();
   // Set app user model id for windows
-  electronApp.setAppUserModelId("com.hardwaremonitor");
+  electronApp.setAppUserModelId("com.hardwaremonitor"); // TODO: À modifier pour différencier dev et prod
 
   if (!gotTheLock) {
     app.quit();
@@ -100,7 +108,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  app.on("activate", function() {
+  app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

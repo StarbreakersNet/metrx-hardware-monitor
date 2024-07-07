@@ -9,6 +9,11 @@ const electron = {
     getVersion: () => ipcRenderer.invoke("get_app_version"),
     openDevTools: () => ipcRenderer.invoke("open_devtools"),
   },
+  store: {
+    get: key => ipcRenderer.invoke("get_store", key),
+    set: (key, value) => ipcRenderer.invoke("set_store", key, value),
+    delete: key => ipcRenderer.invoke("delete_store", key),
+  },
   ...electronAPI,
   dialog: (method, config) => ipcRenderer.invoke("dialog", method, config),
 };

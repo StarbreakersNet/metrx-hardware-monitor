@@ -1,7 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import _ from "lodash";
-import { NIcon } from "naive-ui";
+import { darkTheme, lightTheme, NIcon } from "naive-ui";
 import { h } from "vue";
+import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
 
 export class Loader {
   constructor() {
@@ -101,6 +102,33 @@ export function renderFontAwesomeIcon(option) {
   } else {
     return null;
   }
+}
+
+export function preferedOsTheme() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+const themeMappings = {
+  dark: { naive: naiveDark, naiveOverride: darkTheme },
+  light: { naive: naiveLight, naiveOverride: lightTheme },
+};
+
+function getTheme(theme, type) {
+  const osTheme = preferedOsTheme();
+
+  if (theme === "system" || !theme) {
+    theme = osTheme;
+  }
+
+  return themeMappings[theme][type];
+}
+
+export function getNaiveTheme(theme) {
+  return getTheme(theme, "naiveOverride");
+}
+
+export function getNaiveOverrideTheme(theme) {
+  return getTheme(theme, "naive");
 }
 
 export default {

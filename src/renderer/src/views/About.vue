@@ -19,8 +19,10 @@ const osThemeLabel = computed(() => {
 });
 </script>
 <template>
-  <n-flex align="center" vertical>
-    <loader-spinner lap-duration="2s">🦊</loader-spinner>
+  <n-flex size="large" align="center" vertical>
+    <loader-spinner lap-duration="2s" :size-ratio="4">
+      <img class="app-icon" src="@renderer/assets/icon-round.svg" alt="logo" />
+    </loader-spinner>
     <Versions />
     <n-flex justify="center">
       <div>
@@ -64,4 +66,9 @@ const osThemeLabel = computed(() => {
     </n-flex>
   </n-flex>
 </template>
-<style lang="sass" scoped></style>
+<style lang="sass" scoped>
+.app-icon
+  position: absolute
+  width: 12em
+  height: 12em
+</style>

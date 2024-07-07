@@ -7,13 +7,16 @@ import { LineChart } from "echarts/charts";
 import { GridComponent, TitleComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
+import { useThemeVars } from "naive-ui";
+import _ from "lodash";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
 const system = useSystemStore();
 const user = useUserStore();
+const theme = useThemeVars();
 const props = defineProps({
   data: {
     type: [Number, Array],
@@ -48,7 +51,141 @@ const props = defineProps({
   },
 });
 
+const chartId = computed(() => {
+  if (props.description == null) {
+    return props.title.toLowerCase();
+  } else if (props.title) {
+    return props.title.toLowerCase() + "#" + props.description.toLowerCase();
+  } else {
+    return "#undefined#";
+  }
+});
 const seriesData = ref([]);
+const markLineData = ref([]);
+
+const thresholdWarning = computed(() => {
+  let value = user.settings.charts.find(chart => chart.id === chartId.value)?.warningThreshold;
+  let defaultValue = user.settings.chartsDefault.warningThreshold;
+  return value ?? defaultValue;
+});
+const thresholdDanger = computed(() => {
+  let value = user.settings.charts.find(chart => chart.id === chartId.value)?.dangerThreshold;
+  let defaultValue = user.settings.chartsDefault.dangerThreshold;
+  return value ?? defaultValue;
+});
+const showThresholds = computed(() => {
+  let value = user.settings.charts.find(chart => chart.id === chartId.value)?.showThresholds;
+  let defaultValue = user.settings.chartsDefault.showThresholds;
+  return value ?? defaultValue;
+});
+const thresholds = computed(() => {
+  let warningThreshold = thresholdWarning.value / 100;
+  let dangerThreshold = thresholdDanger.value / 100;
+
+  return {
+    warning: props.max * warningThreshold,
+    danger: props.max * dangerThreshold,
+  };
+});
+const valueColorType = computed(() => {
+  if (
+    lastValueFormated.value >= thresholds.value.warning &&
+    lastValueFormated.value < thresholds.value.danger
+  ) {
+    return "warning";
+  } else if (lastValueFormated.value >= thresholds.value.danger) {
+    return "error";
+  } else {
+    return "primary";
+  }
+});
+
+function setThresholds({ newWarningThreshold, newDangerThreshold, newShowThresholds }) {
+  let chartConfig = user.settings.charts.find(chart => chart.id === chartId.value);
+  let chartDefault = user.settings.chartsDefault;
+
+  if (chartConfig) {
+    if (newWarningThreshold != null) {
+      chartConfig.warningThreshold = newWarningThreshold;
+    }
+
+    if (newDangerThreshold != null) {
+      chartConfig.dangerThreshold = newDangerThreshold;
+    }
+
+    if (newShowThresholds != null) {
+      chartConfig.showThresholds = newShowThresholds;
+    }
+  } else {
+    let query = {
+      ...chartDefault,
+      id: chartId.value,
+    };
+
+    if (newWarningThreshold != null) {
+      query.warningThreshold = newWarningThreshold;
+    }
+
+    if (newDangerThreshold != null) {
+      query.dangerThreshold = newDangerThreshold;
+    }
+
+    if (newShowThresholds != null) {
+      query.showThresholds = newShowThresholds;
+    }
+
+    user.settings.charts.push(query);
+  }
+}
+
+function updateThresholdsOptions() {
+  const updateMarkLineOption = (thresholdType, thresholdValue, color) => {
+    const optionName = "threshold" + thresholdType;
+    let option = markLineData.value.find(mark => mark.name === optionName);
+
+    if (option) {
+      option.yAxis = thresholdValue;
+    } else {
+      markLineData.value.push({
+        name: optionName,
+        type: "average",
+        yAxis: thresholdValue,
+        lineStyle: { color },
+      });
+    }
+  };
+
+  if (showThresholds.value) {
+    if (thresholds.value.warning) {
+      updateMarkLineOption("Warning", thresholds.value.warning, theme.value.warningColor);
+    }
+    if (thresholds.value.danger) {
+      updateMarkLineOption("Danger", thresholds.value.danger, theme.value.errorColor);
+    }
+  } else {
+    _.remove(markLineData.value, mark =>
+      ["thresholdWarning", "thresholdDanger"].includes(mark.name)
+    );
+  }
+}
+
+const canResetThresholds = computed(() => {
+  return user.settings.charts.find(chart => chart.id === chartId.value) != null;
+});
+
+function resetThresholds() {
+  user.settings.charts = user.settings.charts.filter(chart => chart.id !== chartId.value);
+  updateThresholdsOptions();
+}
+
+const seriesMinValue = reactive({
+  previous: props.max,
+  value: props.max,
+});
+const seriesMaxValue = reactive({
+  previous: props.min,
+  value: props.min,
+});
 const option = ref({
   animation: false,
   tooltip: {
@@ -89,9 +226,11 @@ const option = ref({
     axisLabel: {
       show: true,
       formatter: value => {
-        return formatValue({ value: value, unit: props.unit, decimals: 0 });
+        if (value === props.max) {
+          return formatValue({ value: value, unit: props.unit, decimals: 0 });
+        }
       },
-      interval: 1,
+      inside: true,
       showMaxLabel: true,
       showMinLabel: true,
     },
@@ -104,6 +243,7 @@ const option = ref({
     },
     axisTick: {
       show: true,
+      inside: true,
     },
     splitLine: {
       show: false,
@@ -115,10 +255,23 @@ const option = ref({
       type: "line",
       showSymbol: false,
       data: seriesData.value,
-      areaStyle: {
-        opacity: 0.8,
+      markLine: {
+        silent: true,
+        symbol: "none",
+        lineStyle: {
+          type: "dashed",
+          opacity: 0.25,
+        },
+        data: markLineData.value,
       },
-      smooth: false,
+      areaStyle: {
+        opacity: 0.25,
+      },
+      lineStyle: {
+        width: 2,
+        join: "round",
+      },
+      smooth: true,
       smoothMonotone: "x",
     },
   ],
@@ -133,8 +286,12 @@ const option = ref({
 const showXLabel = computed(() => {
   return user.settings.showXLabel ?? false;
 });
+const showTools = ref(false);
 const themeComputed = computed(() => {
-  return user.settings.isDark ? "dark" : "light";
+  return user.settings.theme === "system" ? user.settings.osTheme : user.settings.theme;
+});
+const numberAnimationDuration = computed(() => {
+  return user.settings.nodeFrequency / 2;
 });
 const lastValueFormated = computed(() => {
   return formatValue({
@@ -176,6 +333,16 @@ watch(
     if (seriesData.value[0].value[0] <= bufferTime) {
       seriesData.value.shift();
     }
+
+    if (props.data < seriesMinValue.value || seriesMinValue.value == null) {
+      seriesMinValue.previous = seriesMinValue.value;
+      seriesMinValue.value = formatValue({ value: props.data, unit: props.unit });
+    }
+
+    if (props.data > seriesMaxValue.value || seriesMaxValue.value == null) {
+      seriesMaxValue.previous = seriesMaxValue.value;
+      seriesMaxValue.value = formatValue({ value: props.data, unit: props.unit });
+    }
   },
   { immediate: true }
 );
@@ -186,10 +353,21 @@ watch(
     option.value.grid.bottom = newValue ? 0 : "5%";
   }
 );
+watch(
+  () => user.settings.charts.find(chart => chart.id === chartId.value),
+  () => {
+    updateThresholdsOptions();
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <template>
-  <n-card class="chart-card" size="small">
+  <n-card
+    class="chart-card"
+    size="small"
+    @mouseenter="showTools = true"
+    @mouseleave="showTools = false">
     <template v-if="user.settings.showChartTitle" #header>
       <n-space :wrap="false">
         <font-awesome-icon :icon="['fas', props.icon]" />
@@ -203,42 +381,154 @@ watch(
         </n-ellipsis>
       </n-space>
     </template>
+    <template #header-extra>
+      <n-flex :size="5">
+        <n-tag :bordered="false" round type="info">
+          <n-flex size="small">
+            <font-awesome-icon :icon="['fas', 'arrow-down']" />
+            <n-number-animation
+              :duration="numberAnimationDuration"
+              :from="seriesMinValue.previous"
+              :precision="labelPrecision"
+              :to="seriesMinValue.value" />
+          </n-flex>
+        </n-tag>
+        <n-tag :bordered="false" round type="warning">
+          <n-flex size="small">
+            <font-awesome-icon :icon="['fas', 'arrow-up']" />
+            <n-number-animation
+              :duration="numberAnimationDuration"
+              :from="seriesMaxValue.previous"
+              :precision="labelPrecision"
+              :to="seriesMaxValue.value" />
+          </n-flex>
+        </n-tag>
+      </n-flex>
+    </template>
     <template #default>
       <v-chart
         :autoresize="{ throttle: 10 }"
+        :class="{ 'with-title': user.settings.showChartTitle }"
         :option="option"
         :theme="themeComputed"
         class="chart" />
     </template>
     <template v-if="props.description" #footer>
-      <n-tag round type="primary">
-        <template v-if="props.icon" #avatar>
-          <n-avatar
-            :style="{
-              backgroundColor: 'transparent',
-              color: 'var(--n-color-text-default)',
-            }">
-            <font-awesome-icon v-if="!user.settings.showChartTitle" :icon="['fas', props.icon]" />
-            <font-awesome-icon v-else :icon="['fas', 'circle']" />
-          </n-avatar>
+      <n-flex align="center" size="large">
+        <n-tag :bordered="false" :type="valueColorType" round>
+          <template v-if="props.icon" #avatar>
+            <n-avatar
+              :style="{
+                backgroundColor: 'transparent',
+                color: 'var(--n-color-text-default)',
+              }">
+              <font-awesome-icon v-if="!user.settings.showChartTitle" :icon="['fas', props.icon]" />
+              <font-awesome-icon v-else :icon="['fas', 'circle']" />
+            </n-avatar>
+          </template>
+          <template #default>
+            {{ props.description }} :
+            <n-number-animation
+              :duration="numberAnimationDuration"
+              :from="previousValueFormated"
+              :precision="labelPrecision"
+              :to="lastValueFormated" />
+            {{ getValueUnit(seriesData[seriesData?.length - 1]?.value[1], props.unit) }}
+          </template>
+        </n-tag>
+        <template v-if="!user.settings.showChartTitle">
+          <n-flex :size="5">
+            <n-tag :bordered="false" round type="info">
+              <n-flex size="small">
+                <font-awesome-icon :icon="['fas', 'arrow-down']" />
+                <n-number-animation
+                  :duration="numberAnimationDuration"
+                  :from="seriesMinValue.previous"
+                  :precision="labelPrecision"
+                  :to="seriesMinValue.value" />
+              </n-flex>
+            </n-tag>
+            <n-tag :bordered="false" round type="warning">
+              <n-flex size="small">
+                <font-awesome-icon :icon="['fas', 'arrow-up']" />
+                <n-number-animation
+                  :duration="numberAnimationDuration"
+                  :from="seriesMaxValue.previous"
+                  :precision="labelPrecision"
+                  :to="seriesMaxValue.value" />
+              </n-flex>
+            </n-tag>
+          </n-flex>
         </template>
-        <template #default>
-          {{ props.description }} :
-          <n-number-animation
-            :duration="user.settings.nodeFrequency / 2"
-            :from="lastValueFormated"
-            :precision="labelPrecision"
-            :to="previousValueFormated" />
-          {{ getValueUnit(seriesData[seriesData?.length - 1]?.value[1], props.unit) }}
-        </template>
-      </n-tag>
+      </n-flex>
+      <transition name="scale">
+        <n-flex v-show="showTools" class="card-tools" justify="flex-end">
+          <n-popover :show-arrow="false" trigger="click">
+            <template #trigger>
+              <n-button size="small" text>
+                <template #icon>
+                  <font-awesome-icon :icon="['fas', 'ellipsis']" />
+                </template>
+              </n-button>
+            </template>
+            <template #default>
+              <n-flex align="center" class="settings-content">
+                <n-flex align="flex-end" vertical>
+                  <n-flex>
+                    <span>Seuil d'avertissement</span>
+                    <n-input-number
+                      :loading="!thresholdWarning"
+                      :max="thresholdDanger"
+                      :min="0"
+                      :value="thresholdWarning"
+                      size="small"
+                      @update:value="setThresholds({ newWarningThreshold: $event })" />
+                  </n-flex>
+                  <n-flex>
+                    <span>Seuil de danger</span>
+                    <n-input-number
+                      :loading="!thresholdDanger"
+                      :max="100"
+                      :min="thresholdWarning"
+                      :value="thresholdDanger"
+                      size="small"
+                      @update:value="setThresholds({ newDangerThreshold: $event })" />
+                  </n-flex>
+                  <n-checkbox
+                    :checked="showThresholds"
+                    @update:checked="setThresholds({ newShowThresholds: $event })">
+                    Afficher les seuils
+                  </n-checkbox>
+                </n-flex>
+                <n-popover placement="right" trigger="hover">
+                  <template #trigger>
+                    <n-button
+                      :disabled="!canResetThresholds"
+                      size="small"
+                      text
+                      @click="resetThresholds">
+                      <template #icon>
+                        <font-awesome-icon :icon="['fas', 'undo-alt']" />
+                      </template>
+                    </n-button>
+                  </template>
+                  <template #default>Réinitialiser</template>
+                </n-popover>
+              </n-flex>
+            </template>
+          </n-popover>
+        </n-flex>
+      </transition>
     </template>
   </n-card>
 </template>
 
 <style lang="sass" scoped>
 .chart
-  min-height: 8em
+  min-height: 10em
+
+  &.with-title
+    min-height: 8em
 
 .chart-card
   min-width: 12em
@@ -259,4 +549,15 @@ watch(
 
     h1, h2, h3, h4, h5, h6
       margin: unset
+
+.card-tools
+  position: absolute
+  right: 0
+  left: 0
+  bottom: 0
+  padding: .5em
+
+.settings-content
+  .n-input-number
+    max-width: 10em
 </style>

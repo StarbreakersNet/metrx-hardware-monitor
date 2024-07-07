@@ -1,17 +1,21 @@
 <script setup>
-import { Loader, renderFontAwesomeIcon } from "@renderer/appUtils";
-import echartDark from "@renderer/assets/themes/echart.dark.json";
-import echartLight from "@renderer/assets/themes/echart.light.json";
-import naiveDark from "@renderer/assets/themes/naive.dark.json";
-import naiveLight from "@renderer/assets/themes/naive.light.json";
+import {
+  getNaiveOverrideTheme,
+  getNaiveTheme,
+  Loader,
+  preferedOsTheme,
+  renderFontAwesomeIcon,
+} from "@renderer/appUtils";
+import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
 import { registerTheme } from "echarts";
-import { computed, onBeforeMount, onBeforeUnmount, reactive } from "vue";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
 import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
 import appMenuOptions from "@renderer/models/appMenuOptions";
+import { useEchartTheme } from "@renderer/composables/themeBuilder";
 
 const loaders = reactive({
   initial: new Loader(),
@@ -29,14 +33,35 @@ const version = computed(() => {
 const menuOptions = computed(() => {
   return appMenuOptions(version.value);
 });
+const theme = ref(getNaiveTheme());
+const themeOverride = ref(getNaiveOverrideTheme());
 
-onBeforeMount(() => {
-  registerTheme("dark", echartDark);
-  registerTheme("light", echartLight);
-  loaders.initial.start();
+function setAppTheme(newTheme) {
+  theme.value = getNaiveTheme(newTheme);
+  themeOverride.value = getNaiveOverrideTheme(newTheme);
+}
+
+watch(
+  () => user.settings.theme,
+  value => {
+    setAppTheme(value);
+    user.settings.osTheme = preferedOsTheme();
+  },
+  { immediate: true }
+);
+
+window.electron.ipcRenderer.on("os-theme-updated", (event, theme) => {
+  setAppTheme(theme);
+  user.settings.osTheme = theme;
 });
 
-onBeforeMount(async () => {
+onBeforeMount(() => {
+  loaders.initial.start();
+  registerTheme("dark", useEchartTheme(naiveDark).value);
+  registerTheme("light", useEchartTheme(naiveLight).value);
+});
+
+onMounted(async () => {
   await system.init();
   loaders.initial.stop();
 });
@@ -47,17 +72,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <n-config-provider
-    :theme="user.settings.theme"
-    :theme-overrides="user.settings.theme ? naiveDark : naiveLight"
-    inline-theme-disabled>
+  <n-config-provider :theme="theme" :theme-overrides="themeOverride" inline-theme-disabled>
     <n-loading-bar-provider>
       <n-message-provider :keep-alive-on-hover="true" :max="5" placement="bottom">
         <transition mode="out-in">
           <n-flex v-if="loaders.initial.loading">
             <div class="loading-view">
               <loader-spinner :size-ratio="7">
-                <n-flex vertical>Démarrage du monitoring</n-flex>
+                <n-flex align="center" class="loader-title" vertical>
+                  <img alt="logo" class="loader-img" src="@renderer/assets/icon-round.svg" />
+                  <span>Démarrage du monitoring</span>
+                </n-flex>
               </loader-spinner>
             </div>
           </n-flex>
@@ -67,22 +92,28 @@ onBeforeUnmount(() => {
                 <transition name="insert-side">
                   <n-layout-sider
                     v-if="user.settings.showSideMenu"
+                    :collapsed="user.settings.sideMenuCollapsed"
                     :collapsed-width="menuConfig.collapsedWidth"
                     :native-scrollbar="false"
                     bordered
                     collapse-mode="width"
                     default-collapsed
                     show-trigger="bar"
-                    width="20em">
+                    width="20em"
+                    @collapse="user.settings.sideMenuCollapsed = true"
+                    @expand="user.settings.sideMenuCollapsed = false">
                     <n-menu
+                      :collapsed="user.settings.sideMenuCollapsed"
                       :collapsed-icon-size="22"
                       :collapsed-width="menuConfig.collapsedWidth"
+                      :icon-size="22"
                       :options="menuOptions"
                       :render-icon="renderFontAwesomeIcon"
+                      :value="router.currentRoute.value.name ?? null"
                       @update:value="router.push({ name: $event })" />
                   </n-layout-sider>
                 </transition>
-                <n-layout-content :native-scrollbar="false">
+                <n-layout-content :native-scrollbar="false" class="router-container">
                   <router-view #default="{ Component }" class="router-view">
                     <transition mode="out-in" name="fade-y">
                       <keep-alive :exclude="keepAliveBlacklist">
@@ -114,8 +145,28 @@ onBeforeUnmount(() => {
   height: 100vh
   gap: unset !important
 
+.router-container
+  &:before,
+  &:after
+    z-index: 10
+    content: ""
+    position: absolute
+    height: 2em
+    width: 100%
+    backdrop-filter: blur(.5em)
+
+  &:before
+    top: 0
+    background: linear-gradient(to top, transparent 0%, var(--n-color) 75%)
+    mask: linear-gradient(to top, transparent 0%, var(--n-color) 50%)
+
+  &:after
+    bottom: 0
+    background: linear-gradient(to bottom, transparent 0%, var(--n-color) 75%)
+    mask: linear-gradient(to bottom, transparent 0%, var(--n-color) 50%)
+
 .router-view
-  padding: 1em 2em
+  padding: 2em
 
 .footer-view
   overflow: hidden
@@ -128,4 +179,13 @@ onBeforeUnmount(() => {
   display: flex
   justify-content: center
   align-items: center
+
+  .loader-title
+    img
+      z-index: -1
+      position: absolute
+      top: 0
+      width: 100%
+      height: 100%
+      filter: blur(8px) brightness(.25)
 </style>

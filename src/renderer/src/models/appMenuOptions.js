@@ -4,21 +4,25 @@ export default (version) => {
       label: "Accueil",
       key: "home",
       fas: "home",
+      hideHorizontalLabel: true,
     },
     {
       label: "Données",
       key: "nodes",
       fas: "table",
+      hideHorizontalLabel: true,
     },
     {
       label: "Paramètres",
       key: "settings",
       fas: "gear",
+      hideHorizontalLabel: true,
     },
     {
       label: "Autres",
       key: "other",
-      fas: "ellipsis-vertical",
+      fas: "bars",
+      hideHorizontalLabel: true,
       children: [
         {
           label: "À propos",

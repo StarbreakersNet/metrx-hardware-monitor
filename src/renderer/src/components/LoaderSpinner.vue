@@ -1,5 +1,6 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { useThemeVars } from "naive-ui";
 
 const props = defineProps({
   particles: {
@@ -20,7 +21,6 @@ const props = defineProps({
   },
   particleColor: {
     type: String,
-    default: "hsl(153, 100%, 50%)",
   },
   sizeRatio: {
     type: Number,
@@ -32,12 +32,14 @@ const props = defineProps({
   },
 });
 
+const themeVars = ref(useThemeVars());
+
 const computedProps = computed(() => ({
   particles: props.particles * props.sizeRatio,
   particleSize: Math.log2(props.particleSize * (props.sizeRatio / 20) + 5) + "px",
   radius: props.radius * props.sizeRatio,
   lapDuration: props.lapDuration,
-  particleColor: props.particleColor,
+  particleColor: props.particleColor ?? themeVars.value?.primaryColor,
 }));
 
 // Generate styles for each particle
@@ -90,6 +92,8 @@ const cssVariables = computed(() => ({
   color: var(--particle-color)
   font-size: 1.5em
   font-weight: bold
+  text-transform: uppercase
+  text-shadow: 0 0 1em var(--particle-color)
 
 .spinner
   position: relative
