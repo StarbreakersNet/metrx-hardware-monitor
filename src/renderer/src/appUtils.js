@@ -120,7 +120,7 @@ function getTheme(theme, type) {
     theme = osTheme;
   }
 
-  return themeMappings[theme][type];
+  return themeMappings[theme][type] ?? themeMappings.dark[type];
 }
 
 export function getNaiveTheme(theme) {

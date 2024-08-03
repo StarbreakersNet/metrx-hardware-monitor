@@ -85,20 +85,23 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Set app user model id for windows
+  if (is.dev) {
+    electronApp.setAppUserModelId("com.hardwaremonitor.dev");
+  } else {
+    electronApp.setAppUserModelId("com.hardwaremonitor");
+  }
+  // Change userData folder name for development
+  if (is.dev) {
+    app.setPath("userData", app.getPath("userData") + " Dev");
+  }
   // Check if the app is already running
   const gotTheLock = app.requestSingleInstanceLock();
-  // Set app user model id for windows
-  electronApp.setAppUserModelId("com.hardwaremonitor"); // TODO: À modifier pour différencier dev et prod
 
   if (!gotTheLock) {
     app.quit();
   } else {
     createWindow();
-  }
-
-  // Change userData folder name for development
-  if (is.dev) {
-    app.setPath("userData", app.getPath("userData") + " Dev");
   }
 
   // Default open or close DevTools by F12 in development
