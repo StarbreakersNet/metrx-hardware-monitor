@@ -17,7 +17,7 @@ export default [
     type: "switch",
     icon: "compress",
     label: "Ouvrir minimisé",
-    description: "Ouvre l'application en fond de tâche",
+    description: "Ouvre l'application seulement dans la barre des tâches",
     storePath: ["electron", "startMinimized"],
   },
   {
