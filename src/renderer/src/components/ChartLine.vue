@@ -273,6 +273,7 @@ const option = ref({
       },
       smooth: true,
       smoothMonotone: "x",
+      connectNulls: false,
     },
   ],
   grid: {
@@ -323,7 +324,7 @@ watch(
   // Permet de mettre à jour le graphique en temps réel du store quelque soit la valeur
   () => system.metrics,
   () => {
-    let bufferTime = new Date().getTime() - props.bufferSize * 60000;
+    let bufferTime = new Date().getTime() - props.bufferSize * 60000 - 60000; // Marge de 1 minute pour éviter le retrait immédiat lorsque Chromium est en veille
 
     seriesData.value.push({
       name: props.data,
