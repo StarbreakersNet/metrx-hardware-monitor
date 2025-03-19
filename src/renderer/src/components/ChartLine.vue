@@ -299,7 +299,7 @@ watch(
     </template>
     <template #default>
       <v-chart
-        :autoresize="{ throttle: 10 }"
+        :autoresize="{ throttle: 300 }"
         :class="{ 'with-title': user.settings.showChartTitle }"
         :option="option"
         :theme="themeComputed"

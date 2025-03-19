@@ -56,7 +56,7 @@ export const useSystemStore = defineStore("system", () => {
   }
 
   async function getStaticData() {
-    return await window.api.get(staticData)
+    return await window.api.get(staticData);
   }
 
   function storeCallback(apiData) {
