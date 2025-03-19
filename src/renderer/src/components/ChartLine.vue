@@ -9,14 +9,12 @@ import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { computed, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
-import { useThemeVars } from "naive-ui";
-import _ from "lodash";
+import ChartLineTools from "@renderer/components/ChartLineTools.vue";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
 const system = useSystemStore();
 const user = useUserStore();
-const theme = useThemeVars();
 const props = defineProps({
   data: {
     type: [Number, Array],
@@ -51,6 +49,8 @@ const props = defineProps({
   },
 });
 
+const chartTools = ref(null);
+
 const chartId = computed(() => {
   if (props.description == null) {
     return props.title.toLowerCase();
@@ -62,121 +62,18 @@ const chartId = computed(() => {
 });
 const seriesData = ref([]);
 const markLineData = ref([]);
-
-const thresholdWarning = computed(() => {
-  let value = user.settings.charts.find(chart => chart.id === chartId.value)?.warningThreshold;
-  let defaultValue = user.settings.chartsDefault.warningThreshold;
-  return value ?? defaultValue;
-});
-const thresholdDanger = computed(() => {
-  let value = user.settings.charts.find(chart => chart.id === chartId.value)?.dangerThreshold;
-  let defaultValue = user.settings.chartsDefault.dangerThreshold;
-  return value ?? defaultValue;
-});
-const showThresholds = computed(() => {
-  let value = user.settings.charts.find(chart => chart.id === chartId.value)?.showThresholds;
-  let defaultValue = user.settings.chartsDefault.showThresholds;
-  return value ?? defaultValue;
-});
-const thresholds = computed(() => {
-  let warningThreshold = thresholdWarning.value / 100;
-  let dangerThreshold = thresholdDanger.value / 100;
-
-  return {
-    warning: props.max * warningThreshold,
-    danger: props.max * dangerThreshold,
-  };
-});
 const valueColorType = computed(() => {
-  if (
-    lastValueFormated.value >= thresholds.value.warning &&
-    lastValueFormated.value < thresholds.value.danger
-  ) {
-    return "warning";
-  } else if (lastValueFormated.value >= thresholds.value.danger) {
-    return "error";
-  } else {
-    return "primary";
-  }
-});
-
-function setThresholds({ newWarningThreshold, newDangerThreshold, newShowThresholds }) {
-  let chartConfig = user.settings.charts.find(chart => chart.id === chartId.value);
-  let chartDefault = user.settings.chartsDefault;
-
-  if (chartConfig) {
-    if (newWarningThreshold != null) {
-      chartConfig.warningThreshold = newWarningThreshold;
-    }
-
-    if (newDangerThreshold != null) {
-      chartConfig.dangerThreshold = newDangerThreshold;
-    }
-
-    if (newShowThresholds != null) {
-      chartConfig.showThresholds = newShowThresholds;
-    }
-  } else {
-    let query = {
-      ...chartDefault,
-      id: chartId.value,
-    };
-
-    if (newWarningThreshold != null) {
-      query.warningThreshold = newWarningThreshold;
-    }
-
-    if (newDangerThreshold != null) {
-      query.dangerThreshold = newDangerThreshold;
-    }
-
-    if (newShowThresholds != null) {
-      query.showThresholds = newShowThresholds;
-    }
-
-    user.settings.charts.push(query);
-  }
-}
-
-function updateThresholdsOptions() {
-  const updateMarkLineOption = (thresholdType, thresholdValue, color) => {
-    const optionName = "threshold" + thresholdType;
-    let option = markLineData.value.find(mark => mark.name === optionName);
-
-    if (option) {
-      option.yAxis = thresholdValue;
+  if (chartTools.value) {
+    let { warning, danger } = chartTools.value?.thresholds;
+    if (lastValueFormated.value >= warning && lastValueFormated.value < danger) {
+      return "warning";
+    } else if (lastValueFormated.value >= danger) {
+      return "error";
     } else {
-      markLineData.value.push({
-        name: optionName,
-        type: "average",
-        yAxis: thresholdValue,
-        lineStyle: { color },
-      });
+      return "primary";
     }
-  };
-
-  if (showThresholds.value) {
-    if (thresholds.value.warning) {
-      updateMarkLineOption("Warning", thresholds.value.warning, theme.value.warningColor);
-    }
-    if (thresholds.value.danger) {
-      updateMarkLineOption("Danger", thresholds.value.danger, theme.value.errorColor);
-    }
-  } else {
-    _.remove(markLineData.value, mark =>
-      ["thresholdWarning", "thresholdDanger"].includes(mark.name)
-    );
   }
-}
-
-const canResetThresholds = computed(() => {
-  return user.settings.charts.find(chart => chart.id === chartId.value) != null;
 });
-
-function resetThresholds() {
-  user.settings.charts = user.settings.charts.filter(chart => chart.id !== chartId.value);
-  updateThresholdsOptions();
-}
 
 const seriesMinValue = reactive({
   previous: props.max,
@@ -354,17 +251,11 @@ watch(
     option.value.grid.bottom = newValue ? 0 : "5%";
   }
 );
-watch(
-  () => user.settings.charts.find(chart => chart.id === chartId.value),
-  () => {
-    updateThresholdsOptions();
-  },
-  { deep: true, immediate: true }
-);
 </script>
 
 <template>
   <n-card
+    :key="'#' + chartId"
     class="chart-card"
     size="small"
     @mouseenter="showTools = true"
@@ -464,60 +355,11 @@ watch(
       </n-flex>
       <transition name="scale">
         <n-flex v-show="showTools" class="card-tools" justify="flex-end">
-          <n-popover :show-arrow="false" trigger="click">
-            <template #trigger>
-              <n-button size="small" text>
-                <template #icon>
-                  <font-awesome-icon :icon="['fas', 'ellipsis']" />
-                </template>
-              </n-button>
-            </template>
-            <template #default>
-              <n-flex align="center" class="settings-content">
-                <n-flex align="flex-end" vertical>
-                  <n-flex>
-                    <span>Seuil d'avertissement</span>
-                    <n-input-number
-                      :loading="!thresholdWarning"
-                      :max="thresholdDanger"
-                      :min="0"
-                      :value="thresholdWarning"
-                      size="small"
-                      @update:value="setThresholds({ newWarningThreshold: $event })" />
-                  </n-flex>
-                  <n-flex>
-                    <span>Seuil de danger</span>
-                    <n-input-number
-                      :loading="!thresholdDanger"
-                      :max="100"
-                      :min="thresholdWarning"
-                      :value="thresholdDanger"
-                      size="small"
-                      @update:value="setThresholds({ newDangerThreshold: $event })" />
-                  </n-flex>
-                  <n-checkbox
-                    :checked="showThresholds"
-                    @update:checked="setThresholds({ newShowThresholds: $event })">
-                    Afficher les seuils
-                  </n-checkbox>
-                </n-flex>
-                <n-popover placement="right" trigger="hover">
-                  <template #trigger>
-                    <n-button
-                      :disabled="!canResetThresholds"
-                      size="small"
-                      text
-                      @click="resetThresholds">
-                      <template #icon>
-                        <font-awesome-icon :icon="['fas', 'undo-alt']" />
-                      </template>
-                    </n-button>
-                  </template>
-                  <template #default>Réinitialiser</template>
-                </n-popover>
-              </n-flex>
-            </template>
-          </n-popover>
+          <chart-line-tools
+            ref="chartTools"
+            v-model:mark-line-data="markLineData"
+            :chart-id="chartId"
+            :max="props.max" />
         </n-flex>
       </transition>
     </template>
@@ -557,8 +399,4 @@ watch(
   left: 0
   bottom: 0
   padding: .5em
-
-.settings-content
-  .n-input-number
-    max-width: 10em
 </style>
