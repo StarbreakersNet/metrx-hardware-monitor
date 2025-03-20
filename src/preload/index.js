@@ -18,6 +18,10 @@ const electron = {
   dialog: (method, config) => ipcRenderer.invoke("dialog", method, config),
 };
 const api = {
+  init: () => ipcRenderer.invoke("metrics:init"),
+  start: (nodeUsed, interval) => ipcRenderer.invoke("metrics:start", nodeUsed, interval),
+  stop: () => ipcRenderer.invoke("metrics:stop"),
+  onData: callback => ipcRenderer.on("metrics:data", (event, data) => callback(data)),
   ...Si,
 };
 

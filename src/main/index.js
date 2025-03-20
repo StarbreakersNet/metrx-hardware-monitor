@@ -6,11 +6,13 @@ import useUpdater from "./updater";
 import useTray from "./tray";
 import { StatefullBrowserWindow } from "stateful-electron-window";
 import { getData, initSettingsStore } from "./store";
+import metricsWorker from "./workers/metrics?nodeWorker";
 
 const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
 const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
 
 let mainWindow;
+let metricsWorkerInstance;
 
 function createWindow() {
   let windowOptions = {
@@ -25,6 +27,7 @@ function createWindow() {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
       backgroundThrottling: false,
+      nodeIntegrationInWorker: true,
     },
   };
   // Create the browser window.
@@ -59,6 +62,31 @@ function createWindow() {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+  }
+
+  // Handle metrics worker
+  metricsWorkerInstance = metricsWorker();
+
+  if (metricsWorkerInstance) {
+    ipcMain.handle("metrics:init", () => {
+      metricsWorkerInstance.postMessage({ action: "init" });
+    });
+
+    ipcMain.handle("metrics:start", (event, nodeUsed, interval) => {
+      metricsWorkerInstance
+        .on("message", data => {
+          mainWindow.webContents.send("metrics:data", data);
+        })
+        .postMessage({
+          action: "start",
+          nodeUsed,
+          interval,
+        });
+    });
+
+    ipcMain.handle("metrics:stop", () => {
+      metricsWorkerInstance.postMessage({ action: "stop" });
+    });
   }
 
   // Handle dialogs for renderer
@@ -134,6 +162,8 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
+  metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
+
   if (process.platform !== "darwin") {
     app.quit();
   }

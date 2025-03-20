@@ -10,6 +10,7 @@ import { CanvasRenderer } from "echarts/renderers";
 import { computed, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/ChartLineTools.vue";
+import { throttle } from "lodash";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
@@ -49,6 +50,7 @@ const props = defineProps({
   },
 });
 
+const chartRef = ref(null);
 const chartTools = ref(null);
 
 const chartId = computed(() => {
@@ -83,7 +85,7 @@ const seriesMaxValue = reactive({
   previous: props.min,
   value: props.min,
 });
-const option = ref({
+const option = reactive({
   animation: false,
   tooltip: {
     trigger: "axis",
@@ -151,7 +153,7 @@ const option = ref({
       name: props.description,
       type: "line",
       showSymbol: false,
-      data: seriesData.value,
+      data: [],
       markLine: {
         silent: true,
         symbol: "none",
@@ -193,12 +195,12 @@ const numberAnimationDuration = computed(() => {
 });
 const lastValueFormated = computed(() => {
   return formatValue({
-    value: seriesData.value[seriesData.value.length - 1]?.value[1],
+    value: seriesData.value[seriesData.value.length - 1]?.value?.[1],
     unit: props.unit,
   });
 });
 const previousValueFormated = computed(() => {
-  let previousValue = seriesData.value[seriesData.value.length - 2]?.value[1];
+  let previousValue = seriesData.value[seriesData.value.length - 2]?.value?.[1];
 
   if (previousValue != null) {
     return formatValue({ value: previousValue, unit: props.unit });
@@ -217,10 +219,8 @@ const labelPrecision = computed(() => {
   }
 });
 
-watch(
-  // Permet de mettre à jour le graphique en temps réel du store quelque soit la valeur
-  () => system.metrics,
-  () => {
+const updateSeriesData = throttle(newData => {
+  if (chartRef.value) {
     let bufferTime = new Date().getTime() - props.bufferSize * 60000 - 60000; // Marge de 1 minute pour éviter le retrait immédiat lorsque Chromium est en veille
 
     seriesData.value.push({
@@ -228,7 +228,8 @@ watch(
       value: [new Date(), props.data],
     });
 
-    if (seriesData.value[0].value[0] <= bufferTime) {
+    // TODO RESUME: à vérifier que la plage est bonne
+    if (seriesData.value.length > props.bufferSize * 60) {
       seriesData.value.shift();
     }
 
@@ -241,14 +242,33 @@ watch(
       seriesMaxValue.previous = seriesMaxValue.value;
       seriesMaxValue.value = formatValue({ value: props.data, unit: props.unit });
     }
+
+    // Cette approche est plus efficace car elle ne met à jour que les données
+    chartRef.value.setOption({
+      series: [{
+        data: seriesData.value,
+      }]
+    }, {
+      notMerge: false,
+      lazyUpdate: true,
+      silent: true
+    })
+  }
+}, user.settings.nodeFrequency);
+
+watch(
+  // Permet de mettre à jour le graphique en temps réel du store quelque soit la valeur
+  () => system.metrics,
+  () => {
+    updateSeriesData(props.data);
   },
   { immediate: true }
 );
 watch(
   () => showXLabel.value,
   newValue => {
-    option.value.xAxis.axisLabel.show = newValue;
-    option.value.grid.bottom = newValue ? 0 : "5%";
+    option.xAxis.axisLabel.show = newValue;
+    option.grid.bottom = newValue ? 0 : "5%";
   }
 );
 </script>
@@ -299,6 +319,7 @@ watch(
     </template>
     <template #default>
       <v-chart
+        ref="chartRef"
         :autoresize="{ throttle: 300 }"
         :class="{ 'with-title': user.settings.showChartTitle }"
         :option="option"
@@ -325,7 +346,7 @@ watch(
               :from="previousValueFormated"
               :precision="labelPrecision"
               :to="lastValueFormated" />
-            {{ getValueUnit(seriesData[seriesData?.length - 1]?.value[1], props.unit) }}
+            {{ getValueUnit(seriesData[seriesData?.length - 1]?.value?.[1], props.unit) }}
           </template>
         </n-tag>
         <template v-if="!user.settings.showChartTitle">

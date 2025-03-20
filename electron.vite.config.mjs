@@ -5,6 +5,14 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve("src/main/index.js"),
+          metricsWorker: resolve("src/main/workers/metrics.js"),
+        }
+      }
+    }
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
