@@ -23,18 +23,21 @@ const props = defineProps({
 const { settings } = useUserStore();
 const themeVars = useThemeVars();
 
+const chartConfig = computed(() => {
+  return settings.charts.find(chart => chart.id === props.chartId);
+});
 const showThresholds = computed(() => {
-  let value = settings.charts.find(chart => chart.id === props.chartId)?.showThresholds;
+  let value = chartConfig.value?.showThresholds;
   let defaultValue = settings.chartsDefault.showThresholds;
   return value ?? defaultValue;
 });
 const thresholdWarning = computed(() => {
-  let value = settings.charts.find(chart => chart.id === props.chartId)?.warningThreshold;
+  let value = chartConfig.value?.warningThreshold;
   let defaultValue = settings.chartsDefault.warningThreshold;
   return value ?? defaultValue;
 });
 const thresholdDanger = computed(() => {
-  let value = settings.charts.find(chart => chart.id === props.chartId)?.dangerThreshold;
+  let value = chartConfig.value?.dangerThreshold;
   let defaultValue = settings.chartsDefault.dangerThreshold;
   return value ?? defaultValue;
 });
@@ -48,24 +51,23 @@ const thresholds = computed(() => {
   };
 });
 const canResetThresholds = computed(() => {
-  return settings.charts.find(chart => chart.id === props.chartId) != null;
+  return chartConfig.value != null;
 });
 
 function setThresholds({ newWarningThreshold, newDangerThreshold, newShowThresholds }) {
-  let chartConfig = settings.charts.find(chart => chart.id === props.chartId);
   let chartDefault = settings.chartsDefault;
 
-  if (chartConfig) {
+  if (chartConfig.value) {
     if (newWarningThreshold != null) {
-      chartConfig.warningThreshold = newWarningThreshold;
+      chartConfig.value.warningThreshold = newWarningThreshold;
     }
 
     if (newDangerThreshold != null) {
-      chartConfig.dangerThreshold = newDangerThreshold;
+      chartConfig.value.dangerThreshold = newDangerThreshold;
     }
 
     if (newShowThresholds != null) {
-      chartConfig.showThresholds = newShowThresholds;
+      chartConfig.value.showThresholds = newShowThresholds;
     }
   } else {
     let query = {
@@ -126,11 +128,15 @@ function updateThresholdsOptions() {
 }
 
 watch(
-  () => settings.charts.find(chart => chart.id === props.chartId),
+  [
+    () => chartConfig.value?.showThresholds,
+    () => chartConfig.value?.warningThreshold,
+    () => chartConfig.value?.dangerThreshold,
+  ],
   () => {
     updateThresholdsOptions();
   },
-  { deep: true, immediate: true }
+  { immediate: true }
 );
 
 defineExpose({

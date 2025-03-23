@@ -10,7 +10,6 @@ import { CanvasRenderer } from "echarts/renderers";
 import { computed, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/ChartLineTools.vue";
-import { throttle } from "lodash";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
@@ -62,14 +61,15 @@ const chartId = computed(() => {
     return "#undefined#";
   }
 });
-const seriesData = ref([]);
+const chartData = ref([]);
 const markLineData = ref([]);
 const valueColorType = computed(() => {
   if (chartTools.value) {
     let { warning, danger } = chartTools.value?.thresholds;
-    if (lastValueFormated.value >= warning && lastValueFormated.value < danger) {
+
+    if (lastValue.value >= warning && lastValue.value < danger) {
       return "warning";
-    } else if (lastValueFormated.value >= danger) {
+    } else if (lastValue.value >= danger) {
       return "error";
     } else {
       return "primary";
@@ -78,15 +78,18 @@ const valueColorType = computed(() => {
 });
 
 const seriesMinValue = reactive({
-  previous: props.max,
-  value: props.max,
+  previous: formatValue({ value: props.max, unit: props.unit }),
+  value: formatValue({ value: props.max, unit: props.unit }),
 });
 const seriesMaxValue = reactive({
-  previous: props.min,
-  value: props.min,
+  previous: formatValue({ value: props.min, unit: props.unit }),
+  value: formatValue({ value: props.min, unit: props.unit }),
 });
-const option = reactive({
+const option = {
   animation: false,
+  dataset: {
+    source: [],
+  },
   tooltip: {
     trigger: "axis",
     axisPointer: {
@@ -153,7 +156,10 @@ const option = reactive({
       name: props.description,
       type: "line",
       showSymbol: false,
-      data: [],
+      encode: {
+        x: 0, // première colonne (date/heure)
+        y: 1, // deuxième colonne (valeur)
+      },
       markLine: {
         silent: true,
         symbol: "none",
@@ -182,7 +188,7 @@ const option = reactive({
     left: "left",
     containLabel: true,
   },
-});
+};
 const showXLabel = computed(() => {
   return user.settings.showXLabel ?? false;
 });
@@ -193,17 +199,17 @@ const themeComputed = computed(() => {
 const numberAnimationDuration = computed(() => {
   return user.settings.nodeFrequency / 2;
 });
+const lastValue = ref(null);
 const lastValueFormated = computed(() => {
   return formatValue({
-    value: seriesData.value[seriesData.value.length - 1]?.value?.[1],
+    value: lastValue.value,
     unit: props.unit,
   });
 });
+const previousValue = ref(null);
 const previousValueFormated = computed(() => {
-  let previousValue = seriesData.value[seriesData.value.length - 2]?.value?.[1];
-
-  if (previousValue != null) {
-    return formatValue({ value: previousValue, unit: props.unit });
+  if (previousValue.value != null) {
+    return formatValue({ value: previousValue.value, unit: props.unit });
   } else {
     return lastValueFormated.value;
   }
@@ -219,42 +225,35 @@ const labelPrecision = computed(() => {
   }
 });
 
-const updateSeriesData = throttle(newData => {
+const updateSeriesData = newData => {
   if (chartRef.value) {
-    let bufferTime = new Date().getTime() - props.bufferSize * 60000 - 60000; // Marge de 1 minute pour éviter le retrait immédiat lorsque Chromium est en veille
+    previousValue.value = lastValue.value;
+    lastValue.value = newData;
+    chartData.value.push([new Date(), newData]);
 
-    seriesData.value.push({
-      name: props.data,
-      value: [new Date(), props.data],
-    });
-
-    // TODO RESUME: à vérifier que la plage est bonne
-    if (seriesData.value.length > props.bufferSize * 60) {
-      seriesData.value.shift();
+    if (chartData.value.length > props.bufferSize * 60 + 1) {
+      chartData.value.shift();
     }
 
-    if (props.data < seriesMinValue.value || seriesMinValue.value == null) {
+    const newDataFormated = formatValue({ value: newData, unit: props.unit });
+    if (newDataFormated < seriesMinValue.value || seriesMinValue.value == null) {
       seriesMinValue.previous = seriesMinValue.value;
-      seriesMinValue.value = formatValue({ value: props.data, unit: props.unit });
+      seriesMinValue.value = newDataFormated;
     }
 
-    if (props.data > seriesMaxValue.value || seriesMaxValue.value == null) {
+    if (newDataFormated > seriesMaxValue.value || seriesMaxValue.value == null) {
       seriesMaxValue.previous = seriesMaxValue.value;
-      seriesMaxValue.value = formatValue({ value: props.data, unit: props.unit });
+      seriesMaxValue.value = newDataFormated;
     }
 
     // Cette approche est plus efficace car elle ne met à jour que les données
     chartRef.value.setOption({
-      series: [{
-        data: seriesData.value,
-      }]
-    }, {
-      notMerge: false,
-      lazyUpdate: true,
-      silent: true
-    })
+      dataset: {
+        source: chartData.value,
+      },
+    });
   }
-}, user.settings.nodeFrequency);
+};
 
 watch(
   // Permet de mettre à jour le graphique en temps réel du store quelque soit la valeur
@@ -346,7 +345,7 @@ watch(
               :from="previousValueFormated"
               :precision="labelPrecision"
               :to="lastValueFormated" />
-            {{ getValueUnit(seriesData[seriesData?.length - 1]?.value?.[1], props.unit) }}
+            {{ getValueUnit(lastValue, props.unit) }}
           </template>
         </n-tag>
         <template v-if="!user.settings.showChartTitle">

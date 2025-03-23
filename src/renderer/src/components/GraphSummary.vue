@@ -17,6 +17,7 @@ const colNumber = computed(() => {
 });
 
 function setSummary() {
+  loadingBar.start();
   let list = [];
 
   if (system.metrics.currentLoad) {
@@ -151,7 +152,6 @@ function getFormatedStyle(index) {
 }
 
 onMounted(() => {
-  loadingBar.start();
   watch(system, () => {
     setSummary();
   });
@@ -163,7 +163,7 @@ onMounted(() => {
     <transition-group class="graph-grid" name="fade-y" tag="div">
       <chart-line
         v-for="(item, index) in listSummary"
-        :key="item.title"
+        :key="item.title + '#' + item.description"
         :data="item.value"
         :description="item.description"
         :icon="item.icon"

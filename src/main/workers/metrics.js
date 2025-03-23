@@ -1,9 +1,9 @@
 import { parentPort } from "worker_threads";
 import Si from "systeminformation";
 
-let observer;
-
 if (parentPort) {
+  let observer;
+
   parentPort.on("message", ({ action, nodeUsed, interval = 1000 }) => {
     const isElectronWindows = process.platform === "win32";
 
@@ -14,22 +14,27 @@ if (parentPort) {
     }
 
     if (action === "start" && nodeUsed) {
-      clearInterval(observer);
+      clearObserver();
       observer = Si.observe(nodeUsed, interval, metricsCallback);
     }
 
     if (action === "stop") {
-      clearInterval(observer);
+      clearObserver();
     }
 
     if (action === "destroy") {
-      clearInterval(observer);
+      clearObserver();
 
       if (isElectronWindows) {
         Si.powerShellRelease();
       }
     }
   });
+
+  function clearObserver() {
+    clearInterval(observer);
+    observer = null;
+  }
 
   function metricsCallback(apiData) {
     parentPort.postMessage(apiData);

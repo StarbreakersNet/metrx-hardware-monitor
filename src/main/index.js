@@ -73,6 +73,7 @@ function createWindow() {
     });
 
     ipcMain.handle("metrics:start", (event, nodeUsed, interval) => {
+      metricsWorkerInstance.removeAllListeners("message");
       metricsWorkerInstance
         .on("message", data => {
           mainWindow.webContents.send("metrics:data", data);
