@@ -1,10 +1,12 @@
 <script setup>
 import {
+  delay,
   getNaiveOverrideTheme,
   getNaiveTheme,
   Loader,
   preferedOsTheme,
   renderFontAwesomeIcon,
+  Timer,
 } from "@renderer/appUtils";
 import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
 import { useSystemStore } from "@renderer/stores/system";
@@ -17,6 +19,9 @@ import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
 import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useEchartTheme } from "@renderer/composables/themeBuilder";
 
+const PRE_TIMEOUT_TIME = 7000;
+const TIMEOUT_TIME = 15000;
+
 const loaders = reactive({
   initial: new Loader(),
 });
@@ -24,6 +29,13 @@ const router = useRouter();
 const system = useSystemStore();
 const user = useUserStore();
 const keepAliveBlacklist = [];
+const initStartTimer = reactive(new Timer());
+const showLoadingHints = computed(() => {
+  return (
+    initStartTimer.elapsedTime > PRE_TIMEOUT_TIME &&
+    initStartTimer.elapsedTime < TIMEOUT_TIME - 1000
+  );
+});
 const menuConfig = reactive({
   collapsedWidth: 64,
 });
@@ -50,6 +62,15 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => initStartTimer.elapsedTime,
+  value => {
+    if (value > TIMEOUT_TIME) {
+      window.location.reload();
+    }
+  }
+);
+
 window.electron.ipcRenderer.on("os-theme-updated", (event, theme) => {
   setAppTheme(theme);
   user.settings.osTheme = theme;
@@ -62,7 +83,9 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
+  initStartTimer.start();
   await system.init();
+  initStartTimer.stop();
   loaders.initial.stop();
 });
 
@@ -82,6 +105,9 @@ onBeforeUnmount(() => {
                 <n-flex align="center" class="loader-title" vertical>
                   <img alt="logo" class="loader-img" src="@renderer/assets/icon-round.svg" />
                   <span>Démarrage du monitoring</span>
+                  <transition name="insert">
+                    <span v-if="showLoadingHints">Le chargement est long...</span>
+                  </transition>
                 </n-flex>
               </loader-spinner>
             </div>

@@ -34,6 +34,32 @@ export class Loader {
   }
 }
 
+export class Timer {
+  constructor() {
+    this.startTime = null;
+    this.elapsedTime = 0;
+    this.timerInterval = null;
+  }
+
+  start() {
+    if (!this.timerInterval) {
+      this.startTime = Date.now();
+      this.elapsedTime = 0;
+
+      this.timerInterval = setInterval(() => {
+        this.elapsedTime = Math.floor(Date.now() - this.startTime);
+      }, 1000);
+    }
+  }
+
+  stop() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+}
+
 export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
