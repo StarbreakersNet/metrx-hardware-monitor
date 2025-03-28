@@ -4,6 +4,7 @@ import { computed, watch } from "vue";
 import { useUserStore } from "@renderer/stores/user";
 import _ from "lodash";
 import { useThemeVars } from "naive-ui";
+import chartLineToolsAvailable from "@renderer/models/chartLineToolsAvailable";
 
 const props = defineProps({
   markLineData: {
@@ -26,6 +27,10 @@ const themeVars = useThemeVars();
 const chartConfig = computed(() => {
   return settings.charts.find(chart => chart.id === props.chartId);
 });
+const chartConfigValues = computed(() => {
+  return chartConfig.value ?? settings.chartsDefault;
+});
+
 const showThresholds = computed(() => {
   let value = chartConfig.value?.showThresholds;
   let defaultValue = settings.chartsDefault.showThresholds;
@@ -127,6 +132,19 @@ function updateThresholdsOptions() {
   }
 }
 
+function udpateChartSettings(key, value) {
+  if (chartConfig.value) {
+    chartConfig.value[key] = value;
+  } else {
+    settings.charts.push({
+      ...settings.chartsDefault,
+      id: props.chartId,
+    });
+
+    chartConfig.value[key] = value;
+  }
+}
+
 watch(
   [
     () => chartConfig.value?.showThresholds,
@@ -145,7 +163,7 @@ defineExpose({
 </script>
 
 <template>
-  <n-popover :show-arrow="false" trigger="click">
+  <n-popover :show-arrow="false" style="padding: 0" trigger="click">
     <template #trigger>
       <n-button size="small" text>
         <template #icon>
@@ -154,55 +172,76 @@ defineExpose({
       </n-button>
     </template>
     <template #default>
-      <n-flex align="center" class="settings-content">
-        <n-flex align="flex-end" vertical>
-          <n-flex>
-            <span>Seuil d'avertissement</span>
-            <n-input-number
-              :loading="!thresholdWarning"
-              :max="thresholdDanger"
-              :min="0"
-              :value="thresholdWarning"
-              size="small"
-              @update:value="setThresholds({ newWarningThreshold: $event })">
-              <template #suffix>%</template>
-            </n-input-number>
+      <n-card :bordered="false" size="small">
+        <template #header>
+          <n-flex align="center">
+            <font-awesome-icon :icon="['fas', 'screwdriver-wrench']" />
+            <n-text>Outils du graphique</n-text>
           </n-flex>
-          <n-flex>
-            <span>Seuil de danger</span>
-            <n-input-number
-              :loading="!thresholdDanger"
-              :max="100"
-              :min="thresholdWarning"
-              :value="thresholdDanger"
-              size="small"
-              @update:value="setThresholds({ newDangerThreshold: $event })">
-              <template #suffix>%</template>
-            </n-input-number>
-          </n-flex>
-          <n-checkbox
-            :checked="showThresholds"
-            @update:checked="setThresholds({ newShowThresholds: $event })">
-            Afficher les seuils
-          </n-checkbox>
-        </n-flex>
-        <n-popover placement="right" trigger="hover">
-          <template #trigger>
-            <n-button :disabled="!canResetThresholds" size="small" text @click="resetThresholds">
-              <template #icon>
-                <font-awesome-icon :icon="['fas', 'undo-alt']" />
+        </template>
+        <template #header-extra>
+          <n-popover placement="right" trigger="hover">
+            <template #trigger>
+              <n-button :disabled="!canResetThresholds" size="small" text @click="resetThresholds">
+                <template #icon>
+                  <font-awesome-icon :icon="['fas', 'undo-alt']" />
+                </template>
+              </n-button>
+            </template>
+            <template #default>Réinitialiser</template>
+          </n-popover>
+        </template>
+        <template #default>
+          <n-flex vertical>
+            <template v-for="setting in chartLineToolsAvailable" :key="setting.label">
+              <template v-if="setting.type === 'checkbox'">
+                <n-checkbox
+                  :checked="chartConfigValues[setting.storeKey]"
+                  :label="setting.label"
+                  @update:checked="udpateChartSettings(setting.storeKey, $event)" />
               </template>
-            </n-button>
-          </template>
-          <template #default>Réinitialiser</template>
-        </n-popover>
-      </n-flex>
+            </template>
+            <n-checkbox
+              :checked="showThresholds"
+              @update:checked="setThresholds({ newShowThresholds: $event })">
+              Afficher les seuils
+            </n-checkbox>
+            <n-flex align="flex-end" vertical>
+              <n-flex>
+                <span>Seuil d'avertissement</span>
+                <n-input-number
+                  :disabled="!showThresholds"
+                  :loading="!thresholdWarning"
+                  :max="thresholdDanger"
+                  :min="0"
+                  :value="thresholdWarning"
+                  size="small"
+                  @update:value="setThresholds({ newWarningThreshold: $event })">
+                  <template #suffix>%</template>
+                </n-input-number>
+              </n-flex>
+              <n-flex>
+                <span>Seuil de danger</span>
+                <n-input-number
+                  :disabled="!showThresholds"
+                  :loading="!thresholdDanger"
+                  :max="100"
+                  :min="thresholdWarning"
+                  :value="thresholdDanger"
+                  size="small"
+                  @update:value="setThresholds({ newDangerThreshold: $event })">
+                  <template #suffix>%</template>
+                </n-input-number>
+              </n-flex>
+            </n-flex>
+          </n-flex>
+        </template>
+      </n-card>
     </template>
   </n-popover>
 </template>
 
 <style lang="sass" scoped>
-.settings-content
-  .n-input-number
-    max-width: 10em
+.n-input-number
+  max-width: 10em
 </style>

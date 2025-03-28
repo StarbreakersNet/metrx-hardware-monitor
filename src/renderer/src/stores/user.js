@@ -28,6 +28,9 @@ export const useUserStore = defineStore(
       chartsDefault: {
         warningThreshold: 75,
         dangerThreshold: 90,
+        showGraph: true,
+        showAverage: true,
+        showMinMax: true,
         showThresholds: false,
       },
       charts: [],

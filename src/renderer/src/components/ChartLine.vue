@@ -10,6 +10,7 @@ import { CanvasRenderer } from "echarts/renderers";
 import { computed, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/ChartLineTools.vue";
+import ChartLineStats from "@renderer/components/ChartLineStats.vue";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
@@ -61,6 +62,10 @@ const chartId = computed(() => {
     return "#undefined#";
   }
 });
+const chartConfigValues = computed(() => {
+  const chartConfig = user.settings.charts.find(chart => chart.id === chartId.value);
+  return chartConfig ?? user.settings.chartsDefault;
+});
 const chartData = ref([]);
 const markLineData = ref([]);
 const valueColorType = computed(() => {
@@ -84,6 +89,10 @@ const seriesMinValue = reactive({
 const seriesMaxValue = reactive({
   previous: formatValue({ value: props.min, unit: props.unit }),
   value: formatValue({ value: props.min, unit: props.unit }),
+});
+const seriesAverageValue = reactive({
+  previous: formatValue({ value: props.data, unit: props.unit }),
+  value: formatValue({ value: props.data, unit: props.unit }),
 });
 const option = {
   animation: false,
@@ -246,6 +255,11 @@ const updateSeriesData = newData => {
       seriesMaxValue.value = newDataFormated;
     }
 
+    const newAverageValue =
+      chartData.value.reduce((acc, curr) => acc + curr[1], 0) / chartData.value.length || 0;
+    seriesAverageValue.previous = seriesAverageValue.value;
+    seriesAverageValue.value = formatValue({ value: newAverageValue, unit: props.unit });
+
     // Cette approche est plus efficace car elle ne met à jour que les données
     chartRef.value.setOption({
       dataset: {
@@ -294,30 +308,18 @@ watch(
     </template>
     <template #header-extra>
       <n-flex :size="5">
-        <n-tag :bordered="false" round type="info">
-          <n-flex size="small">
-            <font-awesome-icon :icon="['fas', 'arrow-down']" />
-            <n-number-animation
-              :duration="numberAnimationDuration"
-              :from="seriesMinValue.previous"
-              :precision="labelPrecision"
-              :to="seriesMinValue.value" />
-          </n-flex>
-        </n-tag>
-        <n-tag :bordered="false" round type="warning">
-          <n-flex size="small">
-            <font-awesome-icon :icon="['fas', 'arrow-up']" />
-            <n-number-animation
-              :duration="numberAnimationDuration"
-              :from="seriesMaxValue.previous"
-              :precision="labelPrecision"
-              :to="seriesMaxValue.value" />
-          </n-flex>
-        </n-tag>
+        <chart-line-stats
+          :animation-duration="numberAnimationDuration"
+          :average-value="seriesAverageValue"
+          :chart-id="chartId"
+          :max-value="seriesMaxValue"
+          :min-value="seriesMinValue"
+          :precision="labelPrecision" />
       </n-flex>
     </template>
     <template #default>
       <v-chart
+        v-show="chartConfigValues.showGraph"
         ref="chartRef"
         :autoresize="{ throttle: 300 }"
         :class="{ 'with-title': user.settings.showChartTitle }"
@@ -326,50 +328,41 @@ watch(
         class="chart" />
     </template>
     <template v-if="props.description" #footer>
-      <n-flex align="center" size="large">
-        <n-tag :bordered="false" :type="valueColorType" round>
-          <template v-if="props.icon" #avatar>
-            <n-avatar
-              :style="{
-                backgroundColor: 'transparent',
-                color: 'var(--n-color-text-default)',
-              }">
-              <font-awesome-icon v-if="!user.settings.showChartTitle" :icon="['fas', props.icon]" />
-              <font-awesome-icon v-else :icon="['fas', 'circle']" />
-            </n-avatar>
-          </template>
-          <template #default>
-            {{ props.description }} :
-            <n-number-animation
-              :duration="numberAnimationDuration"
-              :from="previousValueFormated"
-              :precision="labelPrecision"
-              :to="lastValueFormated" />
-            {{ getValueUnit(lastValue, props.unit) }}
-          </template>
-        </n-tag>
+      <n-flex align="center" justify="space-between" size="large">
+        <n-flex align="center">
+          <n-tag :bordered="false" :type="valueColorType" round>
+            <template v-if="props.icon" #avatar>
+              <n-avatar
+                :style="{
+                  backgroundColor: 'transparent',
+                  color: 'var(--n-color-text-default)',
+                }">
+                <font-awesome-icon
+                  v-if="!user.settings.showChartTitle"
+                  :icon="['fas', props.icon]" />
+                <font-awesome-icon v-else :icon="['fas', 'circle']" />
+              </n-avatar>
+            </template>
+            <template #default>
+              {{ props.description }} :
+              <n-number-animation
+                :duration="numberAnimationDuration"
+                :from="previousValueFormated"
+                :precision="labelPrecision"
+                :to="lastValueFormated" />
+              {{ getValueUnit(lastValue, props.unit) }}
+            </template>
+          </n-tag>
+        </n-flex>
         <template v-if="!user.settings.showChartTitle">
           <n-flex :size="5">
-            <n-tag :bordered="false" round type="info">
-              <n-flex size="small">
-                <font-awesome-icon :icon="['fas', 'arrow-down']" />
-                <n-number-animation
-                  :duration="numberAnimationDuration"
-                  :from="seriesMinValue.previous"
-                  :precision="labelPrecision"
-                  :to="seriesMinValue.value" />
-              </n-flex>
-            </n-tag>
-            <n-tag :bordered="false" round type="warning">
-              <n-flex size="small">
-                <font-awesome-icon :icon="['fas', 'arrow-up']" />
-                <n-number-animation
-                  :duration="numberAnimationDuration"
-                  :from="seriesMaxValue.previous"
-                  :precision="labelPrecision"
-                  :to="seriesMaxValue.value" />
-              </n-flex>
-            </n-tag>
+            <chart-line-stats
+              :animation-duration="numberAnimationDuration"
+              :average-value="seriesAverageValue"
+              :chart-id="chartId"
+              :max-value="seriesMaxValue"
+              :min-value="seriesMinValue"
+              :precision="labelPrecision" />
           </n-flex>
         </template>
       </n-flex>
