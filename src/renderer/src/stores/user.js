@@ -9,6 +9,37 @@ const electronStore = {
 };
 const observerElectronStoreRegistered = ref(false);
 
+const DEFAULT_USER_SETTINGS = {
+  theme: "system",
+  autoUpdate: false,
+  nodeFrequency: 1000,
+  graphColumns: 2,
+  showSideMenu: false,
+  sideMenuCollapsed: true,
+  showChartTitle: true,
+  showXLabel: false,
+  chartsDefault: {
+    warningThreshold: 75,
+    dangerThreshold: 90,
+    showGraph: true,
+    showAverage: true,
+    showMinMax: true,
+    showThresholds: false,
+  },
+  charts: [],
+};
+const DEFAULT_NODE_SELECTED = [
+  "mem.*",
+  "graphics.*",
+  "cpuCurrentSpeed.*",
+  "cpuTemperature.*",
+  "currentLoad.currentLoad, currentLoadIdle",
+  "time.current",
+  "time.uptime",
+  "time.timezone",
+  "time.timezoneName",
+];
+
 export const useUserStore = defineStore(
   "user",
   () => {
@@ -17,35 +48,9 @@ export const useUserStore = defineStore(
       startMinimized: electronStore.startMinimized,
     });
     const settings = reactive({
-      theme: "dark",
-      autoUpdate: false,
-      nodeFrequency: 1000,
-      graphColumns: 2,
-      showSideMenu: false,
-      sideMenuCollapsed: true,
-      showChartTitle: true,
-      showXLabel: false,
-      chartsDefault: {
-        warningThreshold: 75,
-        dangerThreshold: 90,
-        showGraph: true,
-        showAverage: true,
-        showMinMax: true,
-        showThresholds: false,
-      },
-      charts: [],
+      ...DEFAULT_USER_SETTINGS,
     });
-    const nodeSelected = ref([
-      "mem.*",
-      "graphics.*",
-      "cpuCurrentSpeed.*",
-      "cpuTemperature.*",
-      "currentLoad.currentLoad, currentLoadIdle",
-      "time.current",
-      "time.uptime",
-      "time.timezone",
-      "time.timezoneName",
-    ]);
+    const nodeSelected = ref([...DEFAULT_NODE_SELECTED]);
 
     const isEnvDev = computed(() => {
       return window.electron.process.env.NODE_ENV === "development";
@@ -84,6 +89,11 @@ export const useUserStore = defineStore(
       observerElectronStoreRegistered.value = true;
     }
 
+    function resetAllSettings() {
+      Object.assign(settings, DEFAULT_USER_SETTINGS);
+      nodeSelected.value = DEFAULT_NODE_SELECTED;
+    }
+
     return {
       nodeAvailable,
       nodeSelected,
@@ -93,6 +103,7 @@ export const useUserStore = defineStore(
       electron,
       settings,
       isEnvDev,
+      resetAllSettings,
     };
   },
   {

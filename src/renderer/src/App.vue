@@ -1,6 +1,5 @@
 <script setup>
 import {
-  delay,
   getNaiveOverrideTheme,
   getNaiveTheme,
   Loader,
@@ -18,6 +17,7 @@ import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
 import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
 import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useEchartTheme } from "@renderer/composables/themeBuilder";
+import { dateFrFR, frFR } from "naive-ui";
 
 const PRE_TIMEOUT_TIME = 7000;
 const TIMEOUT_TIME = 15000;
@@ -95,7 +95,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <n-config-provider :theme="theme" :theme-overrides="themeOverride" inline-theme-disabled>
+  <n-config-provider
+    :date-locale="dateFrFR"
+    :locale="frFR"
+    :theme="theme"
+    :theme-overrides="themeOverride"
+    inline-theme-disabled>
     <n-loading-bar-provider>
       <n-message-provider :keep-alive-on-hover="true" :max="5" placement="bottom">
         <transition mode="out-in">
