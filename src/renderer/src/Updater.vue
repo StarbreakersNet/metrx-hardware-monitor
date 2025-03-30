@@ -1,17 +1,17 @@
 <script setup>
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useUserStore } from "@renderer/stores/user";
 import AppUtils, { formatBytes } from "@renderer/appUtils";
 import { useSystemStore } from "@renderer/stores/system";
 import { useMessage, useThemeVars } from "naive-ui";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-const userStore = useUserStore();
-const systemStore = useSystemStore();
+const user = useUserStore();
+const system = useSystemStore();
 const theme = useThemeVars();
 
 const mode = ref(import.meta.env.MODE?.toLowerCase());
-const version = computed(() => "v" + systemStore.app.version);
+const version = computed(() => "v" + system.app.version);
 const nMessage = useMessage();
 const downloadProgress = ref({
   active: false,
@@ -75,7 +75,19 @@ function removeMessage() {
   }
 }
 
+function clearAllListeners() {
+  window.electron.ipcRenderer.removeAllListeners("console-log");
+  window.electron.ipcRenderer.removeAllListeners("update-available");
+  window.electron.ipcRenderer.removeAllListeners("update-not-available");
+  window.electron.ipcRenderer.removeAllListeners("update-cancelled");
+  window.electron.ipcRenderer.removeAllListeners("update-check");
+  window.electron.ipcRenderer.removeAllListeners("update-downloaded");
+  window.electron.ipcRenderer.removeAllListeners("download-progress");
+  window.electron.ipcRenderer.removeAllListeners("update-error");
+}
+
 function initListener() {
+  clearAllListeners();
   window.electron.ipcRenderer.on("update-available", () => {
     if (!silentUpdate.value) {
       createMessage("success", "Mise à jour disponible");
@@ -156,7 +168,7 @@ function initListener() {
 function checkForUpdates(isSilent = false) {
   silentUpdate.value = isSilent;
   loaders.main.start();
-  window.electron.ipcRenderer.send("check-for-updates");
+  window.electron.ipcRenderer.send("check-for-updates", user.settings.updateChanel);
 }
 
 function installUpdate() {
@@ -195,22 +207,22 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  if (userStore.settings.autoUpdate) {
+  if (user.settings.autoUpdate) {
     checkForUpdates(true);
   }
 });
 
 onBeforeUnmount(() => {
   removeMessage();
-  window.electron.ipcRenderer.removeAllListeners("console-log");
-  window.electron.ipcRenderer.removeAllListeners("update-available");
-  window.electron.ipcRenderer.removeAllListeners("update-not-available");
-  window.electron.ipcRenderer.removeAllListeners("update-cancelled");
-  window.electron.ipcRenderer.removeAllListeners("update-check");
-  window.electron.ipcRenderer.removeAllListeners("update-downloaded");
-  window.electron.ipcRenderer.removeAllListeners("download-progress");
-  window.electron.ipcRenderer.removeAllListeners("update-error");
+  clearAllListeners();
 });
+
+watch(
+  () => user.settings.updateChanel,
+  () => {
+    checkForUpdates(false);
+  }
+);
 </script>
 
 <template>

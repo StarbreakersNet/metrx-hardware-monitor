@@ -12,6 +12,7 @@ const observerElectronStoreRegistered = ref(false);
 const DEFAULT_USER_SETTINGS = {
   theme: "system",
   autoUpdate: false,
+  updateChanel: await getDefaultUpdateChanel(),
   nodeFrequency: 1000,
   graphColumns: 2,
   showSideMenu: false,
@@ -39,6 +40,18 @@ const DEFAULT_NODE_SELECTED = [
   "time.timezone",
   "time.timezoneName",
 ];
+
+async function getDefaultUpdateChanel() {
+  const version = await window.electron.app.getVersion();
+  const subVersion = version.split("-")[1];
+  let chanel = "latest";
+
+  if (subVersion) {
+    chanel = subVersion;
+  }
+
+  return chanel;
+}
 
 export const useUserStore = defineStore(
   "user",
@@ -104,6 +117,7 @@ export const useUserStore = defineStore(
       settings,
       isEnvDev,
       resetAllSettings,
+      getDefaultUpdateChanel,
     };
   },
   {
