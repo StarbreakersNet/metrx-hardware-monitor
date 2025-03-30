@@ -87,3 +87,11 @@ $default-duration: .5s
   transform: translateX(25%) !important
   max-height: 0 !important
   max-width: 0 !important
+
+.fade-skeleton-enter-active,
+.fade-skeleton-leave-active
+  transition: opacity 0.15s ease-in-out
+
+.fade-skeleton-enter-from,
+.fade-skeleton-leave-to
+  opacity: 0

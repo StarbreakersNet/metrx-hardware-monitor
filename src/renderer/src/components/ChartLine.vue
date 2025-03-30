@@ -7,10 +7,11 @@ import { LineChart } from "echarts/charts";
 import { GridComponent, TitleComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/ChartLineTools.vue";
 import ChartLineStats from "@renderer/components/ChartLineStats.vue";
+import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
@@ -48,7 +49,12 @@ const props = defineProps({
     type: Number,
     default: 10,
   },
+  editMode: {
+    type: Boolean,
+    default: false,
+  },
 });
+const emit = defineEmits(["editOrders"]);
 
 const chartRef = ref(null);
 const chartTools = ref(null);
@@ -81,7 +87,6 @@ const valueColorType = computed(() => {
     }
   }
 });
-
 const seriesMinValue = reactive({
   previous: formatValue({ value: props.max, unit: props.unit }),
   value: formatValue({ value: props.max, unit: props.unit }),
@@ -94,11 +99,16 @@ const seriesAverageValue = reactive({
   previous: formatValue({ value: props.data, unit: props.unit }),
   value: formatValue({ value: props.data, unit: props.unit }),
 });
-const option = {
+const updateOptions = {
+  notMerge: true,
+  lazyUpdate: true,
+  silent: true,
+};
+const option = ref({
   animation: false,
-  dataset: {
-    source: [],
-  },
+  // dataset: {
+  //   source: chartData.value,
+  // },
   tooltip: {
     trigger: "axis",
     axisPointer: {
@@ -165,10 +175,11 @@ const option = {
       name: props.description,
       type: "line",
       showSymbol: false,
-      encode: {
-        x: 0, // première colonne (date/heure)
-        y: 1, // deuxième colonne (valeur)
-      },
+      // encode: {
+      //   x: 0, // première colonne (date/heure)
+      //   y: 1, // deuxième colonne (valeur)
+      // },
+      data: chartData.value,
       markLine: {
         silent: true,
         symbol: "none",
@@ -197,7 +208,7 @@ const option = {
     left: "left",
     containLabel: true,
   },
-};
+});
 const showXLabel = computed(() => {
   return user.settings.showXLabel ?? false;
 });
@@ -234,7 +245,7 @@ const labelPrecision = computed(() => {
   }
 });
 
-const updateSeriesData = newData => {
+function updateSeriesData(newData) {
   if (chartRef.value) {
     previousValue.value = lastValue.value;
     lastValue.value = newData;
@@ -259,36 +270,52 @@ const updateSeriesData = newData => {
       chartData.value.reduce((acc, curr) => acc + curr[1], 0) / chartData.value.length || 0;
     seriesAverageValue.previous = seriesAverageValue.value;
     seriesAverageValue.value = formatValue({ value: newAverageValue, unit: props.unit });
-
-    // Cette approche est plus efficace car elle ne met à jour que les données
-    chartRef.value.setOption({
-      dataset: {
-        source: chartData.value,
-      },
-    });
   }
-};
+}
 
-watch(
-  // Permet de mettre à jour le graphique en temps réel du store quelque soit la valeur
-  () => system.metrics,
-  () => {
+function initUpdateInterval() {
+  if (updateIntervalId) {
+    clearInterval(updateIntervalId);
+  }
+  updateIntervalId = setInterval(() => {
     updateSeriesData(props.data);
-  },
-  { immediate: true }
-);
+  }, user.settings.nodeFrequency);
+}
+
 watch(
   () => showXLabel.value,
   newValue => {
-    option.xAxis.axisLabel.show = newValue;
-    option.grid.bottom = newValue ? 0 : "5%";
+    option.value.xAxis.axisLabel.show = newValue;
+    option.value.grid.bottom = newValue ? 0 : "5%";
   }
 );
+
+watch(
+  () => user.settings.nodeFrequency,
+  () => {
+    initUpdateInterval();
+  }
+);
+
+let updateIntervalId = null;
+
+onMounted(() => {
+  initUpdateInterval();
+});
+
+onUnmounted(() => {
+  if (updateIntervalId) {
+    clearInterval(updateIntervalId);
+  }
+});
 </script>
 
 <template>
   <n-card
     :key="'#' + chartId"
+    :class="{
+      'edit-mode': editMode,
+    }"
     class="chart-card"
     size="small"
     @mouseenter="showTools = true"
@@ -312,20 +339,30 @@ watch(
           :animation-duration="numberAnimationDuration"
           :average-value="seriesAverageValue"
           :chart-id="chartId"
+          :edit-mode="editMode"
           :max-value="seriesMaxValue"
           :min-value="seriesMinValue"
           :precision="labelPrecision" />
       </n-flex>
     </template>
     <template #default>
-      <v-chart
-        v-show="chartConfigValues.showGraph"
-        ref="chartRef"
-        :autoresize="{ throttle: 300 }"
-        :class="{ 'with-title': user.settings.showChartTitle }"
-        :option="option"
-        :theme="themeComputed"
-        class="chart" />
+      <div class="chart-wrapper">
+        <transition name="fade-skeleton">
+          <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
+        </transition>
+        <transition name="scale">
+          <v-chart
+            v-show="chartConfigValues.showGraph"
+            key="chart"
+            ref="chartRef"
+            :autoresize="{ throttle: 300 }"
+            :class="{ 'with-title': user.settings.showChartTitle }"
+            :option="option"
+            :theme="themeComputed"
+            :update-options="updateOptions"
+            class="chart" />
+        </transition>
+      </div>
     </template>
     <template v-if="props.description" #footer>
       <n-flex align="center" justify="space-between" size="large">
@@ -344,13 +381,19 @@ watch(
               </n-avatar>
             </template>
             <template #default>
-              {{ props.description }} :
-              <n-number-animation
-                :duration="numberAnimationDuration"
-                :from="previousValueFormated"
-                :precision="labelPrecision"
-                :to="lastValueFormated" />
-              {{ getValueUnit(lastValue, props.unit) }}
+              <n-flex size="small">
+                {{ props.description }} :
+                <app-skeleton-input :show="editMode" round>
+                  <div>
+                    <n-number-animation
+                      :duration="numberAnimationDuration"
+                      :from="previousValueFormated"
+                      :precision="labelPrecision"
+                      :to="lastValueFormated" />
+                    {{ getValueUnit(lastValue, props.unit) }}
+                  </div>
+                </app-skeleton-input>
+              </n-flex>
             </template>
           </n-tag>
         </n-flex>
@@ -360,6 +403,7 @@ watch(
               :animation-duration="numberAnimationDuration"
               :average-value="seriesAverageValue"
               :chart-id="chartId"
+              :edit-mode="editMode"
               :max-value="seriesMaxValue"
               :min-value="seriesMinValue"
               :precision="labelPrecision" />
@@ -367,7 +411,15 @@ watch(
         </template>
       </n-flex>
       <transition name="scale">
-        <n-flex v-show="showTools" class="card-tools" justify="flex-end">
+        <n-flex v-show="showTools && !editMode" class="card-tools" justify="flex-end">
+          <n-popover :show-arrow="false">
+            <template #trigger>
+              <n-button size="small" text @click="emit('editOrders')">
+                <font-awesome-icon :icon="['fas', 'edit']" />
+              </n-button>
+            </template>
+            <template #default>Changer l'ordre des graphiques</template>
+          </n-popover>
           <chart-line-tools
             ref="chartTools"
             v-model:mark-line-data="markLineData"
@@ -380,14 +432,31 @@ watch(
 </template>
 
 <style lang="sass" scoped>
-.chart
-  min-height: 10em
+.chart-wrapper
+  position: relative
 
-  &.with-title
-    min-height: 8em
+  .chart
+    position: relative
+    min-height: 10em
+
+    &.with-title
+      min-height: 8em
+
+  .chart-skeleton
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    height: 100%
+    z-index: 1
+    background-color: hsl(240, 4%, 21%)
 
 .chart-card
   min-width: 12em
+
+  &.edit-mode
+    cursor: grab
 
   .chart-title-extra
     white-space: nowrap

@@ -28,6 +28,7 @@ const DEFAULT_USER_SETTINGS = {
     showThresholds: false,
   },
   charts: [],
+  chartsOrder: {},
 };
 const DEFAULT_NODE_SELECTED = [
   "mem.*",

@@ -5,12 +5,16 @@ import { useUserStore } from "@renderer/stores/user";
 import { computed, onMounted, ref, watch } from "vue";
 import { useLoadingBar } from "naive-ui";
 import AppSpin from "@renderer/components/AppSpin.vue";
+import { VueDraggable } from "vue-draggable-plus";
+import _ from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const system = useSystemStore();
 const user = useUserStore();
 const loadingBar = useLoadingBar();
 
 const listSummary = ref([]);
+const editMode = ref(false);
 
 const colNumber = computed(() => {
   return user.settings.graphColumns ?? 2;
@@ -61,7 +65,7 @@ function setSummary() {
         description += " " + index;
       }
 
-      list.push({
+      getEntryList(list, {
         max: 100,
         min: 0,
         title: "Utilisation",
@@ -71,7 +75,7 @@ function setSummary() {
         value: controller.utilizationGpu ?? 0,
       });
 
-      list.push({
+      getEntryList(list, {
         max: controller.vram,
         min: 0,
         title: "Utilisation VRAM",
@@ -81,7 +85,7 @@ function setSummary() {
         value: controller.memoryUsed,
       });
 
-      list.push({
+      getEntryList(list, {
         max: 100,
         min: 0,
         title: "Température",
@@ -91,7 +95,7 @@ function setSummary() {
         value: controller.temperatureGpu ?? 0,
       });
 
-      list.push({
+      getEntryList(list, {
         max: controller.powerLimit,
         min: 0,
         title: "Puissance",
@@ -101,7 +105,7 @@ function setSummary() {
         value: controller.powerDraw ?? 0,
       });
 
-      list.push({
+      getEntryList(list, {
         max: 5000,
         min: 0,
         title: "Horloge",
@@ -111,7 +115,7 @@ function setSummary() {
         value: controller.clockCore,
       });
 
-      list.push({
+      getEntryList(list, {
         max: 100,
         min: 0,
         title: "Vitesse des ventilateurs",
@@ -134,14 +138,23 @@ function setSummary() {
     });
   }
 
-  listSummary.value = list;
+  listSummary.value = _.sortBy(list, "order");
   loadingBar.finish();
 }
 
 function getEntryList(list, { title, description, icon, value, unit, min, max }) {
-  if (value !== undefined && value !== null) {
-    list.push({ title, description, icon, value, unit, min, max });
-  }
+  let id = (title + "#" + description).toLowerCase();
+  list.push({
+    id,
+    title,
+    description,
+    icon,
+    value: value ?? 0,
+    unit,
+    min,
+    max,
+    order: user.settings.chartsOrder[id] ?? 0,
+  });
 }
 
 function getFormatedStyle(index) {
@@ -151,29 +164,84 @@ function getFormatedStyle(index) {
   };
 }
 
-onMounted(() => {
-  watch(system, () => {
-    setSummary();
+function toggleEditMode() {
+  editMode.value = !editMode.value;
+}
+
+async function updateChartsOrder() {
+  user.settings.chartsOrder = {};
+
+  listSummary.value.forEach((item, index) => {
+    user.settings.chartsOrder[item.id] = index;
   });
+}
+
+function resetChartsOrder() {
+  user.settings.chartsOrder = {};
+  setSummary();
+  editMode.value = false;
+}
+
+onMounted(() => {
+  watch(
+    () => system.metrics,
+    () => {
+      setSummary();
+    },
+    {
+      immediate: true,
+    }
+  );
 });
 </script>
 
 <template>
   <app-spin :show="listSummary.length <= 0">
-    <transition-group class="graph-grid" name="fade-y" tag="div">
-      <chart-line
-        v-for="(item, index) in listSummary"
-        :key="item.title + '#' + item.description"
-        :data="item.value"
-        :description="item.description"
-        :icon="item.icon"
-        :max="item.max"
-        :min="item.min"
-        :style="getFormatedStyle(index)"
-        :title="item.title"
-        :unit="item.unit"
-        class="graph-item" />
-    </transition-group>
+    <vue-draggable
+      ref="draggableListRef"
+      v-model="listSummary"
+      :animation="300"
+      :disabled="!editMode"
+      target=".sort-target"
+      @update="updateChartsOrder()">
+      <transition-group class="graph-grid sort-target" name="fade-y" tag="div" type="transition">
+        <chart-line
+          v-for="(item, index) in listSummary"
+          :key="item.title + '#' + item.description"
+          :data="item.value"
+          :description="item.description"
+          :edit-mode="editMode"
+          :icon="item.icon"
+          :max="item.max"
+          :min="item.min"
+          :style="getFormatedStyle(index)"
+          :title="item.title"
+          :unit="item.unit"
+          class="graph-item"
+          @edit-orders="toggleEditMode()" />
+      </transition-group>
+    </vue-draggable>
+    <transition name="insert">
+      <n-float-button
+        v-if="editMode"
+        bottom="4em"
+        left="0"
+        menu-trigger="hover"
+        position="fixed"
+        right="0"
+        style="margin: auto"
+        type="primary">
+        <font-awesome-icon :icon="['fas', 'ellipsis-vertical']" />
+        <template #menu>
+          <n-float-button @click="resetChartsOrder()">
+            <font-awesome-icon :icon="['fas', 'rotate-right']" />
+          </n-float-button>
+          <n-float-button @click="editMode = false">
+            <font-awesome-icon :icon="['fas', 'check']" />
+          </n-float-button>
+        </template>
+      </n-float-button>
+    </transition>
   </app-spin>
 </template>
 
