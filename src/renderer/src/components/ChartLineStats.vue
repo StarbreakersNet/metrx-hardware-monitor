@@ -38,7 +38,7 @@ const props = defineProps({
 });
 
 const chartConfigValues = computed(() => {
-  const chartConfig = settings.charts.find(chart => chart.id === props.chartId);
+  const chartConfig = settings.chartsSettings.find(chart => chart.id === props.chartId);
   return chartConfig ?? settings.chartsDefault;
 });
 </script>

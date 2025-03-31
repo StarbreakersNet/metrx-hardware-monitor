@@ -27,8 +27,9 @@ const DEFAULT_USER_SETTINGS = {
     showMinMax: true,
     showThresholds: false,
   },
-  charts: [],
+  chartsSettings: [],
   chartsOrder: {},
+  chartsMerged: {},
 };
 const DEFAULT_NODE_SELECTED = [
   "mem.*",

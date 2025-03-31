@@ -25,7 +25,7 @@ const { settings } = useUserStore();
 const themeVars = useThemeVars();
 
 const chartConfig = computed(() => {
-  return settings.charts.find(chart => chart.id === props.chartId);
+  return settings.chartsSettings.find(chart => chart.id === props.chartId);
 });
 const chartConfigValues = computed(() => {
   return chartConfig.value ?? settings.chartsDefault;
@@ -92,12 +92,12 @@ function setThresholds({ newWarningThreshold, newDangerThreshold, newShowThresho
       query.showThresholds = newShowThresholds;
     }
 
-    settings.charts.push(query);
+    settings.chartsSettings.push(query);
   }
 }
 
 function resetThresholds() {
-  settings.charts = settings.charts.filter(chart => chart.id !== props.chartId);
+  settings.charts = settings.chartsSettings.filter(chart => chart.id !== props.chartId);
   updateThresholdsOptions();
 }
 
@@ -136,7 +136,7 @@ function udpateChartSettings(key, value) {
   if (chartConfig.value) {
     chartConfig.value[key] = value;
   } else {
-    settings.charts.push({
+    settings.chartsSettings.push({
       ...settings.chartsDefault,
       id: props.chartId,
     });

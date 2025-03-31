@@ -69,7 +69,7 @@ const chartId = computed(() => {
   }
 });
 const chartConfigValues = computed(() => {
-  const chartConfig = user.settings.charts.find(chart => chart.id === chartId.value);
+  const chartConfig = user.settings.chartsSettings.find(chart => chart.id === chartId.value);
   return chartConfig ?? user.settings.chartsDefault;
 });
 const chartData = ref([]);
@@ -106,9 +106,6 @@ const updateOptions = {
 };
 const option = ref({
   animation: false,
-  // dataset: {
-  //   source: chartData.value,
-  // },
   tooltip: {
     trigger: "axis",
     axisPointer: {
@@ -175,10 +172,6 @@ const option = ref({
       name: props.description,
       type: "line",
       showSymbol: false,
-      // encode: {
-      //   x: 0, // première colonne (date/heure)
-      //   y: 1, // deuxième colonne (valeur)
-      // },
       data: chartData.value,
       markLine: {
         silent: true,
@@ -347,9 +340,6 @@ onUnmounted(() => {
     </template>
     <template #default>
       <div class="chart-wrapper">
-        <transition name="fade-skeleton">
-          <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
-        </transition>
         <transition name="scale">
           <v-chart
             v-show="chartConfigValues.showGraph"
@@ -361,6 +351,9 @@ onUnmounted(() => {
             :theme="themeComputed"
             :update-options="updateOptions"
             class="chart" />
+        </transition>
+        <transition name="fade-skeleton">
+          <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
         </transition>
       </div>
     </template>
@@ -418,7 +411,7 @@ onUnmounted(() => {
                 <font-awesome-icon :icon="['fas', 'edit']" />
               </n-button>
             </template>
-            <template #default>Changer l'ordre des graphiques</template>
+            <template #default>Organiser les graphiques</template>
           </n-popover>
           <chart-line-tools
             ref="chartTools"
@@ -449,7 +442,6 @@ onUnmounted(() => {
     right: 0
     bottom: 0
     height: 100%
-    z-index: 1
     background-color: hsl(240, 4%, 21%)
 
 .chart-card

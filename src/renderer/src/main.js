@@ -13,12 +13,14 @@ import { createPersistedState } from "pinia-plugin-persistedstate";
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import App from "./App.vue";
+import ProbesSettings from "@renderer/views/ProbesSettings.vue";
 
 const pinia = createPinia();
 const app = createApp(App);
 const routes = [
   { path: "/", name: "home", component: Home },
   { path: "/nodes", name: "nodes", component: NodesList },
+  { path: "/probes", name: "probes", component: ProbesSettings },
   { path: "/settings", name: "settings", component: Settings },
   { path: "/about", name: "about", component: About },
 ];

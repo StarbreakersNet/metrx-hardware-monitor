@@ -8,6 +8,7 @@ import AppSpin from "@renderer/components/AppSpin.vue";
 import { VueDraggable } from "vue-draggable-plus";
 import _ from "lodash";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import GraphSummaryMergeModal from "@renderer/components/GraphSummaryMergeModal.vue";
 
 const system = useSystemStore();
 const user = useUserStore();
@@ -15,6 +16,7 @@ const loadingBar = useLoadingBar();
 
 const listSummary = ref([]);
 const editMode = ref(false);
+const showMergeModal = ref(false);
 
 const colNumber = computed(() => {
   return user.settings.graphColumns ?? 2;
@@ -138,8 +140,58 @@ function setSummary() {
     });
   }
 
-  listSummary.value = _.sortBy(list, "order");
+  list = _.sortBy(list, "order");
+  list = processMergedCharts(list);
+
+  listSummary.value = list;
   loadingBar.finish();
+}
+
+function processMergedCharts(list) {
+  // Tous les IDs des graphiques qui seront fusionnés (ils n'apparaîtront pas individuellement)
+  const mergedIds = Object.values(user.settings.chartsMerged).flat();
+
+  // Créer une copie du tableau original pour ne pas le modifier
+  const allGraphs = [...list];
+
+  // Filtrer les graphiques qui ne doivent pas être affichés individuellement
+  const filteredList = list.filter(item => !mergedIds.includes(item.id));
+
+  // Résultat final
+  const result = [];
+
+  // Parcourir les graphiques filtrés
+  for (const graph of filteredList) {
+    // Vérifier si c'est un graphique maître qui a des graphiques liés
+    const linkedGraphIds = user.settings.chartsMerged[graph.id] || [];
+
+    if (linkedGraphIds.length > 0) {
+      // Récupérer les graphiques liés
+      const linkedGraphs = linkedGraphIds
+        .map(id => allGraphs.find(item => item.id === id))
+        .filter(Boolean);
+
+      // Créer une copie du graphique avec value transformé en tableau
+      const mergedGraph = {
+        ...graph,
+        value: [
+          { label: graph.description, value: graph.value },
+          ...linkedGraphs.map(linkedGraph => ({
+            label: linkedGraph.description,
+            value: linkedGraph.value,
+          })),
+        ],
+      };
+
+      result.push(mergedGraph);
+    } else {
+      // Si c'est un graphique simple, transformer quand même value en tableau
+      // pour avoir une structure uniforme
+      result.push(graph);
+    }
+  }
+
+  return result;
 }
 
 function getEntryList(list, { title, description, icon, value, unit, min, max }) {
@@ -236,12 +288,16 @@ onMounted(() => {
           <n-float-button @click="resetChartsOrder()">
             <font-awesome-icon :icon="['fas', 'rotate-right']" />
           </n-float-button>
+          <n-float-button @click="showMergeModal = true">
+            <font-awesome-icon :icon="['fas', 'object-group']" />
+          </n-float-button>
           <n-float-button @click="editMode = false">
             <font-awesome-icon :icon="['fas', 'check']" />
           </n-float-button>
         </template>
       </n-float-button>
     </transition>
+    <graph-summary-merge-modal v-model:show="showMergeModal" />
   </app-spin>
 </template>
 

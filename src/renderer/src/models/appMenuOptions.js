@@ -9,7 +9,13 @@ export default (version) => {
     {
       label: "Données",
       key: "nodes",
-      fas: "table",
+      fas: "table-list",
+      hideHorizontalLabel: true,
+    },
+    {
+      label: "Sondes",
+      key: "probes",
+      fas: "microchip",
       hideHorizontalLabel: true,
     },
     {
