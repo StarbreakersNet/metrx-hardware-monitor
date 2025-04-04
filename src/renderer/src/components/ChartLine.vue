@@ -12,6 +12,7 @@ import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/ChartLineTools.vue";
 import ChartLineStats from "@renderer/components/ChartLineStats.vue";
 import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
+import _ from "lodash";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
@@ -22,24 +23,28 @@ const props = defineProps({
     type: [Number, Array],
     default: null,
   },
+  mergedGraphs: {
+    type: Array,
+    default: null,
+  },
   title: {
     type: String,
     default: "Dynamic Data & Time Axis",
   },
   description: {
-    type: String,
+    type: [String, Array],
     default: null,
   },
   icon: {
-    type: String,
+    type: [String, Array],
     default: null,
   },
   min: {
-    type: Number,
+    type: [Number, Array],
     default: null,
   },
   max: {
-    type: Number,
+    type: [Number, Array],
     default: null,
   },
   unit: {
@@ -72,7 +77,21 @@ const chartConfigValues = computed(() => {
   const chartConfig = user.settings.chartsSettings.find(chart => chart.id === chartId.value);
   return chartConfig ?? user.settings.chartsDefault;
 });
-const chartData = ref([]);
+const chartData = computed(() => {
+  let object = {};
+
+  object = {
+    [props.description]: [],
+  };
+
+  if (Array.isArray(props.mergedGraphs)) {
+    _.forEach(props.mergedGraphs, metric => {
+      object[metric.description] = [];
+    });
+  }
+
+  return object;
+});
 const markLineData = ref([]);
 const valueColorType = computed(() => {
   if (chartTools.value) {
@@ -99,11 +118,58 @@ const seriesAverageValue = reactive({
   previous: formatValue({ value: props.data, unit: props.unit }),
   value: formatValue({ value: props.data, unit: props.unit }),
 });
+
 const updateOptions = {
   notMerge: true,
   lazyUpdate: true,
   silent: true,
 };
+const serieDefaultOptions = {
+  name: "#data_title",
+  type: "line",
+  showSymbol: false,
+  data: [],
+  markLine: {
+    silent: true,
+    symbol: "none",
+    lineStyle: {
+      type: "dashed",
+      opacity: 0.25,
+    },
+    data: markLineData.value,
+  },
+  areaStyle: {
+    opacity: 0.25,
+  },
+  lineStyle: {
+    width: 2,
+    join: "round",
+  },
+  smooth: true,
+  smoothMonotone: "x",
+  connectNulls: false,
+};
+const seriesOptions = computed(() => {
+  let options = [];
+
+  if (props.mergedGraphs?.length > 0) {
+    _.forEach(props.mergedGraphs, metric => {
+      options.push({
+        ...serieDefaultOptions,
+        name: metric.description,
+        data: chartData.value[metric.description],
+      });
+    });
+  } else {
+    options.push({
+      ...serieDefaultOptions,
+      name: props.description,
+      data: chartData.value[props.description],
+    });
+  }
+
+  return options;
+});
 const option = ref({
   animation: false,
   tooltip: {
@@ -167,33 +233,7 @@ const option = ref({
       show: false,
     },
   },
-  series: [
-    {
-      name: props.description,
-      type: "line",
-      showSymbol: false,
-      data: chartData.value,
-      markLine: {
-        silent: true,
-        symbol: "none",
-        lineStyle: {
-          type: "dashed",
-          opacity: 0.25,
-        },
-        data: markLineData.value,
-      },
-      areaStyle: {
-        opacity: 0.25,
-      },
-      lineStyle: {
-        width: 2,
-        join: "round",
-      },
-      smooth: true,
-      smoothMonotone: "x",
-      connectNulls: false,
-    },
-  ],
+  series: seriesOptions.value,
   grid: {
     top: "5%",
     right: 0,
@@ -202,6 +242,7 @@ const option = ref({
     containLabel: true,
   },
 });
+
 const showXLabel = computed(() => {
   return user.settings.showXLabel ?? false;
 });
@@ -239,28 +280,50 @@ const labelPrecision = computed(() => {
 });
 
 function updateSeriesData(newData) {
+  // TODO Resume: Continuer sur ce plan. Avoir newData de forme { label: graph.description, value: graph.value }
+  // Continuer le traitement lorsque newData est un tableau.
   if (chartRef.value) {
-    previousValue.value = lastValue.value;
-    lastValue.value = newData;
-    chartData.value.push([new Date(), newData]);
+    let chartValues = chartData.value[props.description];
 
-    if (chartData.value.length > props.bufferSize * 60 + 1) {
-      chartData.value.shift();
+    if (Array.isArray(newData)) {
+      console.log("updateSeriesData", newData, chartData.value);
+      newData.forEach(dataPoint => {
+        chartData.value[dataPoint.description].push([new Date(), dataPoint]);
+
+        const dataPointFormatted = formatValue({ value: dataPoint, unit: props.unit });
+        if (dataPointFormatted < seriesMinValue.value || seriesMinValue.value == null) {
+          seriesMinValue.previous = seriesMinValue.value;
+          seriesMinValue.value = dataPointFormatted;
+        }
+
+        if (dataPointFormatted > seriesMaxValue.value || seriesMaxValue.value == null) {
+          seriesMaxValue.previous = seriesMaxValue.value;
+          seriesMaxValue.value = dataPointFormatted;
+        }
+      });
+    } else {
+      previousValue.value = lastValue.value;
+      lastValue.value = newData;
+      chartValues.push([new Date(), newData]);
+
+      const newDataFormated = formatValue({ value: newData, unit: props.unit });
+      if (newDataFormated < seriesMinValue.value || seriesMinValue.value == null) {
+        seriesMinValue.previous = seriesMinValue.value;
+        seriesMinValue.value = newDataFormated;
+      }
+
+      if (newDataFormated > seriesMaxValue.value || seriesMaxValue.value == null) {
+        seriesMaxValue.previous = seriesMaxValue.value;
+        seriesMaxValue.value = newDataFormated;
+      }
     }
 
-    const newDataFormated = formatValue({ value: newData, unit: props.unit });
-    if (newDataFormated < seriesMinValue.value || seriesMinValue.value == null) {
-      seriesMinValue.previous = seriesMinValue.value;
-      seriesMinValue.value = newDataFormated;
-    }
-
-    if (newDataFormated > seriesMaxValue.value || seriesMaxValue.value == null) {
-      seriesMaxValue.previous = seriesMaxValue.value;
-      seriesMaxValue.value = newDataFormated;
+    if (chartValues.length > props.bufferSize * 60 + 1) {
+      chartValues.splice(0, chartValues.length - props.bufferSize * 60 - 1);
     }
 
     const newAverageValue =
-      chartData.value.reduce((acc, curr) => acc + curr[1], 0) / chartData.value.length || 0;
+      chartValues.reduce((acc, curr) => acc + curr[1], 0) / chartValues.length || 0;
     seriesAverageValue.previous = seriesAverageValue.value;
     seriesAverageValue.value = formatValue({ value: newAverageValue, unit: props.unit });
   }

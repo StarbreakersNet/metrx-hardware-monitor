@@ -177,10 +177,11 @@ function processMergedCharts(list) {
         value: [
           { label: graph.description, value: graph.value },
           ...linkedGraphs.map(linkedGraph => ({
-            label: linkedGraph.description,
+            description: linkedGraph.description,
             value: linkedGraph.value,
           })),
         ],
+        mergedGraphs: linkedGraphs,
       };
 
       result.push(mergedGraph);
@@ -265,6 +266,7 @@ onMounted(() => {
           :edit-mode="editMode"
           :icon="item.icon"
           :max="item.max"
+          :merged-graphs="item.mergedGraphs"
           :min="item.min"
           :style="getFormatedStyle(index)"
           :title="item.title"
