@@ -77,21 +77,26 @@ const chartConfigValues = computed(() => {
   const chartConfig = user.settings.chartsSettings.find(chart => chart.id === chartId.value);
   return chartConfig ?? user.settings.chartsDefault;
 });
-const chartData = computed(() => {
-  let object = {};
+const chartData = ref({});
+watch(
+  () => [props.description, _.map(props.mergedGraphs, "description")],
+  () => {
+    const newChartData = {
+      [props.description]: chartData.value[props.description] || [],
+    };
 
-  object = {
-    [props.description]: [],
-  };
+    if (props.mergedGraphs) {
+      props.mergedGraphs.forEach(metric => {
+        newChartData[metric.description] = chartData.value[metric.description] || [];
+      });
+    }
 
-  if (Array.isArray(props.mergedGraphs)) {
-    _.forEach(props.mergedGraphs, metric => {
-      object[metric.description] = [];
-    });
+    chartData.value = newChartData;
+  },
+  {
+    immediate: true,
   }
-
-  return object;
-});
+);
 const markLineData = ref([]);
 const valueColorType = computed(() => {
   if (chartTools.value) {
@@ -152,6 +157,12 @@ const serieDefaultOptions = {
 const seriesOptions = computed(() => {
   let options = [];
 
+  options.push({
+    ...serieDefaultOptions,
+    name: props.description,
+    data: chartData.value[props.description],
+  });
+
   if (props.mergedGraphs?.length > 0) {
     _.forEach(props.mergedGraphs, metric => {
       options.push({
@@ -159,12 +170,6 @@ const seriesOptions = computed(() => {
         name: metric.description,
         data: chartData.value[metric.description],
       });
-    });
-  } else {
-    options.push({
-      ...serieDefaultOptions,
-      name: props.description,
-      data: chartData.value[props.description],
     });
   }
 
@@ -280,15 +285,13 @@ const labelPrecision = computed(() => {
 });
 
 function updateSeriesData(newData) {
-  // TODO Resume: Continuer sur ce plan. Avoir newData de forme { label: graph.description, value: graph.value }
-  // Continuer le traitement lorsque newData est un tableau.
   if (chartRef.value) {
     let chartValues = chartData.value[props.description];
 
     if (Array.isArray(newData)) {
-      console.log("updateSeriesData", newData, chartData.value);
+      console.log("seriesOptions", seriesOptions.value);
       newData.forEach(dataPoint => {
-        chartData.value[dataPoint.description].push([new Date(), dataPoint]);
+        chartData.value[dataPoint.description].push([new Date(), dataPoint.value]);
 
         const dataPointFormatted = formatValue({ value: dataPoint, unit: props.unit });
         if (dataPointFormatted < seriesMinValue.value || seriesMinValue.value == null) {
@@ -423,6 +426,14 @@ onUnmounted(() => {
     <template v-if="props.description" #footer>
       <n-flex align="center" justify="space-between" size="large">
         <n-flex align="center">
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-tag type="warning" :bordered="false">
+                <font-awesome-icon :icon="['fas', 'warning']" />
+              </n-tag>
+            </template>
+            Besoin de mettre en composant le tag et envoyer un tableau (avec les mergedGraph comme dans le traitement) et avoir un tableau de lastValueFormated, donc appliquer les changements en tableau comme fait pour le tableau
+          </n-tooltip>
           <n-tag :bordered="false" :type="valueColorType" round>
             <template v-if="props.icon" #avatar>
               <n-avatar

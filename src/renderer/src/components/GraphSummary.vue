@@ -175,7 +175,7 @@ function processMergedCharts(list) {
       const mergedGraph = {
         ...graph,
         value: [
-          { label: graph.description, value: graph.value },
+          { description: graph.description, value: graph.value },
           ...linkedGraphs.map(linkedGraph => ({
             description: linkedGraph.description,
             value: linkedGraph.value,

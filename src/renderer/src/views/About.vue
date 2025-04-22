@@ -14,8 +14,11 @@ const osThemeLabel = computed(() => {
     case "light":
       return "claire";
     default:
-      return;
+      return null;
   }
+});
+const isMacos = computed(() => {
+  return window.electron?.process?.platform === "darwin";
 });
 </script>
 <template>
@@ -58,7 +61,8 @@ const osThemeLabel = computed(() => {
         </template>
         <template #default>
           Appuyez sur
-          <n-tag :bordered="false">CTRL + SHIFT + i</n-tag>
+          <n-tag v-if="isMacos" :bordered="false">⌘ + ⌥ + i</n-tag>
+          <n-tag v-else :bordered="false">CTRL + SHIFT + i</n-tag>
           pour ouvrir les outils de devs.
         </template>
       </n-alert>
