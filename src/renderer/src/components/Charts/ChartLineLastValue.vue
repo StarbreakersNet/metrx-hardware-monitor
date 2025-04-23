@@ -57,6 +57,10 @@ const animationValues = computed(() => {
   });
   return result;
 });
+
+function getSerieColor(serie) {
+  return serie.colorSerie ?? "var(--n-color-text-default)";
+}
 </script>
 
 <template>
@@ -78,20 +82,23 @@ const animationValues = computed(() => {
     </template>
     <template #default>
       <n-flex size="small">
-        {{ lastValue.description }} :
+        {{ lastValue.description }}
         <app-skeleton-input :show="props.editMode" round>
-          <div>
+          <n-flex class="number-container" justify="end">
             <n-number-animation
               :duration="props.animationDuration"
               :from="animationValues[lastValue.description].fromFormated"
               :precision="precision"
               :to="animationValues[lastValue.description].toFormated" />
             {{ getValueUnit(animationValues[lastValue.description].to, props.unit) }}
-          </div>
+          </n-flex>
         </app-skeleton-input>
       </n-flex>
     </template>
   </n-tag>
 </template>
 
-<style scoped lang="sass"></style>
+<style lang="sass" scoped>
+.number-container
+  min-width: 3em
+</style>

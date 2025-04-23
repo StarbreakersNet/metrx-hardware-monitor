@@ -77,15 +77,17 @@ function setSummary() {
         value: controller.utilizationGpu ?? 0,
       });
 
-      getEntryList(list, {
-        max: controller.vram,
-        min: 0,
-        title: "Utilisation VRAM",
-        icon: "memory",
-        description: description,
-        unit: "Mo",
-        value: controller.memoryUsed,
-      });
+      if (controller.vram) {
+        getEntryList(list, {
+          max: controller.vram,
+          min: 0,
+          title: "Utilisation VRAM",
+          icon: "memory",
+          description: description,
+          unit: "Mo",
+          value: controller.memoryUsed,
+        });
+      }
 
       getEntryList(list, {
         max: 100,
@@ -97,15 +99,17 @@ function setSummary() {
         value: controller.temperatureGpu ?? 0,
       });
 
-      getEntryList(list, {
-        max: controller.powerLimit,
-        min: 0,
-        title: "Puissance",
-        description: description,
-        icon: "bolt",
-        unit: "W",
-        value: controller.powerDraw ?? 0,
-      });
+      if (controller.powerLimit) {
+        getEntryList(list, {
+          max: controller.powerLimit,
+          min: 0,
+          title: "Puissance",
+          description: description,
+          icon: "bolt",
+          unit: "W",
+          value: controller.powerDraw ?? 0,
+        });
+      }
 
       getEntryList(list, {
         max: 5000,

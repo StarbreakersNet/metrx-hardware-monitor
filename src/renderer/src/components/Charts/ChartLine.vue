@@ -267,13 +267,14 @@ const lastValuesCollection = computed(() => {
 
   return values;
 });
+
 function getValueColorType(value) {
   if (chartTools.value) {
     let { warning, danger } = chartTools.value.thresholds;
 
     if (value >= warning && value < danger) {
       return "warning";
-    } else if (value >= danger) {
+    } else if (value > danger) {
       return "error";
     } else {
       return "primary";
@@ -281,6 +282,7 @@ function getValueColorType(value) {
   }
   return "default";
 }
+
 const labelPrecision = computed(() => {
   switch (props.unit) {
     case "Mhz":
@@ -398,15 +400,14 @@ onUnmounted(() => {
       </n-space>
     </template>
     <template #header-extra>
-      <n-flex :size="5">
+      <n-flex :size="5" justify="end">
         <chart-line-stats
           :animation-duration="numberAnimationDuration"
-          :average-value="seriesAverageValue"
           :chart-id="chartId"
           :edit-mode="editMode"
-          :max-value="seriesMaxValue"
-          :min-value="seriesMinValue"
-          :precision="labelPrecision" />
+          :last-value-collection="lastValuesCollection"
+          :precision="labelPrecision"
+          :unit="props.unit" />
       </n-flex>
     </template>
     <template #default>
@@ -432,23 +433,22 @@ onUnmounted(() => {
       <n-flex align="center" justify="space-between" size="large">
         <n-flex align="center">
           <chart-line-last-value
-            :last-value-collection="lastValuesCollection"
-            :unit="props.unit"
-            :icon="props.icon"
-            :edit-mode="editMode"
             :animation-duration="numberAnimationDuration"
-            :precision="labelPrecision" />
+            :edit-mode="editMode"
+            :icon="props.icon"
+            :last-value-collection="lastValuesCollection"
+            :precision="labelPrecision"
+            :unit="props.unit" />
         </n-flex>
         <template v-if="!user.settings.showChartTitle">
-          <n-flex :size="5">
+          <n-flex :size="5" justify="end">
             <chart-line-stats
               :animation-duration="numberAnimationDuration"
-              :average-value="seriesAverageValue"
               :chart-id="chartId"
               :edit-mode="editMode"
-              :max-value="seriesMaxValue"
-              :min-value="seriesMinValue"
-              :precision="labelPrecision" />
+              :last-value-collection="lastValuesCollection"
+              :precision="labelPrecision"
+              :unit="props.unit" />
           </n-flex>
         </template>
       </n-flex>
