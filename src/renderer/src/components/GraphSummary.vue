@@ -1,5 +1,5 @@
 <script setup>
-import ChartLine from "@renderer/components/ChartLine.vue";
+import ChartLine from "@renderer/components/Charts/ChartLine.vue";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
 import { computed, onMounted, ref, watch } from "vue";

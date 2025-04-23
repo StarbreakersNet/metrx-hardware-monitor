@@ -37,6 +37,7 @@
     "pinia-plugin-persistedstate": "^3.2.1",
     "stateful-electron-window": "^1.0.0",
     "systeminformation": "^5.25.11",
+    "vite-plugin-vue-devtools": "^7.7.5",
     "vue-draggable-plus": "^0.6.0",
     "vue-echarts": "^6.6.9",
     "vue-router": "^4.3.0"

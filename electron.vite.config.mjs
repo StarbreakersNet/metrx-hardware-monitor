@@ -1,6 +1,7 @@
 import { resolve } from "path";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import vue from "@vitejs/plugin-vue";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 export default defineConfig({
   main: {
@@ -10,9 +11,9 @@ export default defineConfig({
         input: {
           index: resolve("src/main/index.js"),
           metricsWorker: resolve("src/main/workers/metrics.js"),
-        }
-      }
-    }
+        },
+      },
+    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
@@ -33,6 +34,6 @@ export default defineConfig({
       sass: 'vue-style-loader!css-loader!sass-loader?indentedSyntax=1&data=@import "./src/renderer/globals"',
       scss: 'vue-style-loader!css-loader!sass-loader?data=@import "./src/renderer/globals";',
     },
-    plugins: [vue()],
+    plugins: [vue(), vueDevTools()],
   },
 });

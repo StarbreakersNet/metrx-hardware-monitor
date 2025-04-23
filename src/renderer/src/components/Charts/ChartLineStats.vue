@@ -41,6 +41,8 @@ const chartConfigValues = computed(() => {
   const chartConfig = settings.chartsSettings.find(chart => chart.id === props.chartId);
   return chartConfig ?? settings.chartsDefault;
 });
+
+// TODO Resume: À adapter pour les graphiques fusionnées
 </script>
 
 <template>

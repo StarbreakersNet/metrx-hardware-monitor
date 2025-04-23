@@ -1,6 +1,6 @@
 <script setup>
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { formatValue, getValueUnit } from "@renderer/appUtils";
+import { formatValue } from "@renderer/appUtils";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
 import { LineChart } from "echarts/charts";
@@ -9,10 +9,10 @@ import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import VChart from "vue-echarts";
-import ChartLineTools from "@renderer/components/ChartLineTools.vue";
-import ChartLineStats from "@renderer/components/ChartLineStats.vue";
-import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
+import ChartLineTools from "@renderer/components/Charts/ChartLineTools.vue";
+import ChartLineStats from "@renderer/components/Charts/ChartLineStats.vue";
 import _ from "lodash";
+import ChartLineLastValue from "@renderer/components/Charts/ChartLineLastValue.vue";
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
@@ -98,19 +98,6 @@ watch(
   }
 );
 const markLineData = ref([]);
-const valueColorType = computed(() => {
-  if (chartTools.value) {
-    let { warning, danger } = chartTools.value?.thresholds;
-
-    if (lastValue.value >= warning && lastValue.value < danger) {
-      return "warning";
-    } else if (lastValue.value >= danger) {
-      return "error";
-    } else {
-      return "primary";
-    }
-  }
-});
 const seriesMinValue = reactive({
   previous: formatValue({ value: props.max, unit: props.unit }),
   value: formatValue({ value: props.max, unit: props.unit }),
@@ -258,21 +245,42 @@ const themeComputed = computed(() => {
 const numberAnimationDuration = computed(() => {
   return user.settings.nodeFrequency / 2;
 });
-const lastValue = ref(null);
-const lastValueFormated = computed(() => {
-  return formatValue({
-    value: lastValue.value,
-    unit: props.unit,
-  });
-});
-const previousValue = ref(null);
-const previousValueFormated = computed(() => {
-  if (previousValue.value != null) {
-    return formatValue({ value: previousValue.value, unit: props.unit });
-  } else {
-    return lastValueFormated.value;
+const lastValuesCollection = computed(() => {
+  const mainValue = _.find(props.data, { description: props.description })?.value ?? props.data;
+  const values = [
+    {
+      description: props.description,
+      value: mainValue,
+      colorType: getValueColorType(mainValue),
+    },
+  ];
+
+  if (props.mergedGraphs?.length > 0) {
+    props.mergedGraphs.forEach(metric => {
+      values.push({
+        description: metric.description,
+        value: metric.value,
+        colorType: getValueColorType(metric.value),
+      });
+    });
   }
+
+  return values;
 });
+function getValueColorType(value) {
+  if (chartTools.value) {
+    let { warning, danger } = chartTools.value.thresholds;
+
+    if (value >= warning && value < danger) {
+      return "warning";
+    } else if (value >= danger) {
+      return "error";
+    } else {
+      return "primary";
+    }
+  }
+  return "default";
+}
 const labelPrecision = computed(() => {
   switch (props.unit) {
     case "Mhz":
@@ -289,7 +297,6 @@ function updateSeriesData(newData) {
     let chartValues = chartData.value[props.description];
 
     if (Array.isArray(newData)) {
-      console.log("seriesOptions", seriesOptions.value);
       newData.forEach(dataPoint => {
         chartData.value[dataPoint.description].push([new Date(), dataPoint.value]);
 
@@ -305,8 +312,6 @@ function updateSeriesData(newData) {
         }
       });
     } else {
-      previousValue.value = lastValue.value;
-      lastValue.value = newData;
       chartValues.push([new Date(), newData]);
 
       const newDataFormated = formatValue({ value: newData, unit: props.unit });
@@ -426,43 +431,13 @@ onUnmounted(() => {
     <template v-if="props.description" #footer>
       <n-flex align="center" justify="space-between" size="large">
         <n-flex align="center">
-          <n-tooltip trigger="hover">
-            <template #trigger>
-              <n-tag type="warning" :bordered="false">
-                <font-awesome-icon :icon="['fas', 'warning']" />
-              </n-tag>
-            </template>
-            Besoin de mettre en composant le tag et envoyer un tableau (avec les mergedGraph comme dans le traitement) et avoir un tableau de lastValueFormated, donc appliquer les changements en tableau comme fait pour le tableau
-          </n-tooltip>
-          <n-tag :bordered="false" :type="valueColorType" round>
-            <template v-if="props.icon" #avatar>
-              <n-avatar
-                :style="{
-                  backgroundColor: 'transparent',
-                  color: 'var(--n-color-text-default)',
-                }">
-                <font-awesome-icon
-                  v-if="!user.settings.showChartTitle"
-                  :icon="['fas', props.icon]" />
-                <font-awesome-icon v-else :icon="['fas', 'circle']" />
-              </n-avatar>
-            </template>
-            <template #default>
-              <n-flex size="small">
-                {{ props.description }} :
-                <app-skeleton-input :show="editMode" round>
-                  <div>
-                    <n-number-animation
-                      :duration="numberAnimationDuration"
-                      :from="previousValueFormated"
-                      :precision="labelPrecision"
-                      :to="lastValueFormated" />
-                    {{ getValueUnit(lastValue, props.unit) }}
-                  </div>
-                </app-skeleton-input>
-              </n-flex>
-            </template>
-          </n-tag>
+          <chart-line-last-value
+            :last-value-collection="lastValuesCollection"
+            :unit="props.unit"
+            :icon="props.icon"
+            :edit-mode="editMode"
+            :animation-duration="numberAnimationDuration"
+            :precision="labelPrecision" />
         </n-flex>
         <template v-if="!user.settings.showChartTitle">
           <n-flex :size="5">
