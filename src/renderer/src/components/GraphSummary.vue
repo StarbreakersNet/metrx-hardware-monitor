@@ -152,51 +152,37 @@ function setSummary() {
 }
 
 function processMergedCharts(list) {
-  // Tous les IDs des graphiques qui seront fusionnés (ils n'apparaîtront pas individuellement)
   const mergedIds = Object.values(user.settings.chartsMerged).flat();
-
-  // Créer une copie du tableau original pour ne pas le modifier
   const allGraphs = [...list];
-
-  // Filtrer les graphiques qui ne doivent pas être affichés individuellement
   const filteredList = list.filter(item => !mergedIds.includes(item.id));
 
-  // Résultat final
-  const result = [];
-
-  // Parcourir les graphiques filtrés
-  for (const graph of filteredList) {
-    // Vérifier si c'est un graphique maître qui a des graphiques liés
+  return filteredList.map(graph => {
     const linkedGraphIds = user.settings.chartsMerged[graph.id] || [];
 
-    if (linkedGraphIds.length > 0) {
-      // Récupérer les graphiques liés
-      const linkedGraphs = linkedGraphIds
-        .map(id => allGraphs.find(item => item.id === id))
-        .filter(Boolean);
-
-      // Créer une copie du graphique avec value transformé en tableau
-      const mergedGraph = {
-        ...graph,
-        value: [
-          { description: graph.description, value: graph.value },
-          ...linkedGraphs.map(linkedGraph => ({
-            description: linkedGraph.description,
-            value: linkedGraph.value,
-          })),
-        ],
-        mergedGraphs: linkedGraphs,
-      };
-
-      result.push(mergedGraph);
-    } else {
-      // Si c'est un graphique simple, transformer quand même value en tableau
-      // pour avoir une structure uniforme
-      result.push(graph);
+    if (!linkedGraphIds.length) {
+      return graph;
     }
-  }
 
-  return result;
+    const linkedGraphs = linkedGraphIds
+      .map(id => allGraphs.find(item => item.id === id))
+      .filter(Boolean);
+
+    return {
+      ...graph,
+      value: [
+        { description: graph.description, value: graph.value },
+        ...linkedGraphs.map(({ description, value }) => ({ description, value })),
+      ],
+      mergedGraphs: linkedGraphs.map(({ id, title, description, icon, min, max }) => ({
+        id,
+        title,
+        description,
+        icon,
+        min,
+        max,
+      })),
+    };
+  });
 }
 
 function getEntryList(list, { title, description, icon, value, unit, min, max }) {

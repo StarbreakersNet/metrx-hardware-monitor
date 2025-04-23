@@ -108,7 +108,21 @@ function getEntryList(list, { title, description, unit }) {
 }
 
 function isEntryDisabled(id) {
-  return Object.values(user.settings.chartsMerged).some(array => array.includes(id));
+  return Object.entries(user.settings.chartsMerged).some(([graphId, mergedIds]) => {
+    return mergedIds.includes(id) && graphId !== id;
+  });
+}
+
+function isOptionDisabled(entryId, currentGraphId) {
+  const isMergedInOtherGraph = Object.entries(user.settings.chartsMerged).some(
+    ([graphId, mergedIds]) => {
+      return mergedIds.includes(entryId) && graphId !== currentGraphId;
+    }
+  );
+
+  const hasMergedGraphs = user.settings.chartsMerged[entryId]?.length > 0;
+
+  return isMergedInOtherGraph || hasMergedGraphs;
 }
 
 function getSameUnitEntry(unit, excludeId) {
@@ -117,7 +131,7 @@ function getSameUnitEntry(unit, excludeId) {
     .map(entry => ({
       label: `${entry.title} ${entry.description}`,
       value: entry.id,
-      disabled: user.settings.chartsMerged[entry.id]?.length > 0,
+      disabled: isOptionDisabled(entry.id, excludeId),
     }));
 }
 
@@ -148,7 +162,7 @@ function getSelectValues(id) {
         <n-flex class="sb-scrollbar-overlaping">
           <n-grid :cols="user.settings.graphColumns" x-gap="12" y-gap="12">
             <n-gi v-for="item in listSummary" :key="item.title + '#' + item.description">
-              <n-card size="small" :class="{ disabled: item.disabled }">
+              <n-card :class="{ disabled: item.disabled }" size="small">
                 <template #header>
                   <n-text :delete="item.disabled">{{ item.title }} {{ item.description }}</n-text>
                 </template>

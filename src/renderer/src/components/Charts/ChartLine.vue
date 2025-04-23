@@ -1,13 +1,12 @@
 <script setup>
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { formatValue } from "@renderer/appUtils";
-import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TitleComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/Charts/ChartLineTools.vue";
 import ChartLineStats from "@renderer/components/Charts/ChartLineStats.vue";
@@ -16,7 +15,6 @@ import ChartLineLastValue from "@renderer/components/Charts/ChartLineLastValue.v
 
 use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
 
-const system = useSystemStore();
 const user = useUserStore();
 const props = defineProps({
   data: {
@@ -79,40 +77,31 @@ const chartConfigValues = computed(() => {
 });
 const chartData = ref({});
 watch(
-  () => [props.description, _.map(props.mergedGraphs, "description")],
-  () => {
-    const newChartData = {
-      [props.description]: chartData.value[props.description] || [],
-    };
+  () => [props.description, props.mergedGraphs],
+  (newValues, oldValues) => {
+    let mergedGraphsChanged = !_.isEqual(newValues?.[1], oldValues?.[1]);
 
-    if (props.mergedGraphs) {
-      props.mergedGraphs.forEach(metric => {
-        newChartData[metric.description] = chartData.value[metric.description] || [];
-      });
+    if (mergedGraphsChanged) {
+      const newChartData = {
+        [props.description]: chartData.value[props.description] || [],
+      };
+
+      if (props.mergedGraphs) {
+        props.mergedGraphs.forEach(metric => {
+          newChartData[metric.description] = chartData.value[metric.description] || [];
+        });
+      }
+
+      chartData.value = newChartData;
     }
-
-    chartData.value = newChartData;
   },
   {
     immediate: true,
   }
 );
 const markLineData = ref([]);
-const seriesMinValue = reactive({
-  previous: formatValue({ value: props.max, unit: props.unit }),
-  value: formatValue({ value: props.max, unit: props.unit }),
-});
-const seriesMaxValue = reactive({
-  previous: formatValue({ value: props.min, unit: props.unit }),
-  value: formatValue({ value: props.min, unit: props.unit }),
-});
-const seriesAverageValue = reactive({
-  previous: formatValue({ value: props.data, unit: props.unit }),
-  value: formatValue({ value: props.data, unit: props.unit }),
-});
 
 const updateOptions = {
-  notMerge: true,
   lazyUpdate: true,
   silent: true,
 };
@@ -141,27 +130,43 @@ const serieDefaultOptions = {
   smoothMonotone: "x",
   connectNulls: false,
 };
-const seriesOptions = computed(() => {
-  let options = [];
+const seriesOptions = ref([]);
+watch(
+  () => [props.mergedGraphs],
+  async (newValues, oldValues) => {
+    if (!_.isEqual(oldValues, newValues)) {
+      let options = [];
 
-  options.push({
-    ...serieDefaultOptions,
-    name: props.description,
-    data: chartData.value[props.description],
-  });
-
-  if (props.mergedGraphs?.length > 0) {
-    _.forEach(props.mergedGraphs, metric => {
       options.push({
         ...serieDefaultOptions,
-        name: metric.description,
-        data: chartData.value[metric.description],
+        name: props.description,
+        data: chartData.value[props.description],
       });
-    });
-  }
 
-  return options;
-});
+      if (props.mergedGraphs?.length > 0) {
+        console.log("seriesOptions mergedGraphs");
+        _.forEach(props.mergedGraphs, metric => {
+          options.push({
+            ...serieDefaultOptions,
+            name: metric.description,
+            data: chartData.value[metric.description],
+          });
+        });
+      }
+
+      seriesOptions.value = options;
+      if (chartRef.value) {
+        option.value = {
+          ...option.value,
+          series: options,
+        };
+      }
+    }
+  },
+  {
+    immediate: true,
+  }
+);
 const option = ref({
   animation: false,
   tooltip: {
@@ -235,9 +240,6 @@ const option = ref({
   },
 });
 
-const showXLabel = computed(() => {
-  return user.settings.showXLabel ?? false;
-});
 const showTools = ref(false);
 const themeComputed = computed(() => {
   return user.settings.theme === "system" ? user.settings.osTheme : user.settings.theme;
@@ -246,22 +248,21 @@ const numberAnimationDuration = computed(() => {
   return user.settings.nodeFrequency / 2;
 });
 const lastValuesCollection = computed(() => {
-  const mainValue = _.find(props.data, { description: props.description })?.value ?? props.data;
-  const values = [
-    {
-      description: props.description,
-      value: mainValue,
-      colorType: getValueColorType(mainValue),
-    },
-  ];
+  const values = [];
 
-  if (props.mergedGraphs?.length > 0) {
-    props.mergedGraphs.forEach(metric => {
+  if (Array.isArray(props.data)) {
+    props.data.forEach(metric => {
       values.push({
         description: metric.description,
         value: metric.value,
         colorType: getValueColorType(metric.value),
       });
+    });
+  } else {
+    values.push({
+      description: props.description,
+      value: props.data,
+      colorType: getValueColorType(props.data),
     });
   }
 
@@ -295,47 +296,19 @@ const labelPrecision = computed(() => {
 });
 
 function updateSeriesData(newData) {
-  if (chartRef.value) {
-    let chartValues = chartData.value[props.description];
+  let chartValues = chartData.value[props.description];
+  let updateDate = new Date();
 
-    if (Array.isArray(newData)) {
-      newData.forEach(dataPoint => {
-        chartData.value[dataPoint.description].push([new Date(), dataPoint.value]);
+  if (Array.isArray(newData)) {
+    newData.forEach(dataPoint => {
+      chartData.value[dataPoint.description].push([updateDate, dataPoint.value]);
+    });
+  } else {
+    chartValues.push([updateDate, newData]);
+  }
 
-        const dataPointFormatted = formatValue({ value: dataPoint, unit: props.unit });
-        if (dataPointFormatted < seriesMinValue.value || seriesMinValue.value == null) {
-          seriesMinValue.previous = seriesMinValue.value;
-          seriesMinValue.value = dataPointFormatted;
-        }
-
-        if (dataPointFormatted > seriesMaxValue.value || seriesMaxValue.value == null) {
-          seriesMaxValue.previous = seriesMaxValue.value;
-          seriesMaxValue.value = dataPointFormatted;
-        }
-      });
-    } else {
-      chartValues.push([new Date(), newData]);
-
-      const newDataFormated = formatValue({ value: newData, unit: props.unit });
-      if (newDataFormated < seriesMinValue.value || seriesMinValue.value == null) {
-        seriesMinValue.previous = seriesMinValue.value;
-        seriesMinValue.value = newDataFormated;
-      }
-
-      if (newDataFormated > seriesMaxValue.value || seriesMaxValue.value == null) {
-        seriesMaxValue.previous = seriesMaxValue.value;
-        seriesMaxValue.value = newDataFormated;
-      }
-    }
-
-    if (chartValues.length > props.bufferSize * 60 + 1) {
-      chartValues.splice(0, chartValues.length - props.bufferSize * 60 - 1);
-    }
-
-    const newAverageValue =
-      chartValues.reduce((acc, curr) => acc + curr[1], 0) / chartValues.length || 0;
-    seriesAverageValue.previous = seriesAverageValue.value;
-    seriesAverageValue.value = formatValue({ value: newAverageValue, unit: props.unit });
+  if (chartValues.length > props.bufferSize * 60 + 1) {
+    chartValues.splice(0, chartValues.length - props.bufferSize * 60 - 1);
   }
 }
 
@@ -349,7 +322,7 @@ function initUpdateInterval() {
 }
 
 watch(
-  () => showXLabel.value,
+  () => user.settings.showXLabel,
   newValue => {
     option.value.xAxis.axisLabel.show = newValue;
     option.value.grid.bottom = newValue ? 0 : "5%";
@@ -414,8 +387,7 @@ onUnmounted(() => {
       <div class="chart-wrapper">
         <transition name="scale">
           <v-chart
-            v-show="chartConfigValues.showGraph"
-            key="chart"
+            v-if="chartConfigValues.showGraph"
             ref="chartRef"
             :autoresize="{ throttle: 300 }"
             :class="{ 'with-title': user.settings.showChartTitle }"
