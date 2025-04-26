@@ -102,6 +102,7 @@ watch(
 const markLineData = ref([]);
 
 const updateOptions = {
+  replaceMerge: "series",
   lazyUpdate: true,
   silent: true,
 };
