@@ -97,7 +97,6 @@ function setThresholds({ newWarningThreshold, newDangerThreshold, newShowThresho
 }
 
 function resetThresholds() {
-  console.log("resetThresholds", settings.charts, props.chartId);
   settings.chartsSettings = settings.chartsSettings.filter(chart => chart.id !== props.chartId);
   updateThresholdsOptions();
 }

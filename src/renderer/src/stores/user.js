@@ -11,6 +11,7 @@ const observerElectronStoreRegistered = ref(false);
 
 const DEFAULT_USER_SETTINGS = {
   theme: "system",
+  osTheme: null,
   autoUpdate: false,
   updateChanel: await getDefaultUpdateChanel(),
   nodeFrequency: 1000,
@@ -30,6 +31,7 @@ const DEFAULT_USER_SETTINGS = {
   chartsSettings: [],
   chartsOrder: {},
   chartsMerged: {},
+  chartsColors: {},
 };
 const DEFAULT_NODE_SELECTED = [
   "mem.*",

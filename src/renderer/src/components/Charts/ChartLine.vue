@@ -66,7 +66,7 @@ const chartId = computed(() => {
   if (props.description == null) {
     return props.title.toLowerCase();
   } else if (props.title) {
-    return props.title.toLowerCase() + "#" + props.description.toLowerCase();
+    return props.title.toLowerCase() + "#" + props.description?.toLowerCase();
   } else {
     return "#undefined#";
   }
@@ -74,6 +74,22 @@ const chartId = computed(() => {
 const chartConfigValues = computed(() => {
   const chartConfig = user.settings.chartsSettings.find(chart => chart.id === chartId.value);
   return chartConfig ?? user.settings.chartsDefault;
+});
+const chartColors = computed(() => {
+  const colors = [];
+  let mainMetricColor = user.settings.chartsColors[props.description];
+  if (mainMetricColor) {
+    colors.push(mainMetricColor);
+  }
+  if (props.mergedGraphs) {
+    props.mergedGraphs.forEach(metric => {
+      let mergedMetricColor = user.settings.chartsColors[metric.description];
+      if (mergedMetricColor) {
+        colors.push(mergedMetricColor);
+      }
+    });
+  }
+  return colors;
 });
 const chartData = ref({});
 watch(
@@ -145,7 +161,6 @@ watch(
       });
 
       if (props.mergedGraphs?.length > 0) {
-        console.log("seriesOptions mergedGraphs");
         _.forEach(props.mergedGraphs, metric => {
           options.push({
             ...serieDefaultOptions,
@@ -232,6 +247,7 @@ const option = ref({
     },
   },
   series: seriesOptions.value,
+  color: chartColors.value,
   grid: {
     top: "5%",
     right: 0,
@@ -407,6 +423,7 @@ onUnmounted(() => {
         <n-flex align="center">
           <chart-line-last-value
             :animation-duration="numberAnimationDuration"
+            :chart-id="chartId"
             :edit-mode="editMode"
             :icon="props.icon"
             :last-value-collection="lastValuesCollection"
@@ -492,7 +509,6 @@ onUnmounted(() => {
 .card-tools
   position: absolute
   right: 0
-  left: 0
   bottom: 0
   padding: .5em
 </style>

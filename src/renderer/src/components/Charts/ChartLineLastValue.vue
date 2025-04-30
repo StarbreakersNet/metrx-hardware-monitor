@@ -1,6 +1,5 @@
 <script setup>
 import { formatValue, getValueUnit } from "@renderer/appUtils";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
 import { useUserStore } from "@renderer/stores/user";
 
@@ -10,6 +9,10 @@ const props = defineProps({
   lastValueCollection: {
     type: Array,
     default: () => [{ value: 0, description: "undefined", colorType: "default" }],
+  },
+  chartId: {
+    type: String,
+    default: null,
   },
   icon: {
     type: String,
@@ -59,7 +62,15 @@ const animationValues = computed(() => {
 });
 
 function getSerieColor(serie) {
-  return serie.colorSerie ?? "var(--n-color-text-default)";
+  return settings.chartsColors[serie.description] ?? "var(--n-color-text-default)";
+}
+
+function onSerieColorChange(serie, color) {
+  settings.chartsColors[serie.description] = color;
+}
+
+function onSerieColorRemove(serie) {
+  delete settings.chartsColors[serie.description];
 }
 </script>
 
@@ -73,11 +84,18 @@ function getSerieColor(serie) {
     <template v-if="props.icon" #avatar>
       <n-avatar
         :style="{
-          backgroundColor: 'transparent',
-          color: 'var(--n-color-text-default)',
+          background: 'transparent',
+          color: getSerieColor(lastValue),
         }">
         <font-awesome-icon v-if="!settings.showChartTitle" :icon="['fas', props.icon]" />
         <font-awesome-icon v-else :icon="['fas', 'circle']" />
+        <n-color-picker
+          :actions="['clear']"
+          :modes="['hsl', 'hex']"
+          :value="getSerieColor(lastValue)"
+          class="hidden-color-picker"
+          @clear="onSerieColorRemove(lastValue)"
+          @update:value="onSerieColorChange(lastValue, $event)" />
       </n-avatar>
     </template>
     <template #default>
@@ -101,4 +119,13 @@ function getSerieColor(serie) {
 <style lang="sass" scoped>
 .number-container
   min-width: 3em
+
+.hidden-color-picker
+  opacity: 0
+  position: absolute
+  height: unset
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
 </style>
