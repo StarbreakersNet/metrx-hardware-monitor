@@ -6,11 +6,12 @@ import _ from "lodash";
 import { useThemeVars } from "naive-ui";
 import chartLineToolsAvailable from "@renderer/models/chartLineToolsAvailable";
 
+const thresholdsData = defineModel("thresholdsData", {
+  type: Object,
+  required: true,
+});
+
 const props = defineProps({
-  markLineData: {
-    type: Object,
-    required: true,
-  },
   chartId: {
     type: String,
     required: true,
@@ -102,33 +103,10 @@ function resetThresholds() {
 }
 
 function updateThresholdsOptions() {
-  const updateMarkLineOption = (thresholdType, thresholdValue, color) => {
-    const optionName = "threshold" + thresholdType;
-    let option = props.markLineData.find(mark => mark.name === optionName);
-
-    if (option) {
-      option.yAxis = thresholdValue;
-    } else {
-      props.markLineData.push({
-        name: optionName,
-        type: "average",
-        yAxis: thresholdValue,
-        lineStyle: { color },
-      });
-    }
-  };
-
   if (showThresholds.value) {
-    if (thresholds.value.warning) {
-      updateMarkLineOption("Warning", thresholds.value.warning, themeVars.value.warningColor);
-    }
-    if (thresholds.value.danger) {
-      updateMarkLineOption("Danger", thresholds.value.danger, themeVars.value.errorColor);
-    }
+    thresholdsData.value = thresholds.value;
   } else {
-    _.remove(props.markLineData, mark =>
-      ["thresholdWarning", "thresholdDanger"].includes(mark.name)
-    );
+    thresholdsData.value = {};
   }
 }
 

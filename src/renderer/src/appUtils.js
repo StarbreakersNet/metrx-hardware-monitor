@@ -157,6 +157,26 @@ export function getNaiveOverrideTheme(theme) {
   return getTheme(theme, "naive");
 }
 
+export function withOpacity(color, opacity = 0.5) {
+  if (color.startsWith("#")) {
+    return `${color}${Math.round(opacity * 255)
+      .toString(16)
+      .padStart(2, "0")}`;
+  }
+
+  if (color.includes("rgba") || color.includes("hsla")) {
+    return color.replace(/[\d.]+\)$/, `${opacity})`);
+  }
+
+  if (color.includes("rgb") || color.includes("hsl")) {
+    return color.replace(")", `, ${opacity})`).replace("rgb(", "rgba(").replace("hsl(", "hsla(");
+  }
+
+  return `${color}${Math.round(opacity * 255)
+    .toString(16)
+    .padStart(2, "0")}`;
+}
+
 export default {
   Loader,
   getLoaderComputed(loaderCollection) {

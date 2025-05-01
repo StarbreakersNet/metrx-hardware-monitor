@@ -1,20 +1,40 @@
 <script setup>
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { formatValue } from "@renderer/appUtils";
 import { useUserStore } from "@renderer/stores/user";
-import { LineChart } from "echarts/charts";
-import { GridComponent, TitleComponent, TooltipComponent } from "echarts/components";
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import VChart from "vue-echarts";
 import ChartLineTools from "@renderer/components/Charts/ChartLineTools.vue";
 import ChartLineStats from "@renderer/components/Charts/ChartLineStats.vue";
-import _ from "lodash";
 import ChartLineLastValue from "@renderer/components/Charts/ChartLineLastValue.vue";
+import { Line } from "vue-chartjs";
+import {
+  Chart as ChartJS,
+  Filler,
+  LinearScale,
+  LineElement,
+  PointElement,
+  TimeScale,
+  Title,
+  Tooltip,
+} from "chart.js";
+import "chartjs-adapter-date-fns";
+import { formatValue, withOpacity } from "@renderer/appUtils";
+import { registerTooltipCustoms } from "@renderer/components/Charts/ChartJsCustoms";
+import { useChartTheme } from "@renderer/composables/chartJsThemeBuilder";
+import Annotation from "chartjs-plugin-annotation";
 
-use([TitleComponent, TooltipComponent, GridComponent, LineChart, CanvasRenderer]);
+registerTooltipCustoms();
+ChartJS.register(
+  Title,
+  Tooltip,
+  LineElement,
+  PointElement,
+  TimeScale,
+  LinearScale,
+  Annotation,
+  Filler
+);
 
+const chartTheme = useChartTheme();
 const user = useUserStore();
 const props = defineProps({
   data: {
@@ -71,196 +91,244 @@ const chartId = computed(() => {
     return "#undefined#";
   }
 });
+
 const chartConfigValues = computed(() => {
   const chartConfig = user.settings.chartsSettings.find(chart => chart.id === chartId.value);
   return chartConfig ?? user.settings.chartsDefault;
 });
-const chartColors = computed(() => {
-  const colors = [];
-  let mainMetricColor = user.settings.chartsColors[props.description];
-  if (mainMetricColor) {
-    colors.push(mainMetricColor);
-  }
+// Utiliser une structure de données non-réactive pour stocker les points
+const rawChartData = {
+  [props.description]: [],
+};
+// Initialiser les données pour les graphiques fusionnés
+if (props.mergedGraphs) {
+  props.mergedGraphs.forEach(metric => {
+    rawChartData[metric.description] = [];
+  });
+}
+// Préparation des structures de données du graphique
+const lineChartData = ref({
+  datasets: [],
+});
+const thresholdsData = ref([]);
+
+const lineChartOptions = ref({
+  scales: {
+    x: {
+      type: "time",
+      time: {
+        unit: "minute",
+        displayFormats: {
+          minute: "HH:mm",
+        },
+      },
+      min: new Date(new Date().getTime() - props.bufferSize * 60 * 1000),
+      max: new Date(),
+      ticks: {
+        display: computed(() => user.settings.showXLabel),
+      },
+      grid: {
+        drawOnChartArea: false,
+        drawTicks: true,
+      },
+    },
+    y: {
+      type: "linear",
+      min: props.min,
+      max: props.max,
+      ticks: {
+        callback(value) {
+          return formatValue({
+            unit: props.unit,
+            value,
+            precision: labelPrecision.value,
+          });
+        },
+      },
+      grid: {
+        drawOnChartArea: true,
+        drawTicks: true,
+      },
+    },
+  },
+  interaction: {
+    intersect: false,
+    mode: "index",
+  },
+  responsive: true,
+  maintainAspectRatio: false,
+  animations: {
+    x: {
+      duration: user.settings.nodeFrequency / 2,
+    },
+    y: {
+      duration: 0,
+    },
+  },
+  plugins: {
+    tooltip: {
+      enabled: true,
+      position: "bottom",
+      callbacks: {
+        title(context) {
+          if (context[0].label) {
+            return new Date(context[0].parsed.x).toLocaleTimeString();
+          } else {
+            return "";
+          }
+        },
+        label(context) {
+          const label = context.dataset.label || "";
+          const value = formatValue({
+            unit: props.unit,
+            value: context.parsed.y,
+            precision: labelPrecision.value,
+            showUnit: true,
+          });
+          return label + " " + value;
+        },
+      },
+    },
+    annotation: {
+      annotations: computed(() => {
+        const annotations = {};
+        const lineWidth = 1;
+        const borderDash = [5, 5];
+
+        if (thresholdsData.value) {
+          const { warning, danger } = thresholdsData.value;
+
+          if (warning) {
+            annotations.warningLine = {
+              type: "line",
+              yMin: warning,
+              yMax: warning,
+              borderColor: chartTheme.themeComputed.value.warningColor + "80",
+              borderWidth: lineWidth,
+              borderDash: borderDash,
+            };
+          }
+
+          if (danger) {
+            annotations.dangerLine = {
+              type: "line",
+              yMin: danger,
+              yMax: danger,
+              borderColor: chartTheme.themeComputed.value.errorColor + "80",
+              borderWidth: lineWidth,
+              borderDash: borderDash,
+            };
+          }
+        }
+
+        return annotations;
+      }),
+    },
+    filler: {
+      propagate: true,
+    },
+  },
+});
+
+function updateDatasets() {
+  const datasets = [];
+  const mainColor = user.settings.chartsColors[props.description] || chartTheme.getDatasetColor(0);
+  const mainBackgroundColor =
+    user.settings.chartsColors[props.description] || chartTheme.getDatasetColor(0);
+
+  datasets.push({
+    label: props.description,
+    data: rawChartData[props.description], // Créer une copie pour éviter les références réactives
+    borderColor: mainColor,
+    backgroundColor: withOpacity(mainBackgroundColor, 0.25),
+    tension: 0.5,
+    pointRadius: 0,
+    fill: "origin",
+  });
+
   if (props.mergedGraphs) {
-    props.mergedGraphs.forEach(metric => {
-      let mergedMetricColor = user.settings.chartsColors[metric.description];
-      if (mergedMetricColor) {
-        colors.push(mergedMetricColor);
-      }
+    props.mergedGraphs.forEach((metric, index) => {
+      const mergedColor =
+        user.settings.chartsColors[metric.description] || chartTheme.getDatasetColor(index + 1);
+      const mergedBackgroundColor =
+        user.settings.chartsColors[metric.description] || chartTheme.getDatasetColor(index + 1);
+
+      datasets.push({
+        label: metric.description,
+        data: rawChartData[metric.description],
+        borderColor: mergedColor,
+        backgroundColor: withOpacity(mergedBackgroundColor, 0.25),
+        tension: 0.5,
+        pointRadius: 0,
+        fill: "origin",
+      });
     });
   }
-  return colors;
-});
-const chartData = ref({});
-watch(
-  () => [props.description, props.mergedGraphs],
-  (newValues, oldValues) => {
-    let mergedGraphsChanged = !_.isEqual(newValues?.[1], oldValues?.[1]);
 
-    if (mergedGraphsChanged) {
-      const newChartData = {
-        [props.description]: chartData.value[props.description] || [],
-      };
+  lineChartData.value = {
+    datasets,
+  };
 
-      if (props.mergedGraphs) {
-        props.mergedGraphs.forEach(metric => {
-          newChartData[metric.description] = chartData.value[metric.description] || [];
-        });
-      }
-
-      chartData.value = newChartData;
-    }
-  },
-  {
-    immediate: true,
-  }
-);
-const markLineData = ref([]);
-
-const updateOptions = {
-  replaceMerge: "series",
-  lazyUpdate: true,
-  silent: true,
-};
-const serieDefaultOptions = {
-  name: "#data_title",
-  type: "line",
-  showSymbol: false,
-  data: [],
-  markLine: {
-    silent: true,
-    symbol: "none",
-    lineStyle: {
-      type: "dashed",
-      opacity: 0.25,
-    },
-    data: markLineData.value,
-  },
-  areaStyle: {
-    opacity: 0.25,
-  },
-  lineStyle: {
-    width: 2,
-    join: "round",
-  },
-  smooth: true,
-  smoothMonotone: "x",
-  connectNulls: false,
-};
-const seriesOptions = ref([]);
-watch(
-  () => [props.mergedGraphs],
-  async (newValues, oldValues) => {
-    if (!_.isEqual(oldValues, newValues)) {
-      let options = [];
-
-      options.push({
-        ...serieDefaultOptions,
-        name: props.description,
-        data: chartData.value[props.description],
-      });
-
-      if (props.mergedGraphs?.length > 0) {
-        _.forEach(props.mergedGraphs, metric => {
-          options.push({
-            ...serieDefaultOptions,
-            name: metric.description,
-            data: chartData.value[metric.description],
-          });
-        });
-      }
-
-      seriesOptions.value = options;
-      if (chartRef.value) {
-        option.value = {
-          ...option.value,
-          series: options,
-        };
-      }
-    }
-  },
-  {
-    immediate: true,
-  }
-);
-const option = ref({
-  animation: false,
-  tooltip: {
-    trigger: "axis",
-    axisPointer: {
-      animation: false,
-    },
-    valueFormatter: value => {
-      return formatValue({ value: value, unit: props.unit, showUnit: true });
-    },
-  },
-  xAxis: {
-    type: "time",
-    min() {
-      return new Date().getTime() - props.bufferSize * 60000;
-    },
-    max() {
-      return new Date();
-    },
-    axisLabel: {
-      hideOverlap: true,
-      show: false,
-    },
-    axisLine: {
-      show: true,
-    },
-    axisTick: {
-      show: true,
-    },
-    splitLine: {
-      show: false,
-    },
-  },
-  yAxis: {
-    type: "value",
-    min: props.min,
-    max: props.max,
-    axisLabel: {
-      show: true,
-      formatter: value => {
-        if (value === props.max) {
-          return formatValue({ value: value, unit: props.unit, decimals: 0 });
-        }
+  const now = new Date();
+  lineChartOptions.value = {
+    ...lineChartOptions.value,
+    scales: {
+      ...lineChartOptions.value.scales,
+      x: {
+        ...lineChartOptions.value.scales.x,
+        min: new Date(now.getTime() - 10 * 60 * 1000),
+        max: now,
       },
-      inside: true,
-      showMaxLabel: true,
-      showMinLabel: true,
     },
-    axisLine: {
-      show: true,
-      hideOverlap: true,
-    },
-    minorTick: {
-      show: true,
-    },
-    axisTick: {
-      show: true,
-      inside: true,
-    },
-    splitLine: {
-      show: false,
-    },
-  },
-  series: seriesOptions.value,
-  color: chartColors.value,
-  grid: {
-    top: "5%",
-    right: 0,
-    bottom: "5%",
-    left: "left",
-    containLabel: true,
-  },
-});
+  };
+}
+
+// Fonction pour ajouter des données aux séries
+function updateSeriesData(newData) {
+  const updateDate = new Date();
+  const maxPoints = props.bufferSize * 60;
+
+  function updateDataset(description, value) {
+    if (rawChartData[description]) {
+      rawChartData[description].push({ x: updateDate, y: value });
+
+      if (rawChartData[description].length > maxPoints) {
+        rawChartData[description].shift();
+      }
+    }
+  }
+
+  if (Array.isArray(newData)) {
+    newData.forEach(dataPoint => {
+      updateDataset(dataPoint.description, dataPoint.value);
+    });
+  } else {
+    updateDataset(props.description, newData);
+  }
+
+  updateDatasets();
+}
+
+let updateIntervalId = null;
+
+function initUpdateInterval() {
+  if (updateIntervalId) {
+    clearInterval(updateIntervalId);
+  }
+
+  updateIntervalId = setInterval(() => {
+    updateSeriesData(props.data);
+  }, user.settings.nodeFrequency);
+}
+
+watch(
+  () => user.settings.nodeFrequency,
+  () => {
+    initUpdateInterval();
+  }
+);
 
 const showTools = ref(false);
-const themeComputed = computed(() => {
-  return user.settings.theme === "system" ? user.settings.osTheme : user.settings.theme;
-});
 const numberAnimationDuration = computed(() => {
   return user.settings.nodeFrequency / 2;
 });
@@ -312,49 +380,7 @@ const labelPrecision = computed(() => {
   }
 });
 
-function updateSeriesData(newData) {
-  let chartValues = chartData.value[props.description];
-  let updateDate = new Date();
-
-  if (Array.isArray(newData)) {
-    newData.forEach(dataPoint => {
-      chartData.value[dataPoint.description].push([updateDate, dataPoint.value]);
-    });
-  } else {
-    chartValues.push([updateDate, newData]);
-  }
-
-  if (chartValues.length > props.bufferSize * 60 + 1) {
-    chartValues.splice(0, chartValues.length - props.bufferSize * 60 - 1);
-  }
-}
-
-function initUpdateInterval() {
-  if (updateIntervalId) {
-    clearInterval(updateIntervalId);
-  }
-  updateIntervalId = setInterval(() => {
-    updateSeriesData(props.data);
-  }, user.settings.nodeFrequency);
-}
-
-watch(
-  () => user.settings.showXLabel,
-  newValue => {
-    option.value.xAxis.axisLabel.show = newValue;
-    option.value.grid.bottom = newValue ? 0 : "5%";
-  }
-);
-
-watch(
-  () => user.settings.nodeFrequency,
-  () => {
-    initUpdateInterval();
-  }
-);
-
-let updateIntervalId = null;
-
+// Lifecycle hooks
 onMounted(() => {
   initUpdateInterval();
 });
@@ -403,15 +429,11 @@ onUnmounted(() => {
     <template #default>
       <div class="chart-wrapper">
         <transition name="scale">
-          <v-chart
-            v-if="chartConfigValues.showGraph"
+          <Line
             ref="chartRef"
-            :autoresize="{ throttle: 300 }"
-            :class="{ 'with-title': user.settings.showChartTitle }"
-            :option="option"
-            :theme="themeComputed"
-            :update-options="updateOptions"
-            class="chart" />
+            :data="lineChartData"
+            :options="lineChartOptions"
+            style="height: 10em !important" />
         </transition>
         <transition name="fade-skeleton">
           <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
@@ -454,7 +476,7 @@ onUnmounted(() => {
           </n-popover>
           <chart-line-tools
             ref="chartTools"
-            v-model:mark-line-data="markLineData"
+            v-model:thresholds-data="thresholdsData"
             :chart-id="chartId"
             :max="props.max" />
         </n-flex>
@@ -467,13 +489,6 @@ onUnmounted(() => {
 .chart-wrapper
   position: relative
 
-  .chart
-    position: relative
-    min-height: 10em
-
-    &.with-title
-      min-height: 8em
-
   .chart-skeleton
     position: absolute
     top: 0
@@ -484,8 +499,6 @@ onUnmounted(() => {
     background-color: hsl(240, 4%, 21%)
 
 .chart-card
-  min-width: 12em
-
   &.edit-mode
     cursor: grab
 
