@@ -28,6 +28,8 @@ const user = useUserStore();
             </template>
             <template #header-extra>
               <input-settings
+                :max="setting.max"
+                :min="setting.min"
                 :options="setting.options"
                 :path="setting.storePath"
                 :store="user"

@@ -21,6 +21,7 @@ import { formatValue, withOpacity } from "@renderer/appUtils";
 import { registerTooltipCustoms } from "@renderer/components/Charts/ChartJsCustoms";
 import { useChartTheme } from "@renderer/composables/chartJsThemeBuilder";
 import Annotation from "chartjs-plugin-annotation";
+import _ from "lodash";
 
 registerTooltipCustoms();
 ChartJS.register(
@@ -33,6 +34,9 @@ ChartJS.register(
   Annotation,
   Filler
 );
+
+const chartRef = ref(null);
+const chartTools = ref(null);
 
 const chartTheme = useChartTheme();
 const user = useUserStore();
@@ -70,17 +74,15 @@ const props = defineProps({
   },
   bufferSize: {
     type: Number,
-    default: 10,
+    default: 1,
   },
   editMode: {
     type: Boolean,
     default: false,
   },
 });
-const emit = defineEmits(["editOrders"]);
 
-const chartRef = ref(null);
-const chartTools = ref(null);
+const emit = defineEmits(["editOrders"]);
 
 const chartId = computed(() => {
   if (props.description == null) {
@@ -91,27 +93,51 @@ const chartId = computed(() => {
     return "#undefined#";
   }
 });
+const rawChartData = {};
 
-const chartConfigValues = computed(() => {
-  const chartConfig = user.settings.chartsSettings.find(chart => chart.id === chartId.value);
-  return chartConfig ?? user.settings.chartsDefault;
-});
-// Utiliser une structure de données non-réactive pour stocker les points
-const rawChartData = {
-  [props.description]: [],
-};
-// Initialiser les données pour les graphiques fusionnés
-if (props.mergedGraphs) {
-  props.mergedGraphs.forEach(metric => {
-    rawChartData[metric.description] = [];
+function initChartData() {
+  Object.keys(rawChartData).forEach(key => {
+    delete rawChartData[key];
   });
+
+  rawChartData[props.description] = [];
+
+  if (props.mergedGraphs) {
+    props.mergedGraphs.forEach(metric => {
+      rawChartData[metric.description] = [];
+    });
+  }
 }
-// Préparation des structures de données du graphique
+
+const showTools = ref(false);
+const numberAnimationDuration = computed(() => {
+  return user.settings.nodeFrequency / 2;
+});
 const lineChartData = ref({
   datasets: [],
 });
-const thresholdsData = ref([]);
+const lastValuesCollection = computed(() => {
+  const values = [];
 
+  if (Array.isArray(props.data)) {
+    props.data.forEach(metric => {
+      values.push({
+        description: metric.description,
+        value: metric.value,
+        colorType: getValueColorType(metric.value),
+      });
+    });
+  } else {
+    values.push({
+      description: props.description,
+      value: props.data,
+      colorType: getValueColorType(props.data),
+    });
+  }
+
+  return values;
+});
+const thresholdsData = ref([]);
 const lineChartOptions = ref({
   scales: {
     x: {
@@ -125,7 +151,7 @@ const lineChartOptions = ref({
       min: new Date(new Date().getTime() - props.bufferSize * 60 * 1000),
       max: new Date(),
       ticks: {
-        display: computed(() => user.settings.showXLabel),
+        display: user.settings.showXLabel,
       },
       grid: {
         drawOnChartArea: false,
@@ -159,7 +185,7 @@ const lineChartOptions = ref({
   maintainAspectRatio: false,
   animations: {
     x: {
-      duration: user.settings.nodeFrequency / 2,
+      duration: numberAnimationDuration.value,
     },
     y: {
       duration: 0,
@@ -230,70 +256,43 @@ const lineChartOptions = ref({
   },
 });
 
-function updateDatasets() {
-  const datasets = [];
-  const mainColor = user.settings.chartsColors[props.description] || chartTheme.getDatasetColor(0);
-  const mainBackgroundColor =
-    user.settings.chartsColors[props.description] || chartTheme.getDatasetColor(0);
-
-  datasets.push({
-    label: props.description,
-    data: rawChartData[props.description], // Créer une copie pour éviter les références réactives
-    borderColor: mainColor,
-    backgroundColor: withOpacity(mainBackgroundColor, 0.25),
+function createDataset(description, index = 0) {
+  const color = user.settings.chartsColors[description] || chartTheme.getDatasetColor(index);
+  return {
+    label: description,
+    data: rawChartData[description],
+    borderColor: color,
+    backgroundColor: withOpacity(color, 0.25),
     tension: 0.5,
     pointRadius: 0,
     fill: "origin",
-  });
-
-  if (props.mergedGraphs) {
-    props.mergedGraphs.forEach((metric, index) => {
-      const mergedColor =
-        user.settings.chartsColors[metric.description] || chartTheme.getDatasetColor(index + 1);
-      const mergedBackgroundColor =
-        user.settings.chartsColors[metric.description] || chartTheme.getDatasetColor(index + 1);
-
-      datasets.push({
-        label: metric.description,
-        data: rawChartData[metric.description],
-        borderColor: mergedColor,
-        backgroundColor: withOpacity(mergedBackgroundColor, 0.25),
-        tension: 0.5,
-        pointRadius: 0,
-        fill: "origin",
-      });
-    });
-  }
-
-  lineChartData.value = {
-    datasets,
-  };
-
-  const now = new Date();
-  lineChartOptions.value = {
-    ...lineChartOptions.value,
-    scales: {
-      ...lineChartOptions.value.scales,
-      x: {
-        ...lineChartOptions.value.scales.x,
-        min: new Date(now.getTime() - 10 * 60 * 1000),
-        max: now,
-      },
-    },
   };
 }
 
-// Fonction pour ajouter des données aux séries
-function updateSeriesData(newData) {
+function initializeDatasets() {
+  const datasets = [];
+
+  datasets.push(createDataset(props.description));
+
+  if (props.mergedGraphs) {
+    props.mergedGraphs.forEach((metric, index) => {
+      datasets.push(createDataset(metric.description, index + 1));
+    });
+  }
+
+  lineChartData.value = { datasets };
+}
+
+function updateDatasets(newData) {
   const updateDate = new Date();
   const maxPoints = props.bufferSize * 60;
 
   function updateDataset(description, value) {
     if (rawChartData[description]) {
-      rawChartData[description].push({ x: updateDate, y: value });
+      rawChartData[description].unshift({ x: updateDate, y: value });
 
-      if (rawChartData[description].length > maxPoints) {
-        rawChartData[description].shift();
+      if (rawChartData[description].length > maxPoints + 10) {
+        rawChartData[description].pop();
       }
     }
   }
@@ -306,7 +305,23 @@ function updateSeriesData(newData) {
     updateDataset(props.description, newData);
   }
 
-  updateDatasets();
+  updateTimeRange(updateDate);
+}
+
+function updateTimeRange(now) {
+  const chart = chartRef.value?.chart;
+
+  if (chart) {
+    chart.options.scales.x.min = new Date(now.getTime() - props.bufferSize * 60 * 1000);
+    chart.options.scales.x.max = now;
+    chart.setActiveElements([]);
+
+    if (user.settings.chartAnimation) {
+      chart.update();
+    } else {
+      chart.update("none");
+    }
+  }
 }
 
 let updateIntervalId = null;
@@ -317,9 +332,21 @@ function initUpdateInterval() {
   }
 
   updateIntervalId = setInterval(() => {
-    updateSeriesData(props.data);
+    updateDatasets(props.data);
   }, user.settings.nodeFrequency);
 }
+
+watch(
+  () => [props.description, props.mergedGraphs],
+  (newValues, oldValues) => {
+    let mergedGraphsChanged = !_.isEqual(newValues?.[1], oldValues?.[1]);
+
+    if (mergedGraphsChanged) {
+      initChartData();
+      initializeDatasets();
+    }
+  }
+);
 
 watch(
   () => user.settings.nodeFrequency,
@@ -328,31 +355,24 @@ watch(
   }
 );
 
-const showTools = ref(false);
-const numberAnimationDuration = computed(() => {
-  return user.settings.nodeFrequency / 2;
-});
-const lastValuesCollection = computed(() => {
-  const values = [];
-
-  if (Array.isArray(props.data)) {
-    props.data.forEach(metric => {
-      values.push({
-        description: metric.description,
-        value: metric.value,
-        colorType: getValueColorType(metric.value),
-      });
-    });
-  } else {
-    values.push({
-      description: props.description,
-      value: props.data,
-      colorType: getValueColorType(props.data),
-    });
+watch(
+  () => user.settings.chartsColors,
+  () => {
+    initializeDatasets();
+  },
+  {
+    deep: true,
   }
+);
 
-  return values;
-});
+watch(
+  () => user.settings.showXLabel,
+  () => {
+    if (chartRef.value) {
+      chartRef.value.chart.options.scales.x.ticks.display = user.settings.showXLabel;
+    }
+  }
+);
 
 function getValueColorType(value) {
   if (chartTools.value) {
@@ -380,8 +400,9 @@ const labelPrecision = computed(() => {
   }
 });
 
-// Lifecycle hooks
 onMounted(() => {
+  initChartData();
+  initializeDatasets();
   initUpdateInterval();
 });
 

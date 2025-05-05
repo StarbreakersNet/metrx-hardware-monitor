@@ -42,6 +42,21 @@ export default [
         storePath: ["settings", "graphColumns"],
       },
       {
+        type: "number",
+        icon: "database",
+        label: "Taille du buffer",
+        description: "Défini le temps en minute des données à conserver dans les graphiques",
+        max: 30,
+        storePath: ["settings", "chartBufferSize"],
+      },
+      {
+        type: "switch",
+        icon: "play",
+        label: "Animation des graphiques",
+        description: "Active ou désactive les animations lors de l'actualisation des graphiques",
+        storePath: ["settings", "chartAnimation"],
+      },
+      {
         type: "switch",
         icon: "chart-area",
         label: "Heures des graphiques",

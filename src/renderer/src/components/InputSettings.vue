@@ -19,6 +19,14 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  min: {
+    type: Number,
+    default: 1,
+  },
+  max: {
+    type: Number,
+    default: null,
+  },
 });
 
 function getValueByPath(store, path) {
@@ -71,7 +79,8 @@ const value = computed({
   <n-input-number
     v-else-if="type === 'number'"
     :value="value"
-    min="1"
+    :min="min"
+    :max="max"
     @update:value="updateValue($event)" />
   <n-switch v-else-if="type === 'switch'" :value="value" @update:value="updateValue($event)" />
 </template>

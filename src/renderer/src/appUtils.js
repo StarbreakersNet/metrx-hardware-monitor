@@ -159,9 +159,25 @@ export function getNaiveOverrideTheme(theme) {
 
 export function withOpacity(color, opacity = 0.5) {
   if (color.startsWith("#")) {
-    return `${color}${Math.round(opacity * 255)
+    let hex = color.substring(1);
+    let r, g, b;
+
+    if (hex.length === 3 || hex.length === 4) {
+      // #RGB / #RGBA
+      r = hex.charAt(0) + hex.charAt(0);
+      g = hex.charAt(1) + hex.charAt(1);
+      b = hex.charAt(2) + hex.charAt(2);
+    } else {
+      // #RRGGBB / #RRGGBBAA
+      r = hex.substring(0, 2);
+      g = hex.substring(2, 4);
+      b = hex.substring(4, 6);
+    }
+
+    const a = Math.round(opacity * 255)
       .toString(16)
-      .padStart(2, "0")}`;
+      .padStart(2, "0");
+    return "#" + r + g + b + a;
   }
 
   if (color.includes("rgba") || color.includes("hsla")) {

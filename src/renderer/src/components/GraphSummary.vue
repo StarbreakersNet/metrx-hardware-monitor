@@ -251,6 +251,7 @@ onMounted(() => {
         <chart-line
           v-for="(item, index) in listSummary"
           :key="item.title + '#' + item.description"
+          :buffer-size="user.settings.chartBufferSize"
           :data="item.value"
           :description="item.description"
           :edit-mode="editMode"
