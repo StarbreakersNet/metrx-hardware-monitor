@@ -118,6 +118,10 @@ onBeforeUnmount(() => {
             </div>
           </n-flex>
           <n-flex v-else class="main-view" vertical>
+            <n-layout-header
+              :bordered="user.settings.showSideMenu"
+              :class="{ 'with-background': user.settings.showSideMenu }"
+              class="header-view"></n-layout-header>
             <n-layout>
               <n-layout has-sider position="absolute">
                 <transition name="insert-side">
@@ -145,17 +149,24 @@ onBeforeUnmount(() => {
                   </n-layout-sider>
                 </transition>
                 <n-layout-content :native-scrollbar="false" class="router-container">
-                  <router-view #default="{ Component }" class="router-view">
-                    <transition mode="out-in" name="fade-y">
-                      <keep-alive :exclude="keepAliveBlacklist">
-                        <component :is="Component" />
-                      </keep-alive>
-                    </transition>
-                  </router-view>
+                  <div
+                    :class="{ 'more-padding': user.settings.showSideMenu }"
+                    class="router-wrapper">
+                    <router-view #default="{ Component }" class="router-view">
+                      <transition mode="out-in" name="fade-y">
+                        <keep-alive :exclude="keepAliveBlacklist">
+                          <component :is="Component" />
+                        </keep-alive>
+                      </transition>
+                    </router-view>
+                  </div>
                 </n-layout-content>
               </n-layout>
             </n-layout>
-            <n-layout-footer bordered class="footer-view">
+            <n-layout-footer
+              :bordered="user.settings.showSideMenu"
+              :class="{ 'with-background': user.settings.showSideMenu }"
+              class="footer-view">
               <app-footer-menu />
             </n-layout-footer>
           </n-flex>
@@ -170,7 +181,16 @@ onBeforeUnmount(() => {
 @import assets/css/styles
 
 .header-view
-  padding: .25em .5em
+  height: env(titlebar-area-height)
+  app-region: drag
+  user-select: none
+  padding-top: .25em
+  padding-bottom: .25em
+  padding-left: max(1em, env(titlebar-area-x, 0px))
+  padding-right: max(1em, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 0px)))
+
+  &:not(.with-background)
+    background: transparent
 
 .main-view
   height: 100vh
@@ -182,26 +202,34 @@ onBeforeUnmount(() => {
     z-index: 10
     content: ""
     position: absolute
-    height: 2em
     width: 100%
     backdrop-filter: blur(.5em)
 
   &:before
     top: 0
-    background: linear-gradient(to top, transparent 0%, var(--n-color) 75%)
-    mask: linear-gradient(to top, transparent 0%, var(--n-color) 50%)
+    height: 1em
+    background: linear-gradient(to top, transparent 0%, var(--n-color) 100%)
+    mask: linear-gradient(to top, transparent 0%, var(--n-color) 75%)
 
   &:after
     bottom: 0
-    background: linear-gradient(to bottom, transparent 0%, var(--n-color) 75%)
-    mask: linear-gradient(to bottom, transparent 0%, var(--n-color) 50%)
+    height: 2em
+    background: linear-gradient(to bottom, transparent 0%, var(--n-color) 100%)
+    mask: linear-gradient(to bottom, transparent 0%, var(--n-color) 75%)
 
-.router-view
-  padding: 2em
+.router-wrapper
+  transition: padding $default-duration $timing-function
+  padding: 1em 1em 2em 1em
+
+  &.more-padding
+    padding: 1em 2em 2em 2em
 
 .footer-view
   overflow: hidden
-  padding: .25em .5em
+  padding: .5em
+
+  &:not(.with-background)
+    background: transparent
 
 .loading-view
   position: absolute

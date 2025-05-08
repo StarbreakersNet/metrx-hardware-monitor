@@ -22,9 +22,9 @@ const isMacos = computed(() => {
 });
 </script>
 <template>
-  <n-flex size="large" align="center" vertical>
-    <loader-spinner lap-duration="2s" :size-ratio="4">
-      <img class="app-icon" src="@renderer/assets/icon-round.svg" alt="logo" />
+  <n-flex align="center" size="large" vertical>
+    <loader-spinner :size-ratio="4" class="spinner" lap-duration="2s">
+      <img alt="logo" class="app-icon" src="@renderer/assets/icon-round.svg" />
     </loader-spinner>
     <Versions />
     <n-flex justify="center">
@@ -75,4 +75,7 @@ const isMacos = computed(() => {
   position: absolute
   width: 12em
   height: 12em
+
+.spinner
+  margin: 2em
 </style>
