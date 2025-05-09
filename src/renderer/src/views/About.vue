@@ -14,14 +14,17 @@ const osThemeLabel = computed(() => {
     case "light":
       return "claire";
     default:
-      return;
+      return null;
   }
+});
+const isMacos = computed(() => {
+  return window.electron?.process?.platform === "darwin";
 });
 </script>
 <template>
-  <n-flex size="large" align="center" vertical>
-    <loader-spinner lap-duration="2s" :size-ratio="4">
-      <img class="app-icon" src="@renderer/assets/icon-round.svg" alt="logo" />
+  <n-flex align="center" size="large" vertical>
+    <loader-spinner :size-ratio="4" class="spinner" lap-duration="2s">
+      <img alt="logo" class="app-icon" src="@renderer/assets/icon-round.svg" />
     </loader-spinner>
     <Versions />
     <n-flex justify="center">
@@ -44,11 +47,15 @@ const osThemeLabel = computed(() => {
       </div>
       <div class="link-item link-dot">•</div>
       <div>
-        <n-a href="https://www.naiveui.com/" target="_blank">Naive UI</n-a>
+        <n-a href="https://www.naiveui.com" target="_blank">Naive UI</n-a>
       </div>
       <div class="link-item link-dot">•</div>
       <div>
-        <n-a href="https://echarts.apache.org/en/index.html" target="_blank">Apache Echarts</n-a>
+        <n-a href="https://tabler.io/icons" target="_blank">Tabler Icons</n-a>
+      </div>
+      <div class="link-item link-dot">•</div>
+      <div>
+        <n-a href="https://www.chartjs.org" target="_blank">Chart.js</n-a>
       </div>
     </n-flex>
     <n-flex align="center" vertical>
@@ -58,7 +65,8 @@ const osThemeLabel = computed(() => {
         </template>
         <template #default>
           Appuyez sur
-          <n-tag :bordered="false">CTRL + SHIFT + i</n-tag>
+          <n-tag v-if="isMacos" :bordered="false">⌘ + ⌥ + i</n-tag>
+          <n-tag v-else :bordered="false">CTRL + SHIFT + i</n-tag>
           pour ouvrir les outils de devs.
         </template>
       </n-alert>
@@ -71,4 +79,7 @@ const osThemeLabel = computed(() => {
   position: absolute
   width: 12em
   height: 12em
+
+.spinner
+  margin: 2em
 </style>

@@ -47,12 +47,12 @@ export default function useUpdater(app, window) {
     autoUpdater.quitAndInstall();
   });
 
-  ipcMain.on("check-for-updates", async (event, options) => {
+  ipcMain.on("check-for-updates", async (event, updateChanel = 'latest') => {
     try {
       let provider = "https://gitlab.com/api/v4/";
       let projectId = "33549653";
       let version = PackageJson.version;
-      let channel = "latest";
+      let channel = updateChanel;
 
       if (version.includes("-")) {
         channel = version.split("-")[1];

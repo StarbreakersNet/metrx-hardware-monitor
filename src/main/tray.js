@@ -1,5 +1,14 @@
 import { app, Menu, Tray } from "electron";
 import { getData, onDidChange, setData } from "./store";
+import { is } from "@electron-toolkit/utils";
+
+function getAppLabel() {
+  if (is.dev) {
+    return app.getName() + " " + app.getVersion() + " 🚧";
+  } else {
+    return app.getName() + " " + app.getVersion()
+  }
+}
 
 export default function useTray(trayIcon, mainWindow) {
   let tray = new Tray(trayIcon);
@@ -11,7 +20,7 @@ export default function useTray(trayIcon, mainWindow) {
 
     return Menu.buildFromTemplate([
       {
-        label: app.getName() + " " + app.getVersion(),
+        label: getAppLabel(),
         type: "normal",
         enabled: false,
       },
