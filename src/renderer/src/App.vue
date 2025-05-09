@@ -18,6 +18,7 @@ import { registerTheme } from "echarts";
 import { dateFrFR, frFR } from "naive-ui";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import AppHeaderMenu from "@renderer/components/Layouts/AppHeaderMenu.vue";
 
 const PRE_TIMEOUT_TIME = 7000;
 const TIMEOUT_TIME = 15000;
@@ -118,10 +119,7 @@ onBeforeUnmount(() => {
             </div>
           </n-flex>
           <n-flex v-else class="main-view" vertical>
-            <n-layout-header
-              :bordered="user.settings.showSideMenu"
-              :class="{ 'with-background': user.settings.showSideMenu }"
-              class="header-view"></n-layout-header>
+            <app-header-menu />
             <n-layout>
               <n-layout has-sider position="absolute">
                 <transition name="insert-side">
@@ -179,18 +177,6 @@ onBeforeUnmount(() => {
 
 <style lang="sass">
 @import assets/css/styles
-
-.header-view
-  height: env(titlebar-area-height)
-  app-region: drag
-  user-select: none
-  padding-top: .25em
-  padding-bottom: .25em
-  padding-left: max(1em, env(titlebar-area-x, 0px))
-  padding-right: calc(max(1em, env(titlebar-area-x, 0px) - env(titlebar-area-width, 0px)))
-
-  &:not(.with-background)
-    background: transparent
 
 .main-view
   height: 100vh

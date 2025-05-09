@@ -6,6 +6,7 @@ import useTray from "./tray";
 import { StatefullBrowserWindow } from "stateful-electron-window";
 import { getData, initSettingsStore } from "./store";
 import metricsWorker from "./workers/metrics?nodeWorker";
+import useWindowControl from "./window";
 
 const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
 const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
@@ -25,7 +26,6 @@ function createWindow() {
     titleBarOverlay: {
       height: 30,
     },
-    ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
     ...(process.platform === "linux" ? { appIcon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -110,6 +110,7 @@ function createWindow() {
   initSettingsStore(app, mainWindow);
   useUpdater(app, mainWindow);
   useTray(trayIcon, mainWindow);
+  useWindowControl();
 }
 
 // This method will be called when Electron has finished
