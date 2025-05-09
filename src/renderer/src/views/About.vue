@@ -47,11 +47,15 @@ const isMacos = computed(() => {
       </div>
       <div class="link-item link-dot">•</div>
       <div>
-        <n-a href="https://www.naiveui.com/" target="_blank">Naive UI</n-a>
+        <n-a href="https://www.naiveui.com" target="_blank">Naive UI</n-a>
       </div>
       <div class="link-item link-dot">•</div>
       <div>
-        <n-a href="https://echarts.apache.org/en/index.html" target="_blank">Apache Echarts</n-a>
+        <n-a href="https://tabler.io/icons" target="_blank">Tabler Icons</n-a>
+      </div>
+      <div class="link-item link-dot">•</div>
+      <div>
+        <n-a href="https://www.chartjs.org" target="_blank">Chart.js</n-a>
       </div>
     </n-flex>
     <n-flex align="center" vertical>
