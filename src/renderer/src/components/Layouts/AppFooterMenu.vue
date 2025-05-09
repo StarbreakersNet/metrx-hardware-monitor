@@ -1,13 +1,12 @@
 <script setup>
-import Updater from "@renderer/Updater.vue";
-import { computed } from "vue";
-import { useUserStore } from "@renderer/stores/user";
-// import { darkTheme, lightTheme } from "naive-ui";
+import { renderAppIcon } from "@renderer/appUtils";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useSystemStore } from "@renderer/stores/system";
+import { useUserStore } from "@renderer/stores/user";
+import Updater from "@renderer/Updater.vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { renderFontAwesomeIcon } from "@renderer/appUtils";
 
 const system = useSystemStore();
 const user = useUserStore();
@@ -39,7 +38,7 @@ function openDevtools() {
         <n-menu
           v-if="!user.settings.showSideMenu"
           :options="menuOptions"
-          :render-icon="renderFontAwesomeIcon"
+          :render-icon="renderAppIcon"
           :value="router.currentRoute.value.name ?? null"
           class="override-horizontal"
           collapsed
@@ -51,21 +50,21 @@ function openDevtools() {
       <transition name="fade-y">
         <n-switch v-if="user.settings.theme !== 'system'" v-model:value="themeSelector">
           <template #checked>
-            <font-awesome-icon :icon="['fas', 'moon']" />
+            <app-icon name="moon-filled" size="1em" />
           </template>
           <template #unchecked>
-            <font-awesome-icon :icon="['fas', 'sun']" />
+            <app-icon name="sun-filled" size="1em" />
           </template>
         </n-switch>
       </transition>
       <n-tag :bordered="false" round type="primary" @click.right="openDevtools">
         <n-popover :show-arrow="false" placement="top" trigger="hover">
           <template #trigger>
-            <font-awesome-icon :icon="['fas', 'bug']" />
+            <app-icon name="bug-filled" />
           </template>
           <template #default>
-            <n-space size="small">
-              <font-awesome-icon :icon="['fab', 'gitlab']" />
+            <n-space align="center" size="small">
+              <app-icon name="brand-gitlab" />
               <n-a
                 href="https://gitlab.com/starbreakersdevteam/sb-hardware-monitor/-/issues/new"
                 target="_blank">
@@ -74,8 +73,8 @@ function openDevtools() {
             </n-space>
           </template>
           <template #footer>
-            <n-space size="small">
-              <font-awesome-icon :icon="['fas', 'envelope']" />
+            <n-space align="center" size="small">
+              <app-icon name="mail" />
               <n-a
                 href="mailto:contact-project+starbreakersdevteam-sb-hardware-monitor-33549653-issue-@incoming.gitlab.com">
                 Signaler un problème par mail
@@ -87,7 +86,7 @@ function openDevtools() {
       <n-tag v-if="user.isEnvDev" :bordered="false" round type="primary">
         <n-popover :show-arrow="false" trigger="hover">
           <template #trigger>
-            <font-awesome-icon :icon="['fas', 'person-digging']" />
+            <app-icon name="crane" />
           </template>
           Environnement de développement
         </n-popover>

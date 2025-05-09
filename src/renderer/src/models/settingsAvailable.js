@@ -5,7 +5,7 @@ export default [
     children: [
       {
         type: "select",
-        icon: "palette",
+        icon: "palette-filled",
         label: "Thème",
         description: "Défini le thème de l'application",
         options: [
@@ -17,7 +17,7 @@ export default [
       },
       {
         type: "select",
-        icon: "wave-square",
+        icon: "metronome",
         label: "Fréquence de rafraichissement",
         description: "Défini la fréquence de rafraichissement des données",
         options: [
@@ -36,14 +36,14 @@ export default [
       },
       {
         type: "number",
-        icon: "table-columns",
+        icon: "table-filled",
         label: "Nombre de colonnes",
         description: "Défini le nombre de colonnes pour l'affichage des graphiques",
         storePath: ["settings", "graphColumns"],
       },
       {
         type: "number",
-        icon: "database",
+        icon: "arrow-autofit-width-filled",
         label: "Taille du buffer",
         description: "Défini le temps en minute des données à conserver dans les graphiques",
         max: 30,
@@ -51,14 +51,14 @@ export default [
       },
       {
         type: "switch",
-        icon: "play",
+        icon: "player-play-filled",
         label: "Animation des graphiques",
         description: "Active ou désactive les animations lors de l'actualisation des graphiques",
         storePath: ["settings", "chartAnimation"],
       },
       {
         type: "switch",
-        icon: "chart-area",
+        icon: "chart-area-filled",
         label: "Heures des graphiques",
         description: "Affiche sur l'axe des abscisses l'heure de la donnée",
         storePath: ["settings", "showXLabel"],
@@ -72,7 +72,7 @@ export default [
       },
       {
         type: "switch",
-        icon: "bars",
+        icon: "layout-sidebar-left-collapse-filled",
         label: "Menu latéral",
         description: "Affiche le menu de l'application sur le côté gauche",
         storePath: ["settings", "showSideMenu"],
@@ -85,14 +85,14 @@ export default [
     children: [
       {
         type: "switch",
-        icon: "power-off",
+        icon: "power",
         label: "Lancer au démarrage",
         description: "Lance l'application au démarrage de l'ordinateur",
         storePath: ["electron", "startOnLogin"],
       },
       {
         type: "switch",
-        icon: "compress",
+        icon: "minimize",
         label: "Ouvrir minimisé",
         description: "Ouvre l'application seulement dans la barre des tâches",
         storePath: ["electron", "startMinimized"],
@@ -105,14 +105,14 @@ export default [
     children: [
       {
         type: "switch",
-        icon: "sync",
+        icon: "refresh",
         label: "Mise à jour automatique",
         description: "Vérifie si une mise à jour est disponible au démarrage de l'application",
         storePath: ["settings", "autoUpdate"],
       },
       {
         type: "select",
-        icon: "code-branch",
+        icon: "git-branch",
         label: "Canal de mise à jour",
         description:
           "Vérifiera et installera automatiquement la dernière version du canal sélectionné",

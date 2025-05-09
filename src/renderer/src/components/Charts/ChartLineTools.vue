@@ -1,10 +1,8 @@
 <script setup>
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { computed, watch } from "vue";
-import { useUserStore } from "@renderer/stores/user";
-import _ from "lodash";
-import { useThemeVars } from "naive-ui";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import chartLineToolsAvailable from "@renderer/models/chartLineToolsAvailable";
+import { useUserStore } from "@renderer/stores/user";
+import { computed, watch } from "vue";
 
 const thresholdsData = defineModel("thresholdsData", {
   type: Object,
@@ -23,7 +21,6 @@ const props = defineProps({
 });
 
 const { settings } = useUserStore();
-const themeVars = useThemeVars();
 
 const chartConfig = computed(() => {
   return settings.chartsSettings.find(chart => chart.id === props.chartId);
@@ -145,7 +142,7 @@ defineExpose({
     <template #trigger>
       <n-button size="small" text>
         <template #icon>
-          <font-awesome-icon :icon="['fas', 'ellipsis']" />
+          <app-icon name="dots" />
         </template>
       </n-button>
     </template>
@@ -153,7 +150,7 @@ defineExpose({
       <n-card :bordered="false" size="small">
         <template #header>
           <n-flex align="center">
-            <font-awesome-icon :icon="['fas', 'screwdriver-wrench']" />
+            <app-icon name="tools" />
             <n-text>Outils du graphique</n-text>
           </n-flex>
         </template>
@@ -162,7 +159,7 @@ defineExpose({
             <template #trigger>
               <n-button :disabled="!canResetThresholds" size="small" text @click="resetThresholds">
                 <template #icon>
-                  <font-awesome-icon :icon="['fas', 'undo-alt']" />
+                  <app-icon name="rotate-2" />
                 </template>
               </n-button>
             </template>

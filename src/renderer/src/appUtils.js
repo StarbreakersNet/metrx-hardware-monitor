@@ -1,8 +1,8 @@
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import _ from "lodash";
 import { darkTheme, lightTheme, NIcon } from "naive-ui";
 import { h } from "vue";
-import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
 
 export class Loader {
   constructor() {
@@ -118,13 +118,9 @@ export function getValueUnit(value, unit) {
   }
 }
 
-export function renderFontAwesomeIcon(option) {
-  if (option.fas) {
-    return h(NIcon, null, () => h(FontAwesomeIcon, { icon: ["fas", option.fas] }));
-  } else if (option.far) {
-    return h(NIcon, null, () => h(FontAwesomeIcon, { icon: ["far", option.far] }));
-  } else if (option.fab) {
-    return h(NIcon, null, () => h(FontAwesomeIcon, { icon: ["fab", option.fab] }));
+export function renderAppIcon(option) {
+  if (option.appIcon) {
+    return h(NIcon, null, () => h(AppIcon, { name: option.appIcon }));
   } else {
     return null;
   }

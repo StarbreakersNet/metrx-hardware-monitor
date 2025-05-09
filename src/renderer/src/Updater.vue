@@ -1,10 +1,10 @@
 <script setup>
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { useUserStore } from "@renderer/stores/user";
 import AppUtils, { formatBytes } from "@renderer/appUtils";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@renderer/stores/system";
+import { useUserStore } from "@renderer/stores/user";
 import { useMessage, useThemeVars } from "naive-ui";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 const user = useUserStore();
 const system = useSystemStore();
@@ -181,15 +181,15 @@ const buildType = computed(() => {
     const types = {
       stable: {
         label: "Live",
-        icon: "shield",
+        icon: "boltFilled",
       },
       beta: {
         label: "Preview",
-        icon: "flask",
+        icon: "flaskFilled",
       },
       alpha: {
         label: "Nightly",
-        icon: "radiation",
+        icon: "radioactiveFilled",
       },
     };
 
@@ -230,11 +230,15 @@ watch(
     <n-flex align="center" size="small">
       <n-popover v-if="buildType" :show-arrow="false" trigger="hover">
         <template #trigger>
-          <FontAwesomeIcon :icon="['fas', buildType.icon]" />
+          <app-icon :name="buildType.icon" />
         </template>
         <template #default>Version {{ buildType.label.toLowerCase() }} {{ version }}</template>
       </n-popover>
-      <font-awesome-icon v-if="buildType === 'loading'" :icon="['fas', 'compass']" spin />
+      <app-icon
+        v-if="buildType === 'loading'"
+        class="tw:animate-spin"
+        name="compassFilled"
+        size="1.25em" />
       <transition v-else mode="out-in" name="insert">
         <div v-if="!isUpdateAvailable">
           <n-popover :show-arrow="false" trigger="hover">
@@ -244,7 +248,7 @@ watch(
                 :loading="loaders.main.loading"
                 size="tiny"
                 @click="checkForUpdates()">
-                <font-awesome-icon icon="sync-alt" />
+                <app-icon name="refresh" />
               </n-button>
             </template>
             <template #default>Vérifier les mises à jour</template>
@@ -259,7 +263,11 @@ watch(
                 :loading="loaders.main.loading"
                 size="tiny"
                 @click="installUpdate()">
-                <font-awesome-icon :color="theme.warningColor" beat-fade icon="download" />
+                <app-icon
+                  :color="theme.warningColor"
+                  class="tw:animate-pulse"
+                  name="download"
+                  size="1.5em" />
               </n-button>
             </template>
             <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>

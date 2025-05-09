@@ -1,14 +1,14 @@
 <script setup>
+import AppSpin from "@renderer/components/AppSpin.vue";
 import ChartLine from "@renderer/components/Charts/ChartLine.vue";
+import GraphSummaryMergeModal from "@renderer/components/GraphSummaryMergeModal.vue";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
-import { computed, onMounted, ref, watch } from "vue";
-import { useLoadingBar } from "naive-ui";
-import AppSpin from "@renderer/components/AppSpin.vue";
-import { VueDraggable } from "vue-draggable-plus";
 import _ from "lodash";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import GraphSummaryMergeModal from "@renderer/components/GraphSummaryMergeModal.vue";
+import { useLoadingBar } from "naive-ui";
+import { computed, onMounted, ref, watch } from "vue";
+import { VueDraggable } from "vue-draggable-plus";
 
 const system = useSystemStore();
 const user = useUserStore();
@@ -32,7 +32,7 @@ function setSummary() {
       min: 0,
       title: "Utilisation",
       description: "CPU",
-      icon: "microchip",
+      icon: "cpu",
       unit: "%",
       value: system.metrics.currentLoad.currentLoad,
     });
@@ -54,7 +54,7 @@ function setSummary() {
       min: 0,
       title: "Température",
       description: "CPU",
-      icon: "thermometer-half",
+      icon: "temperature",
       unit: "°C",
       value: system.metrics.cpuTemperature.main,
     });
@@ -72,7 +72,7 @@ function setSummary() {
         min: 0,
         title: "Utilisation",
         description: description,
-        icon: "microchip",
+        icon: "cpu2",
         unit: "%",
         value: controller.utilizationGpu ?? 0,
       });
@@ -82,7 +82,7 @@ function setSummary() {
           max: controller.vram,
           min: 0,
           title: "Utilisation VRAM",
-          icon: "memory",
+          icon: "section-filled",
           description: description,
           unit: "Mo",
           value: controller.memoryUsed,
@@ -94,7 +94,7 @@ function setSummary() {
         min: 0,
         title: "Température",
         description: description,
-        icon: "thermometer-half",
+        icon: "temperature",
         unit: "°C",
         value: controller.temperatureGpu ?? 0,
       });
@@ -125,7 +125,7 @@ function setSummary() {
         max: 100,
         min: 0,
         title: "Vitesse des ventilateurs",
-        icon: "fan",
+        icon: "windmill-filled",
         description: description,
         unit: "%",
         value: controller.fanSpeed ?? 0,
@@ -138,7 +138,7 @@ function setSummary() {
       min: 0,
       title: "Utilisation",
       description: "RAM",
-      icon: "memory",
+      icon: "section-filled",
       unit: "B",
       value: system.metrics.mem.used,
     });
@@ -276,16 +276,16 @@ onMounted(() => {
         right="0"
         style="margin: auto"
         type="primary">
-        <font-awesome-icon :icon="['fas', 'ellipsis-vertical']" />
+        <app-icon name="dots-vertical" />
         <template #menu>
           <n-float-button @click="resetChartsOrder()">
-            <font-awesome-icon :icon="['fas', 'rotate-right']" />
+            <app-icon name="rotate-2" />
           </n-float-button>
           <n-float-button @click="showMergeModal = true">
-            <font-awesome-icon :icon="['fas', 'object-group']" />
+            <app-icon name="layers-linked" />
           </n-float-button>
           <n-float-button @click="editMode = false">
-            <font-awesome-icon :icon="['fas', 'check']" />
+            <app-icon name="check" />
           </n-float-button>
         </template>
       </n-float-button>

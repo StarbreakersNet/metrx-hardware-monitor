@@ -1,6 +1,6 @@
-import { resolve } from "path";
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import vue from "@vitejs/plugin-vue";
+import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { resolve } from "path";
 import vueDevTools from "vite-plugin-vue-devtools";
 
 export default defineConfig({
@@ -35,5 +35,8 @@ export default defineConfig({
       scss: 'vue-style-loader!css-loader!sass-loader?data=@import "./src/renderer/globals";',
     },
     plugins: [vue(), vueDevTools()],
+    css: {
+      postcss: "src/renderer/postcss.config.js",
+    },
   },
 });

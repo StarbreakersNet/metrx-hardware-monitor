@@ -1,6 +1,6 @@
 <script setup>
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import InputSettings from "@renderer/components/InputSettings.vue";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import settingsAvailable from "@renderer/models/settingsAvailable";
 import { useUserStore } from "@renderer/stores/user";
 
@@ -16,7 +16,7 @@ const user = useUserStore();
             <template #header>
               <n-thing>
                 <template v-if="setting.icon" #avatar>
-                  <font-awesome-icon :icon="['fas', setting.icon]" />
+                  <app-icon :name="setting.icon" size="1.5em" />
                 </template>
                 <template #header>
                   {{ setting.label }}

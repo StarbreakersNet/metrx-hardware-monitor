@@ -1,9 +1,9 @@
 <script setup>
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { computed, ref, watch } from "vue";
-import { useUserStore } from "@renderer/stores/user";
-import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
 import { formatValue } from "@renderer/appUtils";
+import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
+import { useUserStore } from "@renderer/stores/user";
+import { computed, ref, watch } from "vue";
 
 const { settings } = useUserStore();
 
@@ -135,8 +135,8 @@ const combinedStats = computed(() => {
       round
       type="default">
       <app-skeleton-input :show="editMode" round>
-        <n-flex size="small">
-          <font-awesome-icon :icon="['fas', 'divide']" />
+        <n-flex align="center" size="small">
+          <app-icon name="divide" />
           <n-number-animation
             :duration="animationDuration"
             :from="combinedStats.average.previous"
@@ -147,8 +147,8 @@ const combinedStats = computed(() => {
     </n-tag>
     <n-tag v-if="chartConfigValues.showMinMax" key="min" :bordered="false" round type="info">
       <app-skeleton-input :show="editMode" round>
-        <n-flex size="small">
-          <font-awesome-icon :icon="['fas', 'arrow-down']" />
+        <n-flex align="center" size="small">
+          <app-icon name="arrow-down" />
           <n-number-animation
             :duration="animationDuration"
             :from="combinedStats.min.previous"
@@ -159,8 +159,8 @@ const combinedStats = computed(() => {
     </n-tag>
     <n-tag v-if="chartConfigValues.showMinMax" key="max" :bordered="false" round type="warning">
       <app-skeleton-input :show="editMode" round>
-        <n-flex size="small">
-          <font-awesome-icon :icon="['fas', 'arrow-up']" />
+        <n-flex align="center" size="small">
+          <app-icon name="arrow-up" />
           <n-number-animation
             :duration="animationDuration"
             :from="combinedStats.max.previous"

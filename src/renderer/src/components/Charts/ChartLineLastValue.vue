@@ -1,6 +1,7 @@
 <script setup>
 import { formatValue, getValueUnit } from "@renderer/appUtils";
 import AppSkeletonInput from "@renderer/components/AppSkeletonInput.vue";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import { useUserStore } from "@renderer/stores/user";
 
 import { computed, ref } from "vue";
@@ -87,8 +88,8 @@ function onSerieColorRemove(serie) {
           background: 'transparent',
           color: getSerieColor(lastValue),
         }">
-        <font-awesome-icon v-if="!settings.showChartTitle" :icon="['fas', props.icon]" />
-        <font-awesome-icon v-else :icon="['fas', 'circle']" />
+        <app-icon v-if="!settings.showChartTitle" :name="props.icon" />
+        <app-icon v-else name="circle-filled" />
         <n-color-picker
           :actions="['clear']"
           :modes="['hsl', 'hex']"

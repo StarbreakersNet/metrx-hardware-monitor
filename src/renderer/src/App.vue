@@ -4,20 +4,20 @@ import {
   getNaiveTheme,
   Loader,
   preferedOsTheme,
-  renderFontAwesomeIcon,
+  renderAppIcon,
   Timer,
 } from "@renderer/appUtils";
 import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
+import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
+import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
+import { useEchartTheme } from "@renderer/composables/themeBuilder";
+import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
 import { registerTheme } from "echarts";
+import { dateFrFR, frFR } from "naive-ui";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
-import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
-import appMenuOptions from "@renderer/models/appMenuOptions";
-import { useEchartTheme } from "@renderer/composables/themeBuilder";
-import { dateFrFR, frFR } from "naive-ui";
 
 const PRE_TIMEOUT_TIME = 7000;
 const TIMEOUT_TIME = 15000;
@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
                       :collapsed-width="menuConfig.collapsedWidth"
                       :icon-size="22"
                       :options="menuOptions"
-                      :render-icon="renderFontAwesomeIcon"
+                      :render-icon="renderAppIcon"
                       :value="router.currentRoute.value.name ?? null"
                       @update:value="router.push({ name: $event })" />
                   </n-layout-sider>
@@ -187,7 +187,7 @@ onBeforeUnmount(() => {
   padding-top: .25em
   padding-bottom: .25em
   padding-left: max(1em, env(titlebar-area-x, 0px))
-  padding-right: max(1em, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 0px)))
+  padding-right: calc(max(1em, env(titlebar-area-x, 0px) - env(titlebar-area-width, 0px)))
 
   &:not(.with-background)
     background: transparent

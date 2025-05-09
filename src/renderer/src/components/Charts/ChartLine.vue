@@ -1,11 +1,12 @@
 <script setup>
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { useUserStore } from "@renderer/stores/user";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import ChartLineTools from "@renderer/components/Charts/ChartLineTools.vue";
-import ChartLineStats from "@renderer/components/Charts/ChartLineStats.vue";
+import { formatValue, withOpacity } from "@renderer/appUtils";
+import { registerTooltipCustoms } from "@renderer/components/Charts/ChartJsCustoms";
 import ChartLineLastValue from "@renderer/components/Charts/ChartLineLastValue.vue";
-import { Line } from "vue-chartjs";
+import ChartLineStats from "@renderer/components/Charts/ChartLineStats.vue";
+import ChartLineTools from "@renderer/components/Charts/ChartLineTools.vue";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
+import { useChartTheme } from "@renderer/composables/chartJsThemeBuilder";
+import { useUserStore } from "@renderer/stores/user";
 import {
   Chart as ChartJS,
   Filler,
@@ -17,11 +18,10 @@ import {
   Tooltip,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
-import { formatValue, withOpacity } from "@renderer/appUtils";
-import { registerTooltipCustoms } from "@renderer/components/Charts/ChartJsCustoms";
-import { useChartTheme } from "@renderer/composables/chartJsThemeBuilder";
 import Annotation from "chartjs-plugin-annotation";
 import _ from "lodash";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { Line } from "vue-chartjs";
 
 registerTooltipCustoms();
 ChartJS.register(
@@ -425,7 +425,7 @@ onUnmounted(() => {
     @mouseleave="showTools = false">
     <template v-if="user.settings.showChartTitle" #header>
       <n-space :wrap="false">
-        <font-awesome-icon :icon="['fas', props.icon]" />
+        <app-icon :name="props.icon" />
         <n-ellipsis :line-clamp="1">
           <template #default>
             <n-text>{{ props.title }}</n-text>
@@ -490,7 +490,7 @@ onUnmounted(() => {
           <n-popover :show-arrow="false">
             <template #trigger>
               <n-button size="small" text @click="emit('editOrders')">
-                <font-awesome-icon :icon="['fas', 'edit']" />
+                <app-icon name="edit" />
               </n-button>
             </template>
             <template #default>Organiser les graphiques</template>
