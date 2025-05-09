@@ -1,27 +1,33 @@
-export default (version) => {
+export default version => {
   return [
     {
       label: "Accueil",
       key: "home",
-      fas: "home",
+      appIcon: "home-filled",
       hideHorizontalLabel: true,
     },
     {
       label: "Données",
       key: "nodes",
-      fas: "table",
+      appIcon: "table-filled",
+      hideHorizontalLabel: true,
+    },
+    {
+      label: "Sondes",
+      key: "probes",
+      appIcon: "device-heart-monitor-filled",
       hideHorizontalLabel: true,
     },
     {
       label: "Paramètres",
       key: "settings",
-      fas: "gear",
+      appIcon: "settings-filled",
       hideHorizontalLabel: true,
     },
     {
       label: "Autres",
       key: "other",
-      fas: "bars",
+      appIcon: "menu-2",
       hideHorizontalLabel: true,
       children: [
         {

@@ -1,10 +1,13 @@
 @import animations
 
+@import "tailwindcss" prefix(tw)
+
 body
   font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', sans-serif
   color: #86a5b1
   background-color: #2f3241
   font-size: 14px
+  user-select: none
 
 a
   font-weight: bold
@@ -21,6 +24,45 @@ a:hover
   &.dense
     padding: .25em
 
+  &.space
+    padding: 1em
+
 .sb-container
   flex-grow: 1
   max-width: 40em
+
+.sb-scrollbar-overlaping
+  padding: 0 1em
+
+.scroll-layout-container
+  --gradient-color: #2c2c31
+  position: relative
+  padding-top: 0 !important
+  padding-bottom: 0 !important
+
+  > div
+    > .n-scrollbar-container
+      > .n-scrollbar-content
+        margin-top: 1em
+        margin-bottom: 1em
+
+  &:before,
+  &:after
+    z-index: 10
+    content: ""
+    position: absolute
+    height: 1em
+    width: auto
+    left: 0
+    right: 0
+    backdrop-filter: blur(.5em)
+
+  &:before
+    top: 0
+    background: linear-gradient(to top, transparent 0%, var(--gradient-color) 75%)
+    mask: linear-gradient(to top, transparent 0%, var(--gradient-color) 50%)
+
+  &:after
+    bottom: 0
+    background: linear-gradient(to bottom, transparent 0%, var(--gradient-color) 75%)
+    mask: linear-gradient(to bottom, transparent 0%, var(--gradient-color) 50%)

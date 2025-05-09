@@ -1,17 +1,17 @@
 <script setup>
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import { useUserStore } from "@renderer/stores/user";
 import AppUtils, { formatBytes } from "@renderer/appUtils";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@renderer/stores/system";
+import { useUserStore } from "@renderer/stores/user";
 import { useMessage, useThemeVars } from "naive-ui";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
-const userStore = useUserStore();
-const systemStore = useSystemStore();
+const user = useUserStore();
+const system = useSystemStore();
 const theme = useThemeVars();
 
 const mode = ref(import.meta.env.MODE?.toLowerCase());
-const version = computed(() => "v" + systemStore.app.version);
+const version = computed(() => "v" + system.app.version);
 const nMessage = useMessage();
 const downloadProgress = ref({
   active: false,
@@ -75,7 +75,19 @@ function removeMessage() {
   }
 }
 
+function clearAllListeners() {
+  window.electron.ipcRenderer.removeAllListeners("console-log");
+  window.electron.ipcRenderer.removeAllListeners("update-available");
+  window.electron.ipcRenderer.removeAllListeners("update-not-available");
+  window.electron.ipcRenderer.removeAllListeners("update-cancelled");
+  window.electron.ipcRenderer.removeAllListeners("update-check");
+  window.electron.ipcRenderer.removeAllListeners("update-downloaded");
+  window.electron.ipcRenderer.removeAllListeners("download-progress");
+  window.electron.ipcRenderer.removeAllListeners("update-error");
+}
+
 function initListener() {
+  clearAllListeners();
   window.electron.ipcRenderer.on("update-available", () => {
     if (!silentUpdate.value) {
       createMessage("success", "Mise à jour disponible");
@@ -156,7 +168,7 @@ function initListener() {
 function checkForUpdates(isSilent = false) {
   silentUpdate.value = isSilent;
   loaders.main.start();
-  window.electron.ipcRenderer.send("check-for-updates");
+  window.electron.ipcRenderer.send("check-for-updates", user.settings.updateChanel);
 }
 
 function installUpdate() {
@@ -169,15 +181,15 @@ const buildType = computed(() => {
     const types = {
       stable: {
         label: "Live",
-        icon: "shield",
+        icon: "boltFilled",
       },
       beta: {
         label: "Preview",
-        icon: "flask",
+        icon: "flaskFilled",
       },
       alpha: {
         label: "Nightly",
-        icon: "radiation",
+        icon: "radioactiveFilled",
       },
     };
 
@@ -195,22 +207,22 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  if (userStore.settings.autoUpdate) {
+  if (user.settings.autoUpdate) {
     checkForUpdates(true);
   }
 });
 
 onBeforeUnmount(() => {
   removeMessage();
-  window.electron.ipcRenderer.removeAllListeners("console-log");
-  window.electron.ipcRenderer.removeAllListeners("update-available");
-  window.electron.ipcRenderer.removeAllListeners("update-not-available");
-  window.electron.ipcRenderer.removeAllListeners("update-cancelled");
-  window.electron.ipcRenderer.removeAllListeners("update-check");
-  window.electron.ipcRenderer.removeAllListeners("update-downloaded");
-  window.electron.ipcRenderer.removeAllListeners("download-progress");
-  window.electron.ipcRenderer.removeAllListeners("update-error");
+  clearAllListeners();
 });
+
+watch(
+  () => user.settings.updateChanel,
+  () => {
+    checkForUpdates(false);
+  }
+);
 </script>
 
 <template>
@@ -218,11 +230,15 @@ onBeforeUnmount(() => {
     <n-flex align="center" size="small">
       <n-popover v-if="buildType" :show-arrow="false" trigger="hover">
         <template #trigger>
-          <FontAwesomeIcon :icon="['fas', buildType.icon]" />
+          <app-icon :name="buildType.icon" />
         </template>
         <template #default>Version {{ buildType.label.toLowerCase() }} {{ version }}</template>
       </n-popover>
-      <font-awesome-icon v-if="buildType === 'loading'" :icon="['fas', 'compass']" spin />
+      <app-icon
+        v-if="buildType === 'loading'"
+        class="tw:animate-spin"
+        name="compassFilled"
+        size="1.25em" />
       <transition v-else mode="out-in" name="insert">
         <div v-if="!isUpdateAvailable">
           <n-popover :show-arrow="false" trigger="hover">
@@ -232,7 +248,7 @@ onBeforeUnmount(() => {
                 :loading="loaders.main.loading"
                 size="tiny"
                 @click="checkForUpdates()">
-                <font-awesome-icon icon="sync-alt" />
+                <app-icon name="refresh" />
               </n-button>
             </template>
             <template #default>Vérifier les mises à jour</template>
@@ -247,7 +263,11 @@ onBeforeUnmount(() => {
                 :loading="loaders.main.loading"
                 size="tiny"
                 @click="installUpdate()">
-                <font-awesome-icon :color="theme.warningColor" beat-fade icon="download" />
+                <app-icon
+                  :color="theme.warningColor"
+                  class="tw:animate-pulse"
+                  name="download"
+                  size="1.5em" />
               </n-button>
             </template>
             <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>
