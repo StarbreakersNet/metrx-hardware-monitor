@@ -17,7 +17,7 @@ const DEFAULT_USER_SETTINGS = {
   nodeFrequency: 1000,
   graphColumns: 2,
   chartBufferSize: 5,
-  chartAnimation: true,
+  chartAnimation: false,
   showSideMenu: false,
   sideMenuCollapsed: true,
   showChartTitle: true,
