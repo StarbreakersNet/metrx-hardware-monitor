@@ -23,7 +23,6 @@ const colNumber = computed(() => {
 });
 
 function setSummary() {
-  loadingBar.start();
   let list = [];
 
   if (system.metrics.currentLoad) {
@@ -105,7 +104,7 @@ function setSummary() {
           min: 0,
           title: "Puissance",
           description: description,
-          icon: "bolt",
+          icon: "bolt-filled",
           unit: "W",
           value: controller.powerDraw ?? 0,
         });
@@ -226,6 +225,7 @@ function resetChartsOrder() {
 }
 
 onMounted(() => {
+  loadingBar.start();
   watch(
     () => system.metrics,
     () => {

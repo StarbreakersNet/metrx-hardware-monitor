@@ -16,6 +16,11 @@ const electron = {
   },
   ...electronAPI,
   dialog: (method, config) => ipcRenderer.invoke("dialog", method, config),
+  window: {
+    minimize: () => ipcRenderer.invoke("window:minimize"),
+    maximize: () => ipcRenderer.invoke("window:maximize"),
+    close: () => ipcRenderer.invoke("window:close"),
+  },
 };
 const api = {
   init: () => ipcRenderer.invoke("metrics:init"),
