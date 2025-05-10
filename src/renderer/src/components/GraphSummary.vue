@@ -105,7 +105,7 @@ function setSummary() {
           min: 0,
           title: "Puissance",
           description: description,
-          icon: "bolt",
+          icon: "bolt-filled",
           unit: "W",
           value: controller.powerDraw ?? 0,
         });

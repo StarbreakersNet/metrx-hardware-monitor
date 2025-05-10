@@ -9,7 +9,6 @@ import metricsWorker from "./workers/metrics?nodeWorker";
 import useWindowControl from "./window";
 
 const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
-const appIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.png"));
 
 let mainWindow;
 let metricsWorkerInstance;
@@ -26,7 +25,6 @@ function createWindow() {
     titleBarOverlay: {
       height: 30,
     },
-    ...(process.platform === "linux" ? { appIcon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,

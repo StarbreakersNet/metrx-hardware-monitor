@@ -151,7 +151,7 @@ onBeforeUnmount(() => {
                     :class="{ 'more-padding': user.settings.showSideMenu }"
                     class="router-wrapper">
                     <router-view #default="{ Component }" class="router-view">
-                      <transition mode="out-in" name="fade-y">
+                      <transition mode="out-in" name="view-ios">
                         <keep-alive :exclude="keepAliveBlacklist">
                           <component :is="Component" />
                         </keep-alive>

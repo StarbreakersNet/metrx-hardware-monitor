@@ -248,7 +248,9 @@ watch(
                 :loading="loaders.main.loading"
                 size="tiny"
                 @click="checkForUpdates()">
-                <app-icon name="refresh" />
+                <template #icon>
+                  <app-icon name="refresh" />
+                </template>
               </n-button>
             </template>
             <template #default>Vérifier les mises à jour</template>
@@ -263,11 +265,13 @@ watch(
                 :loading="loaders.main.loading"
                 size="tiny"
                 @click="installUpdate()">
-                <app-icon
-                  :color="theme.warningColor"
-                  class="tw:animate-pulse"
-                  name="download"
-                  size="1.5em" />
+                <template #icon>
+                  <app-icon
+                    :color="theme.warningColor"
+                    class="tw:animate-pulse"
+                    name="download"
+                    size="1.5em" />
+                </template>
               </n-button>
             </template>
             <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>

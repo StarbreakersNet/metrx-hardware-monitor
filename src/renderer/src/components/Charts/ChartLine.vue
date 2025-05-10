@@ -490,7 +490,9 @@ onUnmounted(() => {
           <n-popover :show-arrow="false">
             <template #trigger>
               <n-button size="small" text @click="emit('editOrders')">
-                <app-icon name="edit" />
+                <template #icon>
+                  <app-icon name="edit" />
+                </template>
               </n-button>
             </template>
             <template #default>Organiser les graphiques</template>
