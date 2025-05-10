@@ -7,7 +7,7 @@ import { useUserStore } from "@renderer/stores/user";
 const user = useUserStore();
 </script>
 <template>
-  <n-layout bordered>
+  <n-flex vertical>
     <template v-for="mainSetting in settingsAvailable" :key="mainSetting.label">
       <template v-if="mainSetting.type === 'categ'">
         <n-h1 prefix="bar">{{ mainSetting.label }}</n-h1>
@@ -19,7 +19,9 @@ const user = useUserStore();
                   <app-icon :name="setting.icon" size="1.5em" />
                 </template>
                 <template #header>
-                  {{ setting.label }}
+                  <n-flex align="center">
+                    {{ setting.label }}
+                  </n-flex>
                 </template>
                 <template #description>
                   {{ setting.description }}
@@ -34,6 +36,18 @@ const user = useUserStore();
                 :path="setting.storePath"
                 :store="user"
                 :type="setting.type" />
+            </template>
+            <template v-if="setting.info" #default>
+              <transition name="insert">
+                <n-alert type="info">
+                  <template #icon>
+                    <app-icon name="info-square-rounded" />
+                  </template>
+                  <template #default>
+                    {{ setting.info }}
+                  </template>
+                </n-alert>
+              </transition>
             </template>
           </n-card>
         </n-flex>
@@ -64,6 +78,6 @@ const user = useUserStore();
         </template>
       </n-popconfirm>
     </n-flex>
-  </n-layout>
+  </n-flex>
 </template>
 <style lang="sass" scoped></style>

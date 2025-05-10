@@ -11,6 +11,6 @@ export default {
   animations: {
     x: {
       duration: 0,
-    }
-  }
+    },
+  },
 };

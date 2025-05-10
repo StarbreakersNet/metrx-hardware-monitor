@@ -9,6 +9,18 @@ $default-duration: .5s
 .v-leave-to
   opacity: 0
 
+.view-ios-enter-active,
+.view-ios-leave-active
+  transition: transform 0.1s ease-in, opacity 0.1s ease-in
+  transform-origin: top center
+
+.view-ios-enter-from
+  transform: scale(0.995)
+
+.view-ios-enter-from,
+.view-ios-leave-to
+  opacity: 0
+
 .scale-enter-active,
 .scale-leave-active
   transition: transform 0.2s ease, opacity 0.2s ease
