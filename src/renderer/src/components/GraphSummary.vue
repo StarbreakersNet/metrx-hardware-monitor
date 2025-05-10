@@ -23,7 +23,6 @@ const colNumber = computed(() => {
 });
 
 function setSummary() {
-  loadingBar.start();
   let list = [];
 
   if (system.metrics.currentLoad) {
@@ -226,6 +225,7 @@ function resetChartsOrder() {
 }
 
 onMounted(() => {
+  loadingBar.start();
   watch(
     () => system.metrics,
     () => {
