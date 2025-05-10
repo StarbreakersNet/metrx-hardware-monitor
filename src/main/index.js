@@ -22,9 +22,6 @@ function createWindow() {
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: "hidden",
-    titleBarOverlay: {
-      height: 30,
-    },
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,

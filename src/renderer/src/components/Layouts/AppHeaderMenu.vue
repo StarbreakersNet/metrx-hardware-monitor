@@ -53,7 +53,7 @@ function close() {
           </n-button>
           <n-button :focusable="false" quaternary @click="toggleMaximize()">
             <template #icon>
-              <app-icon name="square" size="1em" />
+              <app-icon name="square" size=".75em" />
             </template>
           </n-button>
           <n-button :focusable="false" quaternary @click="close()">
@@ -69,7 +69,7 @@ function close() {
 
 <style lang="sass" scoped>
 .header-view
-  height: env(titlebar-area-height)
+  height: 30px
   user-select: none
   padding-left: max(1em, env(titlebar-area-x, 0px))
 
