@@ -1,4 +1,4 @@
-# sb-hardware-monitor
+# metrx-hardware-monitor
 
 An Electron application with Vue that allows users to monitor their hardware status in real-time. This application provides a user-friendly interface to display various hardware metrics, making it easier for users to keep an eye on their system's health and performance.
 

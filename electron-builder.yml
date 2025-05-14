@@ -1,5 +1,5 @@
-appId: com.starbreakers.monitor
-productName: Hardware Monitor
+appId: com.starbreakers.metrx
+productName: Metrx
 directories:
   buildResources: build
 files:
@@ -10,14 +10,14 @@ files:
   - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
 asarUnpack:
   - resources/**
-win:
-  executableName: Hardware Monitor
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  target:
+    - target: dmg
+      arch: universal
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -25,22 +25,16 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
-dmg:
-  artifactName: ${name}-${version}.${ext}
 linux:
   target:
     - AppImage
-    - snap
     - deb
   maintainer: starbreakers.net
   category: Utility
-appImage:
-  artifactName: ${name}-${version}.${ext}
-deb:
-  artifactName: ${name}-${version}-${arch}.${ext}
-snap:
-  artifactName: ${name}-${version}-${arch}.${ext}
 npmRebuild: false
+artifactName: ${name}-${version}-${arch}.${ext}
 publish:
-  provider: generic
-  url: https://gitlab.com/starbreakersdevteam/sb-hardware-monitor/-/releases/permalink/latest
+  - provider: github
+    protocol: https
+    releaseType: draft
+    channel: alpha

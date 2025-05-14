@@ -64,20 +64,11 @@ function openDevtools() {
           </template>
           <template #default>
             <n-space align="center" size="small">
-              <app-icon name="brand-gitlab" />
+              <app-icon name="brand-github" />
               <n-a
-                href="https://gitlab.com/starbreakersdevteam/sb-hardware-monitor/-/issues/new"
+                href="https://github.com/StarbreakersNet/metrx-hardware-monitor/issues/new/choose"
                 target="_blank">
-                Signaler un problème par GitLab
-              </n-a>
-            </n-space>
-          </template>
-          <template #footer>
-            <n-space align="center" size="small">
-              <app-icon name="mail" />
-              <n-a
-                href="mailto:contact-project+starbreakersdevteam-sb-hardware-monitor-33549653-issue-@incoming.gitlab.com">
-                Signaler un problème par mail
+                Signaler un problème sur GitHub
               </n-a>
             </n-space>
           </template>

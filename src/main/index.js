@@ -8,7 +8,9 @@ import { getData, initSettingsStore } from "./store";
 import metricsWorker from "./workers/metrics?nodeWorker";
 import useWindowControl from "./window";
 
-const trayIcon = nativeImage.createFromPath(join(__dirname, "../../resources/icon.ico"));
+const trayIcon = nativeImage.createFromPath(
+  join(__dirname, `../../build/icon${process.platform !== "win32" ? "-tray.png" : ".ico"}`)
+);
 
 let mainWindow;
 let metricsWorkerInstance;

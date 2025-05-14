@@ -11,10 +11,6 @@ export default function useUpdater(app, window) {
 
   autoUpdater.autoDownload = true;
 
-  autoUpdater.setFeedURL(
-    "https://gitlab.com/api/v4/projects/33549653/jobs/artifacts/main/raw/dist?job=build"
-  );
-
   autoUpdater.on("checking-for-update", () => {
     window.webContents.send("update-check");
   });
@@ -47,27 +43,21 @@ export default function useUpdater(app, window) {
     autoUpdater.quitAndInstall();
   });
 
-  ipcMain.on("check-for-updates", async (event, updateChanel = 'latest') => {
+  ipcMain.on("check-for-updates", async (event, updateChanel) => {
     try {
-      let provider = "https://gitlab.com/api/v4/";
-      let projectId = "33549653";
       let version = PackageJson.version;
       let channel = updateChanel;
 
-      if (version.includes("-")) {
-        channel = version.split("-")[1];
-      }
+      if (!channel) {
+        channel = "latest";
 
-      const feedUrl = provider + "projects/" + projectId + "/packages/generic/Build/" + channel;
+        if (version.includes("-")) {
+          channel = version.split("-")[1];
+        }
+      }
 
       window.webContents.send("update-log", "[autoUpdater] Channel selected : " + channel);
       autoUpdater.channel = channel;
-
-      window.webContents.send("update-log", "[autoUpdater] Feed URL for updater : " + feedUrl);
-      autoUpdater.setFeedURL({
-        provider: "generic",
-        url: feedUrl,
-      });
 
       if (process.env.NODE_ENV === "development") {
         window.webContents.send(

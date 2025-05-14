@@ -1,6 +1,5 @@
 {
-  "name": "sb-hardware-monitor",
-  "productName": "Hardware Monitor",
+  "name": "metrx-hardware-monitor",
   "version": "1.4.2",
   "description": "Monitor computer information on Windows, MacOS or Linux in an Electron application",
   "main": "./out/main/index.js",
@@ -41,7 +40,6 @@
     "vite-plugin-vue-devtools": "^7.7.5",
     "vue-chartjs": "^5.3.2",
     "vue-draggable-plus": "^0.6.0",
-    "vue-echarts": "^6.6.9",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

@@ -1,0 +1,142 @@
+name: Build & release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  prepare_build:
+    name: Prepare build variables
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+      channel: ${{ steps.set-release-info.outputs.channel }}
+      release_type: ${{ steps.set-release-info.outputs.release_type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Nécessaire pour accéder aux tags
+
+      - name: Extract version from tag
+        id: set-version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=$(echo "$TAG_NAME" | sed 's/^v//')
+          echo "version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set release type and channel
+        id: set-release-info
+        run: |
+          VERSION="${{ steps.set-version.outputs.version }}"
+          if [[ "$VERSION" == *"-beta"* ]]; then
+            RELEASE_TYPE="prerelease"
+            CHANNEL="beta"
+          elif [[ "$VERSION" == *"-alpha"* ]]; then
+            RELEASE_TYPE="prerelease"
+            CHANNEL="alpha"
+          else
+            RELEASE_TYPE="release"
+            CHANNEL="latest"
+          fi
+          echo "release type: $RELEASE_TYPE"
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "channel: $CHANNEL"
+          echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+
+      - name: Extract release notes from CHANGELOG file
+        uses: ffurrer2/extract-release-notes@v2
+        with:
+          changelog_file: CHANGELOG.md
+          release_notes_file: release-notes.md
+
+      - name: Upload release-notes.md
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+
+  build:
+    name: Build ${{ matrix.os }}
+    needs: prepare_build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Update package.json version
+        run: npm version "${{ needs.prepare_build.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Install dependency
+        run: npm install
+
+      - name: Build app
+        run: npm run build
+
+      - name: Package with Electron Builder
+        run: npx electron-builder --publish=never "-c.publish.channel=${{ needs.prepare_build.outputs.channel }}"
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefacts-${{ matrix.os }}
+          path: |
+            dist/*.dmg
+            dist/*.exe
+            dist/*.deb
+            dist/*.AppImage
+            dist/latest*.yml
+            dist/beta*.yml
+            dist/alpha*.yml
+
+  create_release:
+    name: Create GitHub Release
+    needs: [prepare_build, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release-notes.md
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: .
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artefacts-windows-latest
+          path: dist/windows
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artefacts-ubuntu-latest
+          path: dist/linux
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artefacts-macos-latest
+          path: dist/mac
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare_build.outputs.version }}
+          name: ${{ needs.prepare_build.outputs.version }}
+          body_path: release-notes.md
+          draft: ${{ needs.prepare_build.outputs.release_type == 'draft' }}
+          prerelease: ${{ needs.prepare_build.outputs.release_type == 'prerelease' }}
+          files: |
+            dist/windows/*
+            dist/linux/*
+            dist/mac/*
