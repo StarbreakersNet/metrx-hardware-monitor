@@ -1,7 +1,5 @@
 appId: com.starbreakers.metrx
 productName: Metrx
-directories:
-  buildResources: build
 files:
   - "!**/.vscode/*"
   - "!src/*"

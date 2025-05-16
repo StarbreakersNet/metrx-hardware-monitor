@@ -1,5 +1,5 @@
-import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
+import { contextBridge, ipcRenderer } from "electron";
 import Si from "systeminformation";
 
 // Custom APIs for renderer
@@ -20,6 +20,9 @@ const electron = {
     minimize: () => ipcRenderer.invoke("window:minimize"),
     maximize: () => ipcRenderer.invoke("window:maximize"),
     close: () => ipcRenderer.invoke("window:close"),
+  },
+  gnome: {
+    getButtonPosition: () => ipcRenderer.invoke("gnome:get-button-position"),
   },
 };
 const api = {

@@ -1,21 +1,35 @@
 <script setup>
-import { useUserStore } from "@renderer/stores/user";
 import AppIcon from "@renderer/components/Utils/AppIcon.vue";
-import { computed } from "vue";
+import { useUserStore } from "@renderer/stores/user";
+import { computed, onMounted, ref } from "vue";
 
 const { settings } = useUserStore();
+const gnomeButtonPosition = ref(null);
+
+onMounted(async () => {
+  if (window.electron.process.platform === "linux") {
+    try {
+      gnomeButtonPosition.value = await window.electron.gnome.getButtonPosition();
+    } catch (error) {
+      console.error("Impossible de récupérer la position des boutons GNOME:", error);
+    }
+  }
+});
 
 const windowControls = computed(() => {
   const platform = window.electron.process.platform;
 
   return {
-    show: platform === "win32",
+    show: platform === "win32" || platform === "linux",
     position: getWindowControlsPosition(platform),
   };
 });
 
 function getWindowControlsPosition(platform) {
   switch (platform) {
+    case "linux":
+      // Utiliser la valeur GNOME détectée, ou position par défaut si non disponible
+      return gnomeButtonPosition.value || "right";
     case "win32":
     default:
       return "right";
@@ -71,7 +85,7 @@ function close() {
 .header-view
   height: 30px
   user-select: none
-  padding-left: max(1em, env(titlebar-area-x, 0px))
+  padding-left: env(titlebar-area-x, 0px)
 
   .header-content
     app-region: drag

@@ -1,19 +1,30 @@
+import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell } from "electron";
 import { join } from "path";
-import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import useUpdater from "./updater";
-import useTray from "./tray";
 import { StatefullBrowserWindow } from "stateful-electron-window";
+import useGnomeHandler from "./handlers/gnome";
 import { getData, initSettingsStore } from "./store";
-import metricsWorker from "./workers/metrics?nodeWorker";
+import useTray from "./tray";
+import useUpdater from "./updater";
 import useWindowControl from "./window";
-
-const trayIcon = nativeImage.createFromPath(
-  join(__dirname, `../../build/icon${process.platform !== "win32" ? "-tray.png" : ".ico"}`)
-);
+import metricsWorker from "./workers/metrics?nodeWorker";
 
 let mainWindow;
 let metricsWorkerInstance;
+
+function getTrayIcon() {
+  let iconPath;
+
+  if (process.platform === "darwin") {
+    iconPath = join(app.getAppPath(), "build", "iconTemplate.png");
+  } else if (process.platform === "win32") {
+    iconPath = join(app.getAppPath(), "build", "icon.ico");
+  } else {
+    iconPath = join(app.getAppPath(), "build", "icon-tray.png");
+  }
+
+  return nativeImage.createFromPath(iconPath).resize({ width: 32, height: 32 });
+}
 
 function createWindow() {
   let windowOptions = {
@@ -104,9 +115,10 @@ function createWindow() {
     return mainWindow.webContents.openDevTools();
   });
 
+  useGnomeHandler();
   initSettingsStore(app, mainWindow);
   useUpdater(app, mainWindow);
-  useTray(trayIcon, mainWindow);
+  useTray(getTrayIcon(), mainWindow);
   useWindowControl();
 }
 
@@ -162,12 +174,20 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
-
   if (process.platform !== "darwin") {
+    metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
     app.quit();
   }
 });
 
+process.on("SIGTERM", () => {
+  metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
+  app.quit();
+});
+
+process.on("SIGINT", () => {
+  metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
+  app.quit();
+});
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
