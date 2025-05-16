@@ -1,9 +1,18 @@
 import { parentPort } from "worker_threads";
 import Si from "systeminformation";
 
-if (parentPort) {
-  let observer;
+let observer;
 
+function clearObserver() {
+  clearInterval(observer);
+  observer = null;
+}
+
+function metricsCallback(apiData) {
+  parentPort.postMessage(apiData);
+}
+
+if (parentPort) {
   parentPort.on("message", ({ action, nodeUsed, interval = 1000 }) => {
     const isElectronWindows = process.platform === "win32";
 
@@ -28,17 +37,10 @@ if (parentPort) {
       if (isElectronWindows) {
         Si.powerShellRelease();
       }
+
+      process.exit(0);
     }
   });
-
-  function clearObserver() {
-    clearInterval(observer);
-    observer = null;
-  }
-
-  function metricsCallback(apiData) {
-    parentPort.postMessage(apiData);
-  }
 } else {
   throw new Error("No parent port");
 }

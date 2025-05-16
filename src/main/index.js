@@ -13,17 +13,21 @@ let mainWindow;
 let metricsWorkerInstance;
 
 function getTrayIcon() {
-  let iconPath;
-
   if (process.platform === "darwin") {
-    iconPath = join(app.getAppPath(), "build", "iconTemplate.png");
-  } else if (process.platform === "win32") {
-    iconPath = join(app.getAppPath(), "build", "icon.ico");
-  } else {
-    iconPath = join(app.getAppPath(), "build", "icon-tray.png");
-  }
+    let iconPath = join(app.getAppPath(), "build", "trayTemplate@2x.png");
 
-  return nativeImage.createFromPath(iconPath).resize({ width: 32, height: 32 });
+    return nativeImage.createFromPath(iconPath);
+  } else if (process.platform === "win32") {
+    let iconPath = join(app.getAppPath(), "build", "icon.ico");
+    let img = nativeImage.createFromPath(iconPath);
+
+    return img.resize({ width: 32, height: 32 });
+  } else {
+    let iconPath = join(app.getAppPath(), "build", "icon-tray.png");
+    let img = nativeImage.createFromPath(iconPath);
+
+    return img.resize({ width: 32, height: 32 });
+  }
 }
 
 function createWindow() {
@@ -175,19 +179,9 @@ app.whenReady().then(() => {
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
+    metricsWorkerInstance?.postMessage({ action: "destroy" });
     app.quit();
   }
-});
-
-process.on("SIGTERM", () => {
-  metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
-  app.quit();
-});
-
-process.on("SIGINT", () => {
-  metricsWorkerInstance?.postMessage({ action: "destroy" }).terminate();
-  app.quit();
 });
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
