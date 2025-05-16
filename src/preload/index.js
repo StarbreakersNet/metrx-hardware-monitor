@@ -26,13 +26,13 @@ const electron = {
   },
 };
 const api = {
-  init: () => ipcRenderer.invoke("metrics:init"),
-  start: (nodeUsed, interval) => ipcRenderer.invoke("metrics:start", nodeUsed, interval),
-  stop: () => ipcRenderer.invoke("metrics:stop"),
-  onData: callback => {
-    ipcRenderer.removeAllListeners("metrics:data");
-    ipcRenderer.on("metrics:data", (event, data) => callback(data));
-  },
+  // init: () => ipcRenderer.invoke("metrics:init"),
+  // start: (nodeUsed, interval) => ipcRenderer.invoke("metrics:start", nodeUsed, interval),
+  // stop: () => ipcRenderer.invoke("metrics:stop"),
+  // onData: callback => {
+  //   ipcRenderer.removeAllListeners("metrics:data");
+  //   ipcRenderer.on("metrics:data", (event, data) => callback(data));
+  // },
   ...Si,
 };
 

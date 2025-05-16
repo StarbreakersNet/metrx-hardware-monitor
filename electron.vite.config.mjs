@@ -10,7 +10,6 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve("src/main/index.js"),
-          metricsWorker: resolve("src/main/workers/metrics.js"),
         },
       },
     },

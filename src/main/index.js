@@ -7,10 +7,8 @@ import { getData, initSettingsStore } from "./store";
 import useTray from "./tray";
 import useUpdater from "./updater";
 import useWindowControl from "./window";
-import metricsWorker from "./workers/metrics?nodeWorker";
 
 let mainWindow;
-let metricsWorkerInstance;
 
 function getTrayIcon() {
   if (process.platform === "darwin") {
@@ -43,7 +41,6 @@ function createWindow() {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
       backgroundThrottling: false,
-      nodeIntegrationInWorker: true,
     },
   };
   // Create the browser window.
@@ -75,32 +72,6 @@ function createWindow() {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
-  }
-
-  // Handle metrics worker
-  metricsWorkerInstance = metricsWorker();
-
-  if (metricsWorkerInstance) {
-    ipcMain.handle("metrics:init", () => {
-      metricsWorkerInstance.postMessage({ action: "init" });
-    });
-
-    ipcMain.handle("metrics:start", (event, nodeUsed, interval) => {
-      metricsWorkerInstance.removeAllListeners("message");
-      metricsWorkerInstance
-        .on("message", data => {
-          mainWindow.webContents.send("metrics:data", data);
-        })
-        .postMessage({
-          action: "start",
-          nodeUsed,
-          interval,
-        });
-    });
-
-    ipcMain.handle("metrics:stop", () => {
-      metricsWorkerInstance.postMessage({ action: "stop" });
-    });
   }
 
   // Handle dialogs for renderer
@@ -178,10 +149,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    metricsWorkerInstance?.postMessage({ action: "destroy" });
-    app.quit();
-  }
+  app.quit();
 });
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

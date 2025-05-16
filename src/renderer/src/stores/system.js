@@ -9,6 +9,7 @@ export const useSystemStore = defineStore("system", () => {
   const info = ref({});
   const metrics = ref({});
   const interval = computed(() => user.settings.nodeFrequency ?? 1000);
+  let observer = null;
 
   const nodeUsed = computed(() => {
     let obj = {};
@@ -32,7 +33,10 @@ export const useSystemStore = defineStore("system", () => {
   });
 
   async function init() {
-    await window.api.init();
+    if (window.electron.platform === "win32") {
+      window.api.powerShellRelease();
+      window.api.powerShellStart();
+    }
 
     app.value = {
       name: await window.electron.app.getName(),
@@ -42,12 +46,10 @@ export const useSystemStore = defineStore("system", () => {
     info.value = await getStaticData();
     Object.assign(info.value.versions, window.electron.process.versions);
 
-    window.api.onData(storeCallback);
-
     watch(
       [interval, nodeUsed],
       () => {
-        window.api.start(nodeUsed.value, interval.value);
+        observer = window.api.observe(nodeUsed.value, interval.value, storeCallback);
       },
       { immediate: true }
     );
@@ -62,7 +64,12 @@ export const useSystemStore = defineStore("system", () => {
   }
 
   async function destroy() {
-    await window.api.stop();
+    clearInterval(observer);
+    observer = null;
+
+    if (window.electron.platform === "win32") {
+      window.api.powerShellRelease();
+    }
   }
 
   return {
