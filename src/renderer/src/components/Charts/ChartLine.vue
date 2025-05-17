@@ -93,6 +93,13 @@ const chartId = computed(() => {
     return "#undefined#";
   }
 });
+const chartConfig = computed(() => {
+  return user.settings.chartsSettings.find(config => config.id === chartId.value) || null;
+});
+const isChartVisible = computed(() => {
+  return chartConfig.value?.showGraph ?? user.settings.chartsDefault.showGraph;
+});
+
 const rawChartData = {};
 
 function initChartData() {
@@ -448,7 +455,7 @@ onUnmounted(() => {
       </n-flex>
     </template>
     <template #default>
-      <div class="chart-wrapper">
+      <div v-show="isChartVisible" class="chart-wrapper">
         <transition name="scale">
           <Line
             ref="chartRef"
