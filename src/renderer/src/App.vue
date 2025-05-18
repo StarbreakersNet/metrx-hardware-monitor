@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="sass">
-@import assets/css/styles
+@use "assets/css/animations"
 
 .main-view
   height: 100vh
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
     mask: linear-gradient(to bottom, transparent 0%, var(--n-color) 75%)
 
 .router-wrapper
-  transition: padding $default-duration $timing-function
+  transition: padding animations.$default-duration animations.$timing-function
   padding: 1em 1em 2em 1em
 
   &.more-padding
