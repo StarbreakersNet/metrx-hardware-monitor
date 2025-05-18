@@ -9,7 +9,6 @@ import {
 } from "@renderer/appUtils";
 import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
 import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
-import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
 import { useEchartTheme } from "@renderer/composables/themeBuilder";
 import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useSystemStore } from "@renderer/stores/system";
@@ -19,6 +18,7 @@ import { dateFrFR, frFR } from "naive-ui";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import AppHeaderMenu from "@renderer/components/Layouts/AppHeaderMenu.vue";
+import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
 
 const PRE_TIMEOUT_TIME = 7000;
 const TIMEOUT_TIME = 15000;
@@ -104,23 +104,23 @@ onBeforeUnmount(() => {
     inline-theme-disabled>
     <n-loading-bar-provider>
       <n-message-provider :keep-alive-on-hover="true" :max="5" placement="bottom">
-        <transition mode="out-in">
-          <n-flex v-if="loaders.initial.loading">
-            <div class="loading-view">
-              <loader-spinner :size-ratio="7">
-                <n-flex align="center" class="loader-title" vertical>
-                  <img alt="logo" class="loader-img" src="@renderer/assets/icon-round.svg" />
-                  <span>Démarrage du monitoring</span>
-                  <transition name="insert">
-                    <span v-if="showLoadingHints">Le chargement est long...</span>
-                  </transition>
-                </n-flex>
-              </loader-spinner>
-            </div>
-          </n-flex>
-          <n-flex v-else class="main-view" vertical>
-            <app-header-menu />
-            <n-layout>
+        <n-flex class="main-view" vertical>
+          <app-header-menu />
+          <transition mode="out-in">
+            <n-flex v-if="loaders.initial.loading" class="tw:grow">
+              <div class="loading-view">
+                <loader-spinner :size-ratio="7">
+                  <n-flex align="center" class="loader-title" vertical>
+                    <img alt="logo" class="loader-img" src="@renderer/assets/icon-round.svg" />
+                    <span>Démarrage du monitoring</span>
+                    <transition name="insert">
+                      <span v-if="showLoadingHints">Le chargement est long...</span>
+                    </transition>
+                  </n-flex>
+                </loader-spinner>
+              </div>
+            </n-flex>
+            <n-layout v-else>
               <n-layout has-sider position="absolute">
                 <transition name="insert-side">
                   <n-layout-sider
@@ -161,14 +161,17 @@ onBeforeUnmount(() => {
                 </n-layout-content>
               </n-layout>
             </n-layout>
+          </transition>
+          <transition mode="out-in">
             <n-layout-footer
+              v-if="!loaders.initial.loading"
               :bordered="user.settings.showSideMenu"
               :class="{ 'with-background': user.settings.showSideMenu }"
               class="footer-view">
               <app-footer-menu />
             </n-layout-footer>
-          </n-flex>
-        </transition>
+          </transition>
+        </n-flex>
       </n-message-provider>
     </n-loading-bar-provider>
     <n-global-style />

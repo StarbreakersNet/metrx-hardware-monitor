@@ -26,14 +26,15 @@ const electron = {
   },
 };
 const api = {
-  // init: () => ipcRenderer.invoke("metrics:init"),
-  // start: (nodeUsed, interval) => ipcRenderer.invoke("metrics:start", nodeUsed, interval),
-  // stop: () => ipcRenderer.invoke("metrics:stop"),
-  // onData: callback => {
-  //   ipcRenderer.removeAllListeners("metrics:data");
-  //   ipcRenderer.on("metrics:data", (event, data) => callback(data));
-  // },
-  ...Si,
+  init: () => ipcRenderer.invoke("metrics:init"),
+  start: (nodeUsed, interval) => ipcRenderer.invoke("metrics:start", nodeUsed, interval),
+  stop: () => ipcRenderer.invoke("metrics:stop"),
+  destroy: () => ipcRenderer.invoke("metrics:destroy"),
+  get: staticData => ipcRenderer.invoke("metrics:get", staticData),
+  onData: callback => {
+    ipcRenderer.removeAllListeners("metrics:data");
+    ipcRenderer.on("metrics:data", (event, data) => callback(data));
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

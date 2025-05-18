@@ -7,6 +7,7 @@ import { getData, initSettingsStore } from "./store";
 import useTray from "./tray";
 import useUpdater from "./updater";
 import useWindowControl from "./window";
+import useMetricsHandler from "./metrics";
 
 let mainWindow;
 
@@ -91,6 +92,7 @@ function createWindow() {
   });
 
   useGnomeHandler();
+  useMetricsHandler(mainWindow);
   initSettingsStore(app, mainWindow);
   useUpdater(app, mainWindow);
   useTray(getTrayIcon(), mainWindow);

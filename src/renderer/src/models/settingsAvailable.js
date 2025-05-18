@@ -43,7 +43,7 @@ export default [
       },
       {
         type: "number",
-        icon: "table-filled",
+        icon: "ruler-measure-2",
         label: "Hauteur des graphiques",
         description: "Défini la hauteur des graphiques affichés",
         min: 5,

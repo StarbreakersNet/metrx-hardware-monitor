@@ -5054,6 +5054,7 @@ __metadata:
     less: "npm:^4.1.3"
     lodash: "npm:^4.17.21"
     naive-ui: "npm:^2.41.0"
+    osx-temperature-sensor: "npm:^1.0.8"
     patch-package: "npm:^8.0.0"
     pinia: "npm:^2.1.6"
     pinia-plugin-persistedstate: "npm:^3.2.1"
@@ -5070,6 +5071,9 @@ __metadata:
     vue-chartjs: "npm:^5.3.2"
     vue-draggable-plus: "npm:^0.6.0"
     vue-router: "npm:^4.3.0"
+  dependenciesMeta:
+    osx-temperature-sensor:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -5617,6 +5621,15 @@ __metadata:
   version: 1.0.2
   resolution: "os-tmpdir@npm:1.0.2"
   checksum: 10c0/f438450224f8e2687605a8dd318f0db694b6293c5d835ae509a69e97c8de38b6994645337e5577f5001115470414638978cc49da1cdcc25106dad8738dc69990
+  languageName: node
+  linkType: hard
+
+"osx-temperature-sensor@npm:^1.0.8":
+  version: 1.0.8
+  resolution: "osx-temperature-sensor@npm:1.0.8"
+  dependencies:
+    node-gyp: "npm:latest"
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
