@@ -15,7 +15,7 @@ const DEFAULT_USER_SETTINGS = {
   autoUpdate: false,
   updateChanel: await getDefaultUpdateChanel(),
   nodeFrequency: 1000,
-  graphColumns: 2,
+  chartColumns: 2,
   chartHeight: 10,
   chartBufferSize: 5,
   chartAnimation: false,
@@ -130,6 +130,45 @@ export const useUserStore = defineStore(
   {
     persist: {
       paths: ["settings", "nodeSelected"],
+      beforeRestore: context => {
+        const { store } = context;
+
+        try {
+          // Get data from storage
+          const storedDataStr = localStorage.getItem(store.$id);
+
+          if (storedDataStr) {
+            const storedData = JSON.parse(storedDataStr);
+
+            if (storedData.settings) {
+              let hasChanges = false;
+
+              // Loop through all keys in settings
+              Object.keys(storedData.settings).forEach(key => {
+                // If key doesn't exist in DEFAULT_USER_SETTINGS, it's obsolete
+                if (!(key in DEFAULT_USER_SETTINGS)) {
+                  if (!hasChanges) {
+                    console.group("Store " + store.$id);
+                  }
+                  console.log("🗑️ Cleaning old key: " + key);
+                  delete storedData.settings[key];
+                  hasChanges = true;
+                }
+              });
+
+              // Save modifications if keys have been deleted
+              if (hasChanges) {
+                localStorage.setItem(store.$id, JSON.stringify(storedData));
+                console.log("✅ Cleaning of obsolete keys completed");
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error while cleaning persisted data:", error);
+        } finally {
+          console.groupEnd();
+        }
+      },
     },
   }
 );

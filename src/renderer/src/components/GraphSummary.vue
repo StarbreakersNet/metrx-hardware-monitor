@@ -19,7 +19,7 @@ const editMode = ref(false);
 const showMergeModal = ref(false);
 
 const colNumber = computed(() => {
-  return user.settings.graphColumns ?? 2;
+  return user.settings.chartColumns ?? 2;
 });
 
 function setSummary() {

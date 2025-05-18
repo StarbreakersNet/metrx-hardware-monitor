@@ -39,7 +39,7 @@ export default [
         icon: "table-filled",
         label: "Nombre de colonnes",
         description: "Défini le nombre de colonnes pour l'affichage des graphiques",
-        storePath: ["settings", "graphColumns"],
+        storePath: ["settings", "chartColumns"],
       },
       {
         type: "number",

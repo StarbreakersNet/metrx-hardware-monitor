@@ -160,7 +160,7 @@ function getSelectValues(id) {
     <template #default>
       <n-scrollbar>
         <n-flex class="sb-scrollbar-overlaping">
-          <n-grid :cols="user.settings.graphColumns" x-gap="12" y-gap="12">
+          <n-grid :cols="user.settings.chartColumns" x-gap="12" y-gap="12">
             <n-gi v-for="item in listSummary" :key="item.title + '#' + item.description">
               <n-card :class="{ disabled: item.disabled }" size="small">
                 <template #header>
