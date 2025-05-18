@@ -457,11 +457,7 @@ onUnmounted(() => {
     <template #default>
       <div v-show="isChartVisible" class="chart-wrapper">
         <transition name="scale">
-          <Line
-            ref="chartRef"
-            :data="lineChartData"
-            :options="lineChartOptions"
-            style="height: 10em !important" />
+          <Line ref="chartRef" :data="lineChartData" :options="lineChartOptions" />
         </transition>
         <transition name="fade-skeleton">
           <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
@@ -518,6 +514,9 @@ onUnmounted(() => {
 <style lang="sass" scoped>
 .chart-wrapper
   position: relative
+
+  canvas
+    height: v-bind('user.settings.chartHeight + "em"') !important
 
   .chart-skeleton
     position: absolute

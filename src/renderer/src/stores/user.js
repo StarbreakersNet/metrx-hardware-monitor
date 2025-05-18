@@ -16,6 +16,7 @@ const DEFAULT_USER_SETTINGS = {
   updateChanel: await getDefaultUpdateChanel(),
   nodeFrequency: 1000,
   graphColumns: 2,
+  chartHeight: 10,
   chartBufferSize: 5,
   chartAnimation: false,
   showSideMenu: false,

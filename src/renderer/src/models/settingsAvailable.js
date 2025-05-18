@@ -43,6 +43,15 @@ export default [
       },
       {
         type: "number",
+        icon: "table-filled",
+        label: "Hauteur des graphiques",
+        description: "Défini la hauteur des graphiques affichés",
+        min: 5,
+        max: 50,
+        storePath: ["settings", "chartHeight"],
+      },
+      {
+        type: "number",
         icon: "arrow-autofit-width-filled",
         label: "Taille du buffer",
         description: "Défini le temps en minute des données à conserver dans les graphiques",
