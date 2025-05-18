@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.0-alpha] - 2025-05-18
+
+### Added
+
+- Added configurable chart height setting #43
+- Added automatic cleanup of obsolete settings during local storage restoration
+  when settings change
+- Added optional dependency `osx-temperature-sensor` to fix missing temperature metrics on macOS systems #63
+
+### Changed
+
+- Renamed `graphSettings` key to `chartSettings`
+- Updated dependencies (`sass` and `vite`) to latest versions
+- Modernized imports in using `@use` syntax
+- Introduced metrics collection module to streamline system metrics in renderer process
+
+### Removed
+
+- Removed service worker to simplify application architecture
+
+### Fixed
+
+- Fixed chart visibility toggle functionality based on user preferences #42
+
 ## [1.4.4-alpha] - 2025-05-16
 
 ### Changed
