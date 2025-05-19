@@ -14,7 +14,9 @@ nsis:
   createDesktopShortcut: always
 mac:
   target:
-    - target: default
+    - target: dmg
+      arch: universal
+    - target: zip
       arch: universal
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
