@@ -52,11 +52,14 @@ function createMessage(type, content) {
       });
       break;
     case "error":
-      message = nMessage.error(content, {
-        duration: 0,
-        closable: true,
-        keepAliveOnHover: true,
-      });
+      message = nMessage.error(
+        content.split("\n")[0] + (content.split("\n").length > 1 ? "..." : ""),
+        {
+          duration: 0,
+          closable: true,
+          keepAliveOnHover: true,
+        }
+      );
       break;
     default:
       message = nMessage.info(content, {
