@@ -1,6 +1,6 @@
 {
   "name": "metrx-hardware-monitor",
-  "version": "1.4.4",
+  "version": "0.0.0-dev",
   "description": "Monitor computer information on Windows, MacOS or Linux in an Electron application",
   "main": "./out/main/index.js",
   "author": "TheRedfoox",

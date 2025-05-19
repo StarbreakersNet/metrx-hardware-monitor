@@ -90,6 +90,7 @@ jobs:
           name: artefacts-${{ matrix.os }}
           path: |
             dist/*.dmg
+            dist/*.zip
             dist/*.exe
             dist/*.deb
             dist/*.AppImage
