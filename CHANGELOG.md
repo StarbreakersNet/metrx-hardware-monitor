@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fixed scrollbar visibility issue during main app loading #65
 - Fixed proper cleanup of system metrics collection when closing application #64
+- Fixed metrics cleanup when application quits
+- Fixed macOS updates by adding zip format support for macOS builds
+
+### Changed
+
+- Improved updater error message display by truncating long messages
 
 ## [1.5.0-alpha] - 2025-05-18
 
