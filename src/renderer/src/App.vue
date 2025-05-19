@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
           <app-header-menu />
           <transition mode="out-in">
             <n-flex v-if="loaders.initial.loading" class="tw:grow">
-              <div class="loading-view">
+              <div class="loading-view tw:fixed tw:size-full">
                 <loader-spinner :size-ratio="7">
                   <n-flex align="center" class="loader-title" vertical>
                     <img alt="logo" class="loader-img" src="@renderer/assets/icon-round.svg" />
@@ -221,9 +221,6 @@ onBeforeUnmount(() => {
     background: transparent
 
 .loading-view
-  position: absolute
-  height: 100%
-  width: 100%
   display: flex
   justify-content: center
   align-items: center
