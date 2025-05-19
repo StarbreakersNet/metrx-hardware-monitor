@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fixed scrollbar visibility issue during main app loading #65
+- Fixed proper cleanup of system metrics collection when closing application #64
 
 ## [1.5.0-alpha] - 2025-05-18
 

@@ -92,11 +92,23 @@ function createWindow() {
   });
 
   useGnomeHandler();
-  useMetricsHandler(mainWindow);
+  const metricsHandler = useMetricsHandler(mainWindow);
   initSettingsStore(app, mainWindow);
   useUpdater(app, mainWindow);
   useTray(getTrayIcon(), mainWindow);
   useWindowControl();
+
+  app.on("before-quit", async event => {
+    event.preventDefault();
+
+    try {
+      metricsHandler.destroyMetrics();
+      app.exit(0);
+    } catch (error) {
+      console.error("Error while destroying metrics before quitting : ", error);
+      app.exit(1);
+    }
+  });
 }
 
 // This method will be called when Electron has finished
@@ -153,5 +165,3 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => {
   app.quit();
 });
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.

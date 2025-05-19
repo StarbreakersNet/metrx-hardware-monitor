@@ -62,7 +62,6 @@ export const useSystemStore = defineStore("system", () => {
   }
 
   async function destroy() {
-    await window.api.stop();
     await window.api.destroy();
   }
 
