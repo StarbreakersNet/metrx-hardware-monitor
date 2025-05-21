@@ -7,22 +7,24 @@ import { getData, initSettingsStore } from "./store";
 import useTray from "./tray";
 import useUpdater from "./updater";
 import useWindowControl from "./window";
-import useMetricsHandler from "./metrics";
+import useMetricsHandler from "./handlers/metrics";
 
 let mainWindow;
 
 function getTrayIcon() {
+  const resourcePath = join(__dirname, "../../resources");
+
   if (process.platform === "darwin") {
-    let iconPath = join(app.getAppPath(), "build", "trayTemplate@2x.png");
+    let iconPath = join(resourcePath, "trayIconTemplate@2x.png");
 
     return nativeImage.createFromPath(iconPath);
   } else if (process.platform === "win32") {
-    let iconPath = join(app.getAppPath(), "build", "icon.ico");
+    let iconPath = join(resourcePath, "trayIcon.ico");
     let img = nativeImage.createFromPath(iconPath);
 
     return img.resize({ width: 32, height: 32 });
   } else {
-    let iconPath = join(app.getAppPath(), "build", "icon-tray.png");
+    let iconPath = join(resourcePath, "trayIcon.png");
     let img = nativeImage.createFromPath(iconPath);
 
     return img.resize({ width: 32, height: 32 });

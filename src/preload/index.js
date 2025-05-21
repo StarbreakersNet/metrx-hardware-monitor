@@ -1,6 +1,5 @@
 import { electronAPI } from "@electron-toolkit/preload";
 import { contextBridge, ipcRenderer } from "electron";
-import Si from "systeminformation";
 
 // Custom APIs for renderer
 const electron = {
