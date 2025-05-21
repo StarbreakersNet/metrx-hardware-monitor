@@ -1,6 +1,9 @@
 <script setup>
 import { formatValue, withOpacity } from "@renderer/appUtils";
-import { registerTooltipCustoms } from "@renderer/components/Charts/ChartJsCustoms";
+import {
+  continuousRefresh,
+  registerTooltipCustoms,
+} from "@renderer/components/Charts/ChartJsCustoms";
 import ChartLineLastValue from "@renderer/components/Charts/ChartLineLastValue.vue";
 import ChartLineStats from "@renderer/components/Charts/ChartLineStats.vue";
 import ChartLineTools from "@renderer/components/Charts/ChartLineTools.vue";
@@ -19,9 +22,12 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import Annotation from "chartjs-plugin-annotation";
+import { useCrosshairPlugin } from "@renderer/components/Charts/ChartJsCrosshair";
 import _ from "lodash";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { Line } from "vue-chartjs";
+
+const { crosshairPlugin } = useCrosshairPlugin();
 
 registerTooltipCustoms();
 ChartJS.register(
@@ -32,7 +38,9 @@ ChartJS.register(
   TimeScale,
   LinearScale,
   Annotation,
-  Filler
+  Filler,
+  crosshairPlugin,
+  continuousRefresh
 );
 
 const chartRef = ref(null);
@@ -118,7 +126,7 @@ function initChartData() {
 
 const showTools = ref(false);
 const numberAnimationDuration = computed(() => {
-  return user.settings.nodeFrequency / 2;
+  return user.settings.nodeFrequency;
 });
 const lineChartData = ref({
   datasets: [],
@@ -260,6 +268,21 @@ const lineChartOptions = ref({
     filler: {
       propagate: true,
     },
+    crosshair: {
+      line: {
+        width: 1,
+        dashPattern: [2, 2],
+        color: chartTheme.themeComputed.value?.primaryColor,
+      },
+      sync: {
+        enabled: computed(() => user.settings.chartCursorSync),
+        group: "chartLine",
+        suppressTooltips: false,
+      },
+      snap: {
+        enabled: true,
+      },
+    },
   },
 });
 
@@ -271,7 +294,9 @@ function createDataset(description, index = 0) {
     borderColor: color,
     backgroundColor: withOpacity(color, 0.25),
     tension: 0.5,
+    borderWidth: 2,
     pointRadius: 0,
+    pointHoverRadius: 0,
     fill: "origin",
   };
 }
@@ -321,7 +346,6 @@ function updateTimeRange(now) {
   if (chart) {
     chart.options.scales.x.min = new Date(now.getTime() - props.bufferSize * 60 * 1000);
     chart.options.scales.x.max = now;
-    chart.setActiveElements([]);
 
     if (user.settings.chartAnimation) {
       chart.update();

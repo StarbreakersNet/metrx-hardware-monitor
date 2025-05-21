@@ -19,6 +19,7 @@ const DEFAULT_USER_SETTINGS = {
   chartHeight: 10,
   chartBufferSize: 5,
   chartAnimation: false,
+  chartCursorSync: false,
   showSideMenu: false,
   sideMenuCollapsed: true,
   showChartTitle: true,
