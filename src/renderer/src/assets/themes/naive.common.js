@@ -8,8 +8,8 @@ export default {
     cubicBezierEaseInOut: "cubic-bezier(.4, 0, .2, 1)",
     cubicBezierEaseOut: "cubic-bezier(0, 0, .2, 1)",
     cubicBezierEaseIn: "cubic-bezier(.4, 0, 1, 1)",
-    borderRadius: "3px",
-    borderRadiusSmall: "2px",
+    borderRadius: "10px",
+    borderRadiusSmall: "6px",
     fontSize: "14px",
     fontSizeMini: "12px",
     fontSizeTiny: "12px",
@@ -24,5 +24,11 @@ export default {
     heightMedium: "34px",
     heightLarge: "40px",
     heightHuge: "46px",
+  },
+  Button: {
+    borderRadiusTiny: "8px",
+    borderRadiusSmall: "8px",
+    borderRadiusMedium: "8px",
+    borderRadiusLarge: "8px",
   },
 };

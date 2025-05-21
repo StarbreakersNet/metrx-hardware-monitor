@@ -247,7 +247,11 @@ onMounted(() => {
       :disabled="!editMode"
       target=".sort-target"
       @update="updateChartsOrder()">
-      <transition-group class="graph-grid sort-target" name="fade-y" tag="div" type="transition">
+      <transition-group
+        class="graph-grid sort-target tw:gap-3"
+        name="fade-y"
+        tag="div"
+        type="transition">
         <chart-line
           v-for="(item, index) in listSummary"
           :key="item.title + '#' + item.description"
@@ -298,7 +302,6 @@ onMounted(() => {
 .graph-grid
   display: flex
   flex-flow: row wrap
-  gap: 1em
   min-height: 5em
 
 .graph-item
