@@ -35,6 +35,19 @@ export default [
         storePath: ["settings", "nodeFrequency"],
       },
       {
+        type: "switch",
+        icon: "layout-sidebar-left-collapse-filled",
+        label: "Menu latéral",
+        description: "Affiche le menu de l'application sur le côté gauche",
+        storePath: ["settings", "showSideMenu"],
+      },
+    ],
+  },
+  {
+    type: "categ",
+    label: "Graphiques",
+    children: [
+      {
         type: "number",
         icon: "table-filled",
         label: "Nombre de colonnes",
@@ -60,11 +73,10 @@ export default [
       },
       {
         type: "switch",
-        icon: "player-play-filled",
-        label: "Animation des graphiques",
-        description: "Active ou désactive les animations lors de l'actualisation des graphiques",
-        info: "L'activation des animations peut augmenter significativement la charge processeur, particulièrement avec un grand nombre de graphiques affichés simultanément.",
-        storePath: ["settings", "chartAnimation"],
+        icon: "crosshair",
+        label: "Synchroniser les curseurs",
+        description: "Synchronise la position des curseurs entre les graphiques",
+        storePath: ["settings", "chartCursorSync"],
       },
       {
         type: "switch",
@@ -82,10 +94,11 @@ export default [
       },
       {
         type: "switch",
-        icon: "layout-sidebar-left-collapse-filled",
-        label: "Menu latéral",
-        description: "Affiche le menu de l'application sur le côté gauche",
-        storePath: ["settings", "showSideMenu"],
+        icon: "player-play-filled",
+        label: "Animation des graphiques",
+        description: "Active ou désactive les animations lors de l'actualisation des graphiques",
+        info: "Fonctionnalitée expérimentale. L'activation des animations peut augmenter significativement la charge processeur ainsi que le comportement du graphique, particulièrement avec un grand nombre affichés simultanément.",
+        storePath: ["settings", "chartAnimation"],
       },
     ],
   },
