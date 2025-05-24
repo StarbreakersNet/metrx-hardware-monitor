@@ -292,7 +292,7 @@ function initializeDatasets() {
 
 function updateDatasets(newData) {
   const updateDate = new Date();
-  const maxPoints = props.bufferSize * 60;
+  const maxPoints = (props.bufferSize * 60 * 1000) / user.settings.nodeFrequency;
 
   function updateDataset(description, value) {
     if (rawChartData[description]) {
