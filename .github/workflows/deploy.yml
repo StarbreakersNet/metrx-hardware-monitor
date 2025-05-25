@@ -65,13 +65,6 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
-        include:
-          - os: macos-latest
-            APPLE_ID: ${{ secrets.APPLE_ID }}
-            APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-            APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-            CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
-            CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PWD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -88,13 +81,16 @@ jobs:
       - name: Build app
         run: npm run build
 
+      - name: Set macOS environment variables
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> $GITHUB_ENV
+          echo "APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" >> $GITHUB_ENV
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> $GITHUB_ENV
+          echo "CSC_LINK=${{ secrets.CSC_LINK }}" >> $GITHUB_ENV
+          echo "CSC_KEY_PASSWORD=${{ secrets.CSC_KEY_PASSWORD }}" >> $GITHUB_ENV
+
       - name: Package with Electron Builder
-        env:
-          APPLE_ID: ${{ matrix.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ matrix.APPLE_TEAM_ID }}
-          CSC_LINK: ${{ matrix.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ matrix.CSC_KEY_PASSWORD }}
         run: npx electron-builder --publish=never "-c.publish.channel=${{ needs.prepare_build.outputs.channel }}"
 
       - name: Upload artefacts
