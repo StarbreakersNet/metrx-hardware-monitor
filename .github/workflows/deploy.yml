@@ -85,7 +85,7 @@ jobs:
         run: corepack enable
 
       - name: Update package.json version
-        run: yarn version --new-version "${{ needs.prepare_build.outputs.version }}" --no-git-tag --no-commit-hooks
+        run: yarn version "${{ needs.prepare_build.outputs.version }}"
 
       - name: Install dependency
         run: yarn install
