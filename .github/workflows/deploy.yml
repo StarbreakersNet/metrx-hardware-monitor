@@ -76,6 +76,8 @@ jobs:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -87,7 +89,7 @@ jobs:
           yarn --version
 
       - name: Update package.json version
-        run: npm version "${{ needs.prepare_build.outputs.version }}" --no-git-tag-version --allow-same-version
+        run: yarn version ${{ needs.prepare_build.outputs.version }}
 
       - name: Install dependency
         run: yarn install
