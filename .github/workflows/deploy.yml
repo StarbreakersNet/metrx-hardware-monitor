@@ -81,8 +81,11 @@ jobs:
         with:
           node-version: 22
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Update package.json version
-        run: npm version "${{ needs.prepare_build.outputs.version }}" --no-git-tag-version --allow-same-version
+        run: yarn version --new-version "${{ needs.prepare_build.outputs.version }}" --no-git-tag --no-commit-hooks
 
       - name: Install dependency
         run: yarn install
@@ -118,7 +121,7 @@ jobs:
 
   create_release:
     name: Create GitHub Release
-    needs: [prepare_build, build]
+    needs: [ prepare_build, build ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
