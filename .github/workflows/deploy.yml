@@ -13,6 +13,7 @@ jobs:
       version: ${{ steps.set-version.outputs.version }}
       channel: ${{ steps.set-release-info.outputs.channel }}
       release_type: ${{ steps.set-release-info.outputs.release_type }}
+      should_release: ${{ steps.set-release-info.outputs.should_release }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,20 +32,28 @@ jobs:
         id: set-release-info
         run: |
           VERSION="${{ steps.set-version.outputs.version }}"
+          SHOULD_RELEASE="true"
+
           if [[ "$VERSION" == *"-beta"* ]]; then
             RELEASE_TYPE="prerelease"
             CHANNEL="beta"
           elif [[ "$VERSION" == *"-alpha"* ]]; then
             RELEASE_TYPE="prerelease"
             CHANNEL="alpha"
+          elif [[ "$VERSION" == *"-"* ]]; then
+            SHOULD_RELEASE="false"
+            RELEASE_TYPE="skip"
+            CHANNEL="none"
           else
             RELEASE_TYPE="release"
             CHANNEL="latest"
           fi
+
           echo "release type: $RELEASE_TYPE"
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
           echo "channel: $CHANNEL"
           echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
 
       - name: Extract release notes from CHANGELOG file
         uses: ffurrer2/extract-release-notes@v2
@@ -67,19 +76,24 @@ jobs:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Update package.json version
-        run: npm version "${{ needs.prepare_build.outputs.version }}" --no-git-tag-version --allow-same-version
+        run: yarn version ${{ needs.prepare_build.outputs.version }}
 
       - name: Install dependency
-        run: npm install
+        run: yarn install
 
       - name: Build app
-        run: npm run build
+        run: yarn build
 
       - name: Set macOS environment variables
         if: matrix.os == 'macos-latest'
@@ -109,10 +123,11 @@ jobs:
 
   create_release:
     name: Create GitHub Release
-    needs: [prepare_build, build]
+    needs: [ prepare_build, build ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    if: needs.prepare_build.outputs.should_release == 'true'
     steps:
       - name: Download release-notes.md
         uses: actions/download-artifact@v4
