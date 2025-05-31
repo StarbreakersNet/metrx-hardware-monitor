@@ -1,7 +1,5 @@
 import { electronAPI } from "@electron-toolkit/preload";
 import { contextBridge, ipcRenderer } from "electron";
-// eslint-disable-next-line no-unused-vars
-import Si from "systeminformation";
 
 // Custom APIs for renderer
 const electron = {
