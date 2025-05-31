@@ -85,10 +85,10 @@ jobs:
         run: npm version "${{ needs.prepare_build.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Install dependency
-        run: npm install
+        run: yarn install
 
       - name: Build app
-        run: npm run build
+        run: yarn build
 
       - name: Set macOS environment variables
         if: matrix.os == 'macos-latest'
