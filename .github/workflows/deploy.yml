@@ -87,7 +87,7 @@ jobs:
           yarn --version
 
       - name: Update package.json version
-        run: yarn version "${{ needs.prepare_build.outputs.version }}"
+        run: npm version "${{ needs.prepare_build.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Install dependency
         run: yarn install
