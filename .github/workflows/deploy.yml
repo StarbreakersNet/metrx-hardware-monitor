@@ -84,9 +84,7 @@ jobs:
           node-version: 22
 
       - name: Enable Corepack
-        run: |
-          corepack enable
-          yarn --version
+        run: corepack enable
 
       - name: Update package.json version
         run: yarn version ${{ needs.prepare_build.outputs.version }}
