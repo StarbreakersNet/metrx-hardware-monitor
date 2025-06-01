@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.2-alpha] - 2025-06-01
+
+### Changed
+
+- Improved chart line skeleton theme color matching
+- Unify scroll content gradient layout behavior
+- Improve update download progress information
+
+### Fixed
+
+- Fixed automatic restart issue during update on macOS
+
 ## [1.6.1-alpha] - 2025-05-31
 
 ### Fixed
