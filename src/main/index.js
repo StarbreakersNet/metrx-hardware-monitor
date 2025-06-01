@@ -100,15 +100,11 @@ function createWindow() {
   useTray(getTrayIcon(), mainWindow);
   useWindowControl();
 
-  app.on("before-quit", async event => {
-    event.preventDefault();
-
+  app.on("before-quit", () => {
     try {
       metricsHandler.destroyMetrics();
-      app.exit(0);
     } catch (error) {
       console.error("Error while destroying metrics before quitting : ", error);
-      app.exit(1);
     }
   });
 }
@@ -165,5 +161,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  app.quit();
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });

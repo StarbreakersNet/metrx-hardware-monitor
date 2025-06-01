@@ -480,9 +480,7 @@ onUnmounted(() => {
     </template>
     <template #default>
       <div v-show="isChartVisible" class="chart-wrapper">
-        <transition name="scale">
-          <Line ref="chartRef" :data="lineChartData" :options="lineChartOptions" />
-        </transition>
+        <Line ref="chartRef" :data="lineChartData" :options="lineChartOptions" />
         <transition name="fade-skeleton">
           <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
         </transition>
@@ -549,7 +547,7 @@ onUnmounted(() => {
     right: 0
     bottom: 0
     height: 100%
-    background-color: hsl(240, 4%, 21%)
+    background-color: var(--n-color-embedded-modal)
 
 .chart-card
   &.edit-mode

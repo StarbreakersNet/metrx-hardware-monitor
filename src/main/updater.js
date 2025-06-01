@@ -32,6 +32,20 @@ export default function useUpdater(app, window) {
   });
 
   autoUpdater.on("download-progress", progressObj => {
+    window.webContents.send(
+      "update-log",
+      "[autoUpdater] ⬇️ Download progress : " +
+        progressObj.progress +
+        " - " +
+        progressObj.transferred +
+        "/" +
+        progressObj.total +
+        " bytes (" +
+        progressObj.percent +
+        "% - " +
+        progressObj.bytesPerSecond +
+        "bps)"
+    );
     window.webContents.send("download-progress", progressObj);
   });
 
@@ -56,7 +70,7 @@ export default function useUpdater(app, window) {
         }
       }
 
-      window.webContents.send("update-log", "[autoUpdater] Channel selected : " + channel);
+      window.webContents.send("update-log", "[autoUpdater] 📺 Channel selected : " + channel);
       autoUpdater.channel = channel;
 
       if (process.env.NODE_ENV === "development") {
@@ -65,9 +79,9 @@ export default function useUpdater(app, window) {
           "Impossible de vérifier les mises à jour en mode développement"
         );
       } else {
-        window.webContents.send("update-log", "[autoUpdater] Checking for updates...");
+        window.webContents.send("update-log", "[autoUpdater] 🔄 Checking for updates...");
         await autoUpdater.checkForUpdatesAndNotify(getNotificationOptions());
-        window.webContents.send("update-log", "[autoUpdater] Check for updates done");
+        window.webContents.send("update-log", "[autoUpdater] ✅ Check for updates done");
       }
     } catch (error) {
       window.webContents.send("update-error", "Erreur lors de la vérification des mises à jour");

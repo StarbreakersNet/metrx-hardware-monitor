@@ -1,5 +1,5 @@
 <script setup>
-import AppUtils, { formatBytes } from "@renderer/appUtils";
+import AppUtils, { delay, formatBytes } from "@renderer/appUtils";
 import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
@@ -13,7 +13,7 @@ const theme = useThemeVars();
 const mode = ref(import.meta.env.MODE?.toLowerCase());
 const version = computed(() => "v" + system.app.version);
 const nMessage = useMessage();
-const downloadProgress = ref({
+const downloadProgress = reactive({
   active: false,
   transferred: "",
   total: "",
@@ -123,33 +123,37 @@ function initListener() {
     let formatedBytesPerSecond = formatBytes(progressObj.bytesPerSecond);
     let roundedPercent = Math.round(progressObj.percent);
 
-    downloadProgress.value.transferred = formatedTransferred.value + " " + formatedTransferred.unit;
-    downloadProgress.value.total = formatedTotal.value + " " + formatedTotal.unit;
-    downloadProgress.value.bytesPerSecond =
+    downloadProgress.transferred = formatedTransferred.value + " " + formatedTransferred.unit;
+    downloadProgress.total = formatedTotal.value + " " + formatedTotal.unit;
+    downloadProgress.bytesPerSecond =
       formatedBytesPerSecond.value + " " + formatedBytesPerSecond.unit + "/s";
-    downloadProgress.value.percent = roundedPercent;
+    downloadProgress.percent = roundedPercent;
 
-    if (!downloadProgress.value.active) {
-      downloadProgress.value.active = true;
+    if (!downloadProgress.active) {
+      downloadProgress.active = true;
       if (!silentUpdate.value) {
         createMessage(
           "loading",
           "Téléchargement en cours... " +
-            downloadProgress.value.transferred +
+            downloadProgress.transferred +
             "/" +
-            downloadProgress.value.total +
+            downloadProgress.total +
             " (" +
-            roundedPercent +
+            downloadProgress.percent +
             "% - " +
-            downloadProgress.value.bytesPerSecond +
+            downloadProgress.bytesPerSecond +
             ")"
         );
       }
     }
   });
 
-  window.electron.ipcRenderer.on("update-downloaded", () => {
-    downloadProgress.value.active = false;
+  window.electron.ipcRenderer.on("update-downloaded", async () => {
+    downloadProgress.transferred = downloadProgress.total;
+    downloadProgress.percent = 100;
+    await delay(250);
+
+    downloadProgress.active = false;
     if (!silentUpdate.value) {
       createMessage("success", "Mise à jour téléchargée");
     }
