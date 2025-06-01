@@ -19,6 +19,7 @@ import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, wat
 import { useRouter } from "vue-router";
 import AppHeaderMenu from "@renderer/components/Layouts/AppHeaderMenu.vue";
 import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
+import AppScrollLayout from "@renderer/components/Layouts/AppScrollLayout.vue";
 
 const PRE_TIMEOUT_TIME = 7000;
 const TIMEOUT_TIME = 15000;
@@ -146,7 +147,7 @@ onBeforeUnmount(() => {
                       @update:value="router.push({ name: $event })" />
                   </n-layout-sider>
                 </transition>
-                <n-layout-content :native-scrollbar="false" class="router-container">
+                <app-scroll-layout>
                   <div
                     :class="{ 'more-padding': user.settings.showSideMenu }"
                     class="router-wrapper">
@@ -158,7 +159,7 @@ onBeforeUnmount(() => {
                       </transition>
                     </router-view>
                   </div>
-                </n-layout-content>
+                </app-scroll-layout>
               </n-layout>
             </n-layout>
           </transition>
@@ -185,33 +186,12 @@ onBeforeUnmount(() => {
   height: 100vh
   gap: unset !important
 
-.router-container
-  &:before,
-  &:after
-    z-index: 10
-    content: ""
-    position: absolute
-    width: 100%
-    backdrop-filter: blur(.5em)
-
-  &:before
-    top: 0
-    height: 1em
-    background: linear-gradient(to top, transparent 0%, var(--n-color) 100%)
-    mask: linear-gradient(to top, transparent 0%, var(--n-color) 75%)
-
-  &:after
-    bottom: 0
-    height: 2em
-    background: linear-gradient(to bottom, transparent 0%, var(--n-color) 100%)
-    mask: linear-gradient(to bottom, transparent 0%, var(--n-color) 75%)
-
 .router-wrapper
   transition: padding animations.$default-duration animations.$timing-function
-  padding: 1em 1em 2em 1em
+  padding: 0 1em 0 1em
 
   &.more-padding
-    padding: 1em 2em 2em 2em
+    padding: 0 2em 0 2em
 
 .footer-view
   overflow: hidden

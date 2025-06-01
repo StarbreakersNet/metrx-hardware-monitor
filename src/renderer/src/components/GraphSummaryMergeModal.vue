@@ -3,6 +3,7 @@ import _ from "lodash";
 import { computed } from "vue";
 import { useUserStore } from "@renderer/stores/user";
 import { useSystemStore } from "@renderer/stores/system";
+import AppScrollLayout from "@renderer/components/Layouts/AppScrollLayout.vue";
 
 const showModel = defineModel("show", {
   type: Boolean,
@@ -151,14 +152,13 @@ function getSelectValues(id) {
 <template>
   <n-modal
     v-model:show="showModel"
-    :content-style="{ overflow: 'auto' }"
-    :style="{ width: '75vw', height: '75vh' }"
-    content-class="scroll-layout-container"
+    :content-style="{ overflow: 'auto', padding: '0' }"
+    :style="{ width: '75vw' }"
     preset="card"
     size="small"
     title="Fusion des graphiques">
     <template #default>
-      <n-scrollbar>
+      <app-scroll-layout :style="{ height: '75vh' }" color="var(--n-color-modal)">
         <n-flex class="sb-scrollbar-overlaping">
           <n-grid :cols="user.settings.chartColumns" x-gap="12" y-gap="12">
             <n-gi v-for="item in listSummary" :key="item.title + '#' + item.description">
@@ -181,7 +181,7 @@ function getSelectValues(id) {
             </n-gi>
           </n-grid>
         </n-flex>
-      </n-scrollbar>
+      </app-scroll-layout>
     </template>
     <template #action>
       <n-flex justify="end">
