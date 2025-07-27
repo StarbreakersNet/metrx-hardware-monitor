@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.2-beta] - 2025-07-27
+
+### Added
+
+- Added configurable chart height setting #43
+- Added automatic cleanup of obsolete settings during local storage restoration
+  when settings change
+- Added optional dependency `osx-temperature-sensor` to fix missing temperature metrics on macOS systems #63
+- Added crosshair hover effect on graphs
+- Added synchronization between graph crosshairs
+
+### Removed
+
+- Removed service worker to simplify application architecture
+
+### Changed
+
+- Migrated project repository to GitHub platform
+- Implemented new CI/CD workflow for application builds
+- Migrated package management from npm to yarn
+- Upgraded electron to version 36.2.1
+- Upgraded electron-builder to version 26.0.12
+- Improved system tray icon management
+- Renamed `graphSettings` key to `chartSettings`
+- Updated dependencies (`sass` and `vite`) to latest versions
+- Modernized imports in using `@use` syntax
+- Introduced metrics collection module to streamline system metrics in renderer process
+- Improved updater error message display by truncating long messages
+- Changed border radius to better match Apple Design System
+- Complete migration to yarn in build workflow
+- Added workflow exception to prevent release generation when version tag doesn't match `*-beta` or `*-alpha`
+- Improved chart line skeleton theme color matching
+- Unify scroll content gradient layout behavior
+- Improve update download progress information
+
+### Fixed
+
+- Setup automated build process for Windows, MacOS and Linux
+- Configured GitHub Actions for continuous integration
+- Window display issues on Ubuntu
+- Missing app icon on Ubuntu
+- Missing system tray icon on MacOS
+- Workers not closing properly when force quit the application
+- Fixed chart visibility toggle functionality based on user preferences #42
+- Fixed scrollbar visibility issue during main app loading #65
+- Fixed proper cleanup of system metrics collection when closing application #64
+- Fixed metrics cleanup when application quits
+- Fixed macOS updates by adding zip format support for macOS builds
+- Fixed transparent system tray icon issue
+- Fixed graph buffer size calculation to account for metrics refresh rate
+- Fixed GPU metrics reporting as 0 (caused by build configuration issue)
+- Fixed automatic restart issue during update on macOS
+
 ## [1.6.2-alpha] - 2025-06-01
 
 ### Changed
