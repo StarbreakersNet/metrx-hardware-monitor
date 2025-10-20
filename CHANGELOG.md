@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.0-alpha] - 2025-10-20
+
+### Changed
+
+- Upgraded Electron to version 38.2.1
+- Upgraded NaiveUI to 2.43.1
+- Improved dock behavior on macOS
+
+### Fixed
+
+- Fixed automatic application closing on macOS during updates
+
 ## [1.6.2-beta] - 2025-07-27
 
 ### Added
