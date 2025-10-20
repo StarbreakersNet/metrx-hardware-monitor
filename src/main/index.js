@@ -165,3 +165,13 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+// On macOS, show the window if user clicks on dock icon or launches the app again
+app.on("activate", () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (process.platform === "darwin" && app.dock) {
+      app.dock.show();
+    }
+    mainWindow.show();
+  }
+});

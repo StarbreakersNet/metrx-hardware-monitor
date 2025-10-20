@@ -6,13 +6,23 @@ function getAppLabel() {
   if (is.dev) {
     return app.getName() + " " + app.getVersion() + " 🚧";
   } else {
-    return app.getName() + " " + app.getVersion()
+    return app.getName() + " " + app.getVersion();
   }
 }
 
+let isQuitting = false;
+let tray = null;
+
+export function setIsQuitting(value) {
+  isQuitting = value;
+}
+
 export default function useTray(trayIcon, mainWindow) {
-  let tray = new Tray(trayIcon);
-  let isQuitting = false;
+  if (tray) {
+    tray.destroy();
+  }
+
+  tray = new Tray(trayIcon);
 
   const buildContextMenu = () => {
     const openAtLogin = getData("startOnLogin");
@@ -28,6 +38,9 @@ export default function useTray(trayIcon, mainWindow) {
         label: "Ouvrir",
         type: "normal",
         click: () => {
+          if (process.platform === "darwin" && app.dock) {
+            app.dock.show();
+          }
           mainWindow.show();
         },
       },
@@ -64,25 +77,36 @@ export default function useTray(trayIcon, mainWindow) {
   tray.setToolTip(app.getName());
   tray.setContextMenu(buildContextMenu());
   tray.on("double-click", () => {
+    if (process.platform === "darwin" && app.dock) {
+      app.dock.show();
+    }
     mainWindow.show();
   });
 
   app.on("before-quit", () => {
     isQuitting = true;
+    if (tray) {
+      tray.destroy();
+      tray = null;
+    }
   });
 
   mainWindow.on("close", event => {
     if (!isQuitting) {
       event.preventDefault();
       mainWindow.hide();
+
+      if (process.platform === "darwin" && app.dock) {
+        app.dock.hide();
+      }
     }
   });
 
-  onDidChange("startOnLogin", newValue => {
+  onDidChange("startOnLogin", () => {
     tray.setContextMenu(buildContextMenu());
   });
 
-  onDidChange("startMinimized", newValue => {
+  onDidChange("startMinimized", () => {
     tray.setContextMenu(buildContextMenu());
   });
 }

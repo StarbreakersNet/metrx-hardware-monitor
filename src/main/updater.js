@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import { autoUpdater } from "electron-updater";
 import PackageJson from "/package.json";
+import { setIsQuitting } from "./tray";
 
 export default function useUpdater(app, window) {
   removeListeners();
@@ -54,6 +55,7 @@ export default function useUpdater(app, window) {
   });
 
   ipcMain.on("install-update", () => {
+    setIsQuitting(true);
     autoUpdater.quitAndInstall();
   });
 
