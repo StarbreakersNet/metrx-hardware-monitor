@@ -200,11 +200,20 @@ const lineChartOptions = ref({
   maintainAspectRatio: false,
   animations: {
     x: {
-      duration: numberAnimationDuration.value,
+      duration: computed(() => (user.settings.chartAnimation ? numberAnimationDuration.value : 0)),
     },
     y: {
       duration: 0,
     },
+  },
+  onHover: context => {
+    // Watchdog to avoid tooltip staying on the chart when mouse is not over it
+    if (context.type === "mouseout") {
+      setTimeout(() => {
+        context.chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+        context.chart.tooltip.update();
+      }, 1000);
+    }
   },
   plugins: {
     tooltip: {
@@ -347,11 +356,7 @@ function updateTimeRange(now) {
     chart.options.scales.x.min = new Date(now.getTime() - props.bufferSize * 60 * 1000);
     chart.options.scales.x.max = now;
 
-    if (user.settings.chartAnimation) {
-      chart.update();
-    } else {
-      chart.update("none");
-    }
+    chart.update();
   }
 }
 

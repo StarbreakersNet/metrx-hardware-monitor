@@ -97,7 +97,7 @@ export default [
         icon: "player-play-filled",
         label: "Animation des graphiques",
         description: "Active ou désactive les animations lors de l'actualisation des graphiques",
-        info: "Fonctionnalitée expérimentale. L'activation des animations peut augmenter significativement la charge processeur ainsi que le comportement du graphique, particulièrement avec un grand nombre affichés simultanément.",
+        info: "L'activation des animations peut augmenter la charge, particulièrement avec un grand nombre affichés simultanément",
         storePath: ["settings", "chartAnimation"],
       },
     ],
