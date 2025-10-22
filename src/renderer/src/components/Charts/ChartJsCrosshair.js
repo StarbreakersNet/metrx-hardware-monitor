@@ -113,18 +113,20 @@ export function useCrosshairPlugin() {
       updateSyncEventListeners(chart) {
         const syncEnabled = getOption(chart, "sync", "enabled");
 
-        if (syncEnabled !== chart.crosshair?._syncEnabled) {
-          if (syncEnabled) {
-            chart.crosshair.syncEventHandler = e => handleSyncEvent(chart, e);
+        if (chart.crosshair) {
+          if (syncEnabled !== chart.crosshair?._syncEnabled) {
+            if (syncEnabled) {
+              chart.crosshair.syncEventHandler = e => handleSyncEvent(chart, e);
 
-            window.addEventListener("sync-event", chart.crosshair.syncEventHandler);
-          } else if (chart.crosshair?.syncEventHandler) {
-            window.removeEventListener("sync-event", chart.crosshair.syncEventHandler);
+              window.addEventListener("sync-event", chart.crosshair.syncEventHandler);
+            } else if (chart.crosshair?.syncEventHandler) {
+              window.removeEventListener("sync-event", chart.crosshair.syncEventHandler);
 
-            chart.crosshair.syncEventHandler = null;
+              chart.crosshair.syncEventHandler = null;
+            }
+
+            chart.crosshair._syncEnabled = syncEnabled;
           }
-
-          chart.crosshair._syncEnabled = syncEnabled;
         }
       },
 
@@ -177,25 +179,28 @@ export function useCrosshairPlugin() {
         }
 
         const suppressTooltips = getOption(chart, "sync", "suppressTooltips");
-        chart.crosshair.suppressTooltips = e.stop && suppressTooltips;
 
-        chart.crosshair.enabled =
-          e.type !== "mouseout" &&
-          e.x > xScale.getPixelForValue(xScale.min) &&
-          e.x < xScale.getPixelForValue(xScale.max);
+        if (chart.crosshair) {
+          chart.crosshair.suppressTooltips = e.stop && suppressTooltips;
 
-        if (!chart.crosshair.enabled && !chart.crosshair.suppressUpdate) {
-          if (e.x > xScale.getPixelForValue(xScale.max)) {
-            chart.crosshair.suppressUpdate = true;
-            chart.update("none");
+          chart.crosshair.enabled =
+            e.type !== "mouseout" &&
+            e.x > xScale.getPixelForValue(xScale.min) &&
+            e.x < xScale.getPixelForValue(xScale.max);
+
+          if (!chart.crosshair.enabled && !chart.crosshair.suppressUpdate) {
+            if (e.x > xScale.getPixelForValue(xScale.max)) {
+              chart.crosshair.suppressUpdate = true;
+              chart.update("none");
+            }
+            return false;
           }
-          return false;
+          chart.crosshair.suppressUpdate = false;
+
+          chart.crosshair.x = e.x;
+
+          chart.draw();
         }
-        chart.crosshair.suppressUpdate = false;
-
-        chart.crosshair.x = e.x;
-
-        chart.draw();
       },
 
       afterDraw(chart) {
@@ -218,7 +223,7 @@ export function useCrosshairPlugin() {
         const dashPattern = getOption(chart, "line", "dashPattern");
         const snapEnabled = getOption(chart, "snap", "enabled");
 
-        let lineX = chart.crosshair.x;
+        let lineX = chart.crosshair?.x;
 
         if (snapEnabled && chart._active.length) {
           lineX = chart._active[0].element.x;
@@ -247,7 +252,7 @@ export function useCrosshairPlugin() {
 
           chart.ctx.beginPath();
           chart.ctx.arc(
-            chart.crosshair.x,
+            chart.crosshair?.x,
             yScale.getPixelForValue(dataset.interpolatedValue),
             3,
             0,
