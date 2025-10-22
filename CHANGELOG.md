@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.2-alpha] - 2025-10-22
+
+### Fixed
+
+- Fixed another unhandled error in chart crosshair #77
+
+### Changed
+
+- Minor update SystemInformation to 5.27.11
+- Minor update Vue to 3.5.22
+- Minor update Vue Router to 4.6.3
+
 ## [1.7.1-alpha] - 2025-10-22
 
 ### Fixed
