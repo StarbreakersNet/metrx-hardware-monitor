@@ -5,13 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.1-alpha] - 2025-10-22
+
+### Fixed
+
+- Fixed chart not appearing in certain cases #77
+- Fixed tooltip not deseappearing when mouse leaves the chart #75
+
 ## [1.7.0-alpha] - 2025-10-20
 
 ### Changed
 
-- Upgraded Electron to version 38.2.1
-- Upgraded NaiveUI to 2.43.1
-- Improved dock behavior on macOS
+- Upgraded Electron to version 38.2.1 #76
+- Upgraded NaiveUI to 2.43.1 #76
+- Improved dock behavior on macOS #66
 
 ### Fixed
 
