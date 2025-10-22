@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.3-alpha] - 2025-10-22
+
+### Fixed
+
+- Fixed unhandled nullish in chart crosshair overall listeners #77
+
 ## [1.7.2-alpha] - 2025-10-22
 
 ### Fixed
