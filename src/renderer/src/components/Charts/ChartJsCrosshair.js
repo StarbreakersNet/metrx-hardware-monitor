@@ -95,7 +95,7 @@ export function useCrosshairPlugin() {
           return;
         }
 
-        if (chart.options.plugins.crosshair === undefined) {
+        if (chart.options.plugins?.crosshair === undefined) {
           chart.options.plugins.crosshair = defaultOptions;
         }
 
@@ -113,7 +113,7 @@ export function useCrosshairPlugin() {
       updateSyncEventListeners(chart) {
         const syncEnabled = getOption(chart, "sync", "enabled");
 
-        if (syncEnabled !== chart.crosshair._syncEnabled) {
+        if (syncEnabled !== chart.crosshair?._syncEnabled) {
           if (syncEnabled) {
             chart.crosshair.syncEventHandler = e => handleSyncEvent(chart, e);
 
@@ -134,7 +134,7 @@ export function useCrosshairPlugin() {
       },
 
       afterDestroy(chart) {
-        if (chart.crosshair.syncEventHandler) {
+        if (chart.crosshair?.syncEventHandler) {
           window.removeEventListener("sync-event", chart.crosshair.syncEventHandler);
         }
       },
@@ -199,7 +199,7 @@ export function useCrosshairPlugin() {
       },
 
       afterDraw(chart) {
-        if (!chart.crosshair.enabled) {
+        if (!chart.crosshair?.enabled) {
           return;
         }
 
@@ -269,7 +269,7 @@ export function useCrosshairPlugin() {
           const meta = chart.getDatasetMeta(chartIndex);
 
           const xScale = chart.scales[meta.xAxisID];
-          const xValue = xScale.getValueForPixel(chart.crosshair.x);
+          const xValue = xScale.getValueForPixel(chart.crosshair?.x);
 
           if (meta.hidden || !dataset.interpolate) {
             continue;
@@ -294,7 +294,7 @@ export function useCrosshairPlugin() {
       },
 
       beforeTooltipDraw(chart) {
-        return !chart.crosshair.suppressTooltips;
+        return !chart.crosshair?.suppressTooltips;
       },
     };
   }
