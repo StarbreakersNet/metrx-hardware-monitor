@@ -210,8 +210,8 @@ const lineChartOptions = ref({
     // Watchdog to avoid tooltip staying on the chart when mouse is not over it
     if (context.type === "mouseout") {
       setTimeout(() => {
-        context.chart.tooltip.setActiveElements([], { x: 0, y: 0 });
-        context.chart.tooltip.update();
+        context.chart?.tooltip?.setActiveElements([], { x: 0, y: 0 });
+        context.chart?.tooltip?.update();
       }, 1000);
     }
   },

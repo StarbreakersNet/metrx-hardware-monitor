@@ -118,7 +118,7 @@ export function useCrosshairPlugin() {
             chart.crosshair.syncEventHandler = e => handleSyncEvent(chart, e);
 
             window.addEventListener("sync-event", chart.crosshair.syncEventHandler);
-          } else if (chart.crosshair.syncEventHandler) {
+          } else if (chart.crosshair?.syncEventHandler) {
             window.removeEventListener("sync-event", chart.crosshair.syncEventHandler);
 
             chart.crosshair.syncEventHandler = null;
