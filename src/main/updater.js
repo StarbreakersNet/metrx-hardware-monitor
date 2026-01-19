@@ -93,7 +93,7 @@ export default function useUpdater(app, window) {
 
 function getNotificationOptions() {
   return {
-    title: "Une nouvelle mise à jour est prête à être installée",
+    title: "Une nouvelle mise à jour est prête",
     body:
       "La dernière version " +
       " de " +

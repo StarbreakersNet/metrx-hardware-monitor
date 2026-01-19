@@ -139,10 +139,17 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  app.on("activate", function () {
+  app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (process.platform === "darwin" && app.dock) {
+        app.dock.show();
+      }
+      mainWindow.show();
+    } else if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
   });
 
   // This will catch the second instance
@@ -163,15 +170,5 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
-  }
-});
-
-// On macOS, show the window if user clicks on dock icon or launches the app again
-app.on("activate", () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    if (process.platform === "darwin" && app.dock) {
-      app.dock.show();
-    }
-    mainWindow.show();
   }
 });
