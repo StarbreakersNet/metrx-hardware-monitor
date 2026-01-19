@@ -1,11 +1,15 @@
 import { useUserStore } from "@renderer/stores/user";
 import { defineStore } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import staticData from "@renderer/models/staticData";
 
 export const useSystemStore = defineStore("system", () => {
   const user = useUserStore();
-  const app = ref({});
+  const app = reactive({
+    name: "",
+    displayName: "",
+    version: "",
+  });
   const info = ref({});
   const metrics = ref({});
   const interval = computed(() => user.settings.nodeFrequency ?? 1000);
@@ -34,10 +38,9 @@ export const useSystemStore = defineStore("system", () => {
   async function init() {
     await window.api.init();
 
-    app.value = {
-      name: await window.electron.app.getName(),
-      version: await window.electron.app.getVersion(),
-    };
+    app.name = await window.electron.app.getName();
+    app.displayName = await window.electron.app.getDisplayName();
+    app.version = await window.electron.app.getVersion();
 
     info.value = await getStaticData();
     Object.assign(info.value.versions, window.electron.process.versions);

@@ -97,7 +97,7 @@ function getNotificationOptions() {
     body:
       "La dernière version " +
       " de " +
-      PackageJson.productName +
+      PackageJson.displayName +
       " a été téléchargée et sera automatiquement installée à la fermeture de l'application",
   };
 }

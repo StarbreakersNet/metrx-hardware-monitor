@@ -5,6 +5,7 @@ import { contextBridge, ipcRenderer } from "electron";
 const electron = {
   app: {
     getName: () => ipcRenderer.invoke("get_app_name"),
+    getDisplayName: () => ipcRenderer.invoke("get_app_displayName"),
     getVersion: () => ipcRenderer.invoke("get_app_version"),
     openDevTools: () => ipcRenderer.invoke("open_devtools"),
   },

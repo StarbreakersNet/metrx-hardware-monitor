@@ -8,6 +8,7 @@ import useTray from "./tray";
 import useUpdater from "./updater";
 import useWindowControl from "./window";
 import useMetricsHandler from "./handlers/metrics";
+import PackageJson from "../../package.json";
 
 let mainWindow;
 
@@ -88,6 +89,9 @@ function createWindow() {
   });
   ipcMain.handle("get_app_name", () => {
     return app.getName();
+  });
+  ipcMain.handle("get_app_displayName", () => {
+    return PackageJson.displayName;
   });
   ipcMain.handle("open_devtools", () => {
     return mainWindow.webContents.openDevTools();

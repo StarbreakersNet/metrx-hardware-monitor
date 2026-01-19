@@ -6,7 +6,7 @@ const system = useSystemStore();
 
 const tags = computed(() => {
   return [
-    { type: "info", label: "Application", value: system.app.version ?? "⚠" },
+    { type: "info", label: system.app.displayName, value: system.app.version ?? "⚠" },
     { type: "info", label: "Electron", value: system.info.versions?.electron ?? "⚠" },
     { type: "info", label: "Chromium", value: system.info.versions?.chrome ?? "⚠" },
     { type: "info", label: "Node", value: system.info.versions?.node ?? "⚠" },
