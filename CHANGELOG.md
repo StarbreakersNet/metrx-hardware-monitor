@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.7-alpha] - 2026-01-19
+
+### Removed
+- Removed patch for `systemInformation` `5.27.17` to fix missing nvidia-smi path and usage
+
 ## [1.7.6-alpha] - 2026-01-19
 
 ### Removed
