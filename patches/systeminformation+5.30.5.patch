@@ -1,0 +1,81 @@
+--- node_modules/systeminformation/lib/graphics.js	2026-01-19 20:14:25
++++ /tmp/graphics.js.original	2026-01-19 20:13:18
+@@ -14,6 +14,7 @@
+ // ----------------------------------------------------------------------------------
+ 
+ const fs = require('fs');
++const path = require('path');
+ const exec = require('child_process').exec;
+ const execSync = require('child_process').execSync;
+ const util = require('./util');
+@@ -422,27 +423,28 @@
+ 
+     if (_windows) {
+       try {
+-        const basePath = util.WINDIR + String.raw`\System32\DriverStore\FileRepository`;
+-        // find all directories that have an nvidia-smi.exe file
+-
+-        const candidateDirs = fs.readdirSync(basePath).filter((dir) => {
+-          if (fs.statSync([basePath, dir].join('/')).isDirectory()) {
+-            return fs.readdirSync([basePath, dir].join('/')).includes('nvidia-smi.exe');
+-          } else {
+-            return false;
+-          }
+-        });
+-        // use the directory with the most recently created nvidia-smi.exe file
+-        const targetDir = candidateDirs.reduce((prevDir, currentDir) => {
+-          const previousNvidiaSmi = fs.statSync([basePath, prevDir, 'nvidia-smi.exe'].join('/'));
+-          const currentNvidiaSmi = fs.statSync([basePath, currentDir, 'nvidia-smi.exe'].join('/'));
+-          return previousNvidiaSmi.ctimeMs > currentNvidiaSmi.ctimeMs ? prevDir : currentDir;
+-        });
+-
+-        if (targetDir) {
+-          _nvidiaSmiPath = [basePath, targetDir, 'nvidia-smi.exe'].join('/');
++        const basePath = path.join(util.WINDIR, 'System32', 'DriverStore', 'FileRepository');
++        // find all directories that have an nvidia-smi.exe file with date
++        const candidates = fs.readdirSync(basePath, { withFileTypes: true })
++          .filter(dirent => dirent.isDirectory())
++          .map(dirent => {
++            const nvidiaSmiPath = path.join(basePath, dirent.name, 'nvidia-smi.exe');
++            try {
++              const stats = fs.statSync(nvidiaSmiPath);
++              return { path: nvidiaSmiPath, ctime: stats.ctimeMs };
++            } catch (e) {
++              return null;
++            }
++          })
++          .filter(Boolean);
++
++        // take the most recent
++        if (candidates.length > 0) {
++          _nvidiaSmiPath = candidates.reduce((prev, curr) =>
++            curr.ctime > prev.ctime ? curr : prev
++          ).path;
+         }
+-      } catch {
++      } catch (e) {
+         util.noop();
+       }
+     } else if (_linux) {
+@@ -455,17 +457,15 @@
+     const nvidiaSmiExe = getNvidiaSmi();
+     options = options || util.execOptsWin;
+     if (nvidiaSmiExe) {
+-      const nvidiaSmiOpts =
+-        '--query-gpu=driver_version,pci.sub_device_id,name,pci.bus_id,fan.speed,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory,temperature.gpu,temperature.memory,power.draw,power.limit,clocks.gr,clocks.mem --format=csv,noheader,nounits';
+-      const cmd = nvidiaSmiExe + ' ' + nvidiaSmiOpts;
++      const nvidiaSmiOpts = '--query-gpu=driver_version,pci.sub_device_id,name,pci.bus_id,fan.speed,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory,temperature.gpu,temperature.memory,power.draw,power.limit,clocks.gr,clocks.mem --format=csv,noheader,nounits';
++      const cmd = `"${nvidiaSmiExe}" ${nvidiaSmiOpts}${_linux ? ' 2>/dev/null' : ''}`;
+       if (_linux) {
+         options.stdio = ['pipe', 'pipe', 'ignore'];
+       }
+       try {
+-        const sanitized = util.sanitizeShellString(cmd) + (_linux ? '  2>/dev/null' : '') + (_windows ? '  2> nul' : '');
+-        const res = execSync(sanitized, options).toString();
++        const res = execSync(cmd, options).toString();
+         return res;
+-      } catch {
++      } catch (e) {
+         util.noop();
+       }
+     }
