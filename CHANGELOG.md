@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.4-beta] - 2026-01-19
+
+### Fixed
+- Fixed systeminformation patch for missing nvidia-smi path and usage
+- Fixed unhandled nullish in chart crosshair overall listeners #77
+- Fixed another unhandled error in chart crosshair #77
+- Fixed chart not appearing in certain cases #77
+- Fixed tooltip not deseappearing when mouse leaves the chart #75
+- Fixed automatic application closing on macOS during updates
+
+### Changed
+
+- Minor update SystemInformation to 5.27.11
+- Minor update Vue to 3.5.22
+- Minor update Vue Router to 4.6.3
+- Upgraded Electron to version 38.2.1 #76
+- Upgraded NaiveUI to 2.43.1 #76
+- Improved dock behavior on macOS #66
+
 ## [1.7.4-alpha] - 2025-10-22
 
 ### Fixed
