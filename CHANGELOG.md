@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.8-alpha] - 2026-01-19
+
+### Fixed
+- Fixed nvidia-smi patch for `systemInformation` `5.30.5`
+- Fixed typo in updater notification
+
 ## [1.7.7-alpha] - 2026-01-19
 
 ### Removed
