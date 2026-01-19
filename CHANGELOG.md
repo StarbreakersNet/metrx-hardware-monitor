@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.6-alpha] - 2026-01-19
+
+### Removed
+- Removed unused `echarts` dependency
+
+### Fixed
+- Fixed replace app name in updater notification and renderer process
+
 ## [1.7.5-alpha] - 2026-01-19
 
 ### Fixed
