@@ -95,8 +95,7 @@ function getNotificationOptions() {
   return {
     title: "Une nouvelle mise à jour est prête",
     body:
-      "La dernière version " +
-      " de " +
+      "La dernière version de " +
       PackageJson.displayName +
       " a été téléchargée et sera automatiquement installée à la fermeture de l'application",
   };
