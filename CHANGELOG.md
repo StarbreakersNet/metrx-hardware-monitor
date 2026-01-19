@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.9-alpha] - 2026-01-19
+
+### Changed
+- Change patch for `systemInformation` to fix nvidia-smi path dectection with yarn patch
+
 ## [1.7.8-alpha] - 2026-01-19
 
 ### Fixed
