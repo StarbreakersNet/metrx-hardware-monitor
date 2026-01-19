@@ -7,13 +7,10 @@ import {
   renderAppIcon,
   Timer,
 } from "@renderer/appUtils";
-import { naiveDark, naiveLight } from "@renderer/assets/themes/naiveTheme";
 import AppFooterMenu from "@renderer/components/Layouts/AppFooterMenu.vue";
-import { useEchartTheme } from "@renderer/composables/themeBuilder";
 import appMenuOptions from "@renderer/models/appMenuOptions";
 import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
-import { registerTheme } from "echarts";
 import { dateFrFR, frFR } from "naive-ui";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -80,8 +77,6 @@ window.electron.ipcRenderer.on("os-theme-updated", (event, theme) => {
 
 onBeforeMount(() => {
   loaders.initial.start();
-  registerTheme("dark", useEchartTheme(naiveDark).value);
-  registerTheme("light", useEchartTheme(naiveLight).value);
 });
 
 onMounted(async () => {
