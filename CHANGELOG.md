@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.5-alpha] - 2026-01-19
+
+### Fixed
+- Fixed undefined production name for updater notification
+- Fixed duplicate app instance when click on dock on macOS
+
 ## [1.7.4-beta] - 2026-01-19
 
 ### Fixed
