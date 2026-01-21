@@ -1,25 +1,8 @@
 diff --git a/lib/graphics.js b/lib/graphics.js
-index f7438a0b93e31a528c943bf2aa0f61a8e4d99af4..2324c7a86f116baed47e0abfbe3802b1cd32f556 100644
+index f7438a0b93e31a528c943bf2aa0f61a8e4d99af4..0a734c04a6d2328e6c2ad3a9060915d5a48e817d 100644
 --- a/lib/graphics.js
 +++ b/lib/graphics.js
-@@ -14,6 +14,7 @@
- // ----------------------------------------------------------------------------------
- 
- const fs = require('fs');
-+const path = require('path');
- const exec = require('child_process').exec;
- const execSync = require('child_process').execSync;
- const util = require('./util');
-@@ -225,7 +226,7 @@ function graphics(callback) {
-       for (let i = 0; i < pciIDs.length; i++) {
-         pciIDs[i] = pciIDs[i].replace('Bus Address:', '').replace('0000:', '').trim();
-       }
--      pciIDs = pciIDs.filter(function (el) {
-+      pciIDs = pciIDs.filter(function(el) {
-         return el != null && el;
-       });
-     } catch (e) {
-@@ -422,25 +423,26 @@ function graphics(callback) {
+@@ -422,25 +422,24 @@ function graphics(callback) {
  
      if (_windows) {
        try {
@@ -39,28 +22,27 @@ index f7438a0b93e31a528c943bf2aa0f61a8e4d99af4..2324c7a86f116baed47e0abfbe3802b1
 -          const currentNvidiaSmi = fs.statSync([basePath, currentDir, 'nvidia-smi.exe'].join('/'));
 -          return previousNvidiaSmi.ctimeMs > currentNvidiaSmi.ctimeMs ? prevDir : currentDir;
 -        });
+-
+-        if (targetDir) {
+-          _nvidiaSmiPath = [basePath, targetDir, 'nvidia-smi.exe'].join('/');
 +        const basePath = path.join(util.WINDIR, 'System32', 'DriverStore', 'FileRepository');
 +        // find all directories that have an nvidia-smi.exe file with date
-+        const candidates = fs.readdirSync(basePath, { withFileTypes: true })
-+          .filter(dirent => dirent.isDirectory())
-+          .map(dirent => {
-+            const nvidiaSmiPath = path.join(basePath, dirent.name, 'nvidia-smi.exe');
++        const candidates = fs
++          .readdirSync(basePath, { withFileTypes: true })
++          .filter((dir) => dir.isDirectory())
++          .map((dir) => {
++            const nvidiaSmiPath = path.join(basePath, dir.name, 'nvidia-smi.exe');
 +            try {
 +              const stats = fs.statSync(nvidiaSmiPath);
 +              return { path: nvidiaSmiPath, ctime: stats.ctimeMs };
-+            } catch (e) {
++            } catch {
 +              return null;
 +            }
 +          })
 +          .filter(Boolean);
- 
--        if (targetDir) {
--          _nvidiaSmiPath = [basePath, targetDir, 'nvidia-smi.exe'].join('/');
-+        // take the most recent
 +        if (candidates.length > 0) {
-+          _nvidiaSmiPath = candidates.reduce((prev, curr) =>
-+            curr.ctime > prev.ctime ? curr : prev
-+          ).path;
++          // take the most recent
++          _nvidiaSmiPath = candidates.reduce((prev, curr) => (curr.ctime > prev.ctime ? curr : prev)).path;
          }
        } catch {
          util.noop();

@@ -5343,7 +5343,7 @@ __metadata:
     prettier: "npm:^3.8.0"
     sass: "npm:^1.97.2"
     stateful-electron-window: "npm:^1.0.0"
-    systeminformation: "patch:systeminformation@npm%3A5.30.5#~/.yarn/patches/systeminformation-npm-5.30.5-18dedcb8aa.patch"
+    systeminformation: "npm:^5.30.5"
     tailwindcss: "npm:^4.1.18"
     vfonts: "npm:^0.0.3"
     vite: "npm:^7.3.1"
@@ -6820,22 +6820,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:5.30.5":
+"systeminformation@npm:^5.30.5":
   version: 5.30.5
   resolution: "systeminformation@npm:5.30.5"
   bin:
     systeminformation: lib/cli.js
   checksum: 10c0/4c6f9c38002c7b64cabb02aef6a9cadf2280907b0d04ffe8c724246f87ee9e2be18872c8cc6612b8467a8f1f6e0e5605de397ceb1e114a6ea67e7f463d9312d9
-  conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
-  languageName: node
-  linkType: hard
-
-"systeminformation@patch:systeminformation@npm%3A5.30.5#~/.yarn/patches/systeminformation-npm-5.30.5-18dedcb8aa.patch":
-  version: 5.30.5
-  resolution: "systeminformation@patch:systeminformation@npm%3A5.30.5#~/.yarn/patches/systeminformation-npm-5.30.5-18dedcb8aa.patch::version=5.30.5&hash=acf5f8"
-  bin:
-    systeminformation: lib/cli.js
-  checksum: 10c0/53d7b53baa24fa799bd2659ecd79b6175154cd1029129473de387581bccb800374776e1ffb88b141b09ee93a6bb24e04d922264f010ae7344abc3c421c082d8a
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
