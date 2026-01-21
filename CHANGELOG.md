@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.11-beta] - 2026-01-21
+
+### Removed
+- Removed unused `echarts` dependency
+
+### Fixed
+- Fixed missing nvidia-smi path correlation and usage in `systemInformation` patch
+- Fixed typo in updater notification
+- Fixed undefined production name for updater notification
+- Fixed duplicate app instance when click on dock on macOS
+
+## [1.7.11-alpha] - 2026-01-21
+
+### Fixed
+- Fixed missing nvidia-smi path correlation and usage in `systemInformation` patch
+
+## [1.7.10-alpha] - 2026-01-20
+
+### Changed
+- Try removing patch for `systemInformation`
+
 ## [1.7.9-alpha] - 2026-01-19
 
 ### Changed
