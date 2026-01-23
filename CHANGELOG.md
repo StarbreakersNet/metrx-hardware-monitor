@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.11] - 2026-01-23
+
+### Added
+
+- Added configurable chart height setting #43
+- Added automatic cleanup of obsolete settings during local storage restoration when settings change
+- Added optional dependency `osx-temperature-sensor` to fix missing temperature metrics on macOS systems #63
+- Added crosshair hover effect on graphs
+- Added synchronization between graph crosshairs
+
+### Changed
+
+- Migrated project repository to GitHub platform
+- Implemented new CI/CD workflow for application builds
+- Migrated package management from npm to yarn
+- Upgraded Electron to version 38.2.1 #76
+- Upgraded NaiveUI to 2.43.1 #76
+- Upgraded electron-builder to version 26.0.12
+- Updated SystemInformation to 5.27.11
+- Updated Vue to 3.5.22
+- Updated Vue Router to 4.6.3
+- Updated Sass to 1.97.2
+- Updated Vite to 7.3.1
+- Improved dock behavior on macOS #66
+- Improved system tray icon management
+- Improved updater error message display by truncating long messages
+- Improved chart line skeleton theme color matching
+- Introduced metrics collection module to streamline system metrics in renderer process
+- Renamed `graphSettings` key to `chartSettings`
+- Modernized SCSS imports using `@use` syntax
+- Changed border radius to better match Apple Design System
+- Unified scroll content gradient layout behavior
+- Improved update download progress information
+- Added workflow exception to prevent release generation when version tag doesn't match `*-beta` or `*-alpha`
+- Setup automated build process for Windows, macOS and Linux
+- Configured GitHub Actions for continuous integration
+
+### Fixed
+
+- Fixed missing nvidia-smi path correlation and usage in `systemInformation` patch
+- Fixed typo in updater notification
+- Fixed undefined production name for updater notification
+- Fixed duplicate app instance when click on dock on macOS
+- Fixed unhandled nullish in chart crosshair overall listeners #77
+- Fixed another unhandled error in chart crosshair #77
+- Fixed chart not appearing in certain cases #77
+- Fixed tooltip not disappearing when mouse leaves the chart #75
+- Fixed automatic application closing on macOS during updates
+- Fixed chart visibility toggle functionality based on user preferences #42
+- Fixed scrollbar visibility issue during main app loading #65
+- Fixed proper cleanup of system metrics collection when closing application #64
+- Fixed metrics cleanup when application quits
+- Fixed macOS updates by adding zip format support for macOS builds
+- Fixed transparent system tray icon issue
+- Fixed graph buffer size calculation to account for metrics refresh rate
+- Fixed GPU metrics reporting as 0 (caused by build configuration issue)
+- Fixed automatic restart issue during update on macOS
+- Fixed window display issues on Ubuntu
+- Fixed missing app icon on Ubuntu
+- Fixed missing system tray icon on macOS
+- Fixed workers not closing properly when force quit the application
+
+### Removed
+
+- Removed unused `echarts` dependency
+- Removed service worker to simplify application architecture
+
 ## [1.7.11-beta] - 2026-01-21
 
 ### Removed
