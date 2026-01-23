@@ -1,13 +1,18 @@
 import { useUserStore } from "@renderer/stores/user";
 import { defineStore } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
+import staticData from "@renderer/models/staticData";
 
 export const useSystemStore = defineStore("system", () => {
   const user = useUserStore();
+  const app = reactive({
+    name: "",
+    displayName: "",
+    version: "",
+  });
   const info = ref({});
   const metrics = ref({});
   const interval = computed(() => user.settings.nodeFrequency ?? 1000);
-  const observer = ref({});
 
   const nodeUsed = computed(() => {
     let obj = {};
@@ -30,39 +35,46 @@ export const useSystemStore = defineStore("system", () => {
     return obj;
   });
 
-  async function initStaticMetrics() {
-    let initialObj = {};
-    initialObj.app = {
-      name: window.electron.process.env.npm_package_name,
-      version: window.electron.process.env.npm_package_version,
-    };
-    initialObj.versions = window.electron.process.versions;
-    info.value = initialObj;
-    await getAsyncStaticMetrics(info.value);
+  async function init() {
+    await window.api.init();
+
+    app.name = await window.electron.app.getName();
+    app.displayName = await window.electron.app.getDisplayName();
+    app.version = await window.electron.app.getVersion();
+
+    info.value = await getStaticData();
+    Object.assign(info.value.versions, window.electron.process.versions);
+
+    window.api.onData(storeCallback);
+
+    watch(
+      [interval, nodeUsed],
+      () => {
+        window.api.start(nodeUsed.value, interval.value);
+      },
+      { immediate: true }
+    );
   }
 
-  async function getAsyncStaticMetrics(obj) {
-    Object.assign(obj, await window.api.getStaticData());
+  async function getStaticData() {
+    return await window.api.get(staticData);
   }
 
   function storeCallback(apiData) {
     metrics.value = apiData;
   }
 
-  watch(
-    [interval, nodeUsed],
-    () => {
-      clearInterval(observer.value);
-      observer.value = window.api.observe(nodeUsed.value, interval.value, storeCallback);
-    },
-    { immediate: true }
-  );
+  async function destroy() {
+    await window.api.destroy();
+  }
 
   return {
     interval,
+    app,
     info,
     metrics,
-    initStaticMetrics,
+    init,
+    destroy,
     nodeUsed,
   };
 });

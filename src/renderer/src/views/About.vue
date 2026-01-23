@@ -1,22 +1,31 @@
 <script setup>
+import LoaderSpinner from "@renderer/components/LoaderSpinner.vue";
 import Versions from "@renderer/components/Versions.vue";
 import { useUserStore } from "@renderer/stores/user";
 import { useOsTheme } from "naive-ui";
+import { computed } from "vue";
 
 const osThemeRef = useOsTheme();
 const user = useUserStore();
-const osTheme = osThemeRef;
+const osThemeLabel = computed(() => {
+  switch (osThemeRef.value) {
+    case "dark":
+      return "sombre 🌙";
+    case "light":
+      return "claire ☀️";
+    default:
+      return null;
+  }
+});
+const isMacos = computed(() => {
+  return window.electron?.process?.platform === "darwin";
+});
 </script>
 <template>
-  <n-flex align="center" vertical>
-    <svg viewBox="0 0 900 200">
-      <use xlink:href="@renderer/assets/icons.svg#electron" />
-    </svg>
-    <n-p v-if="user.isEnvDev">
-      Appuyez sur
-      <n-tag :bordered="false">F12</n-tag>
-      pour ouvrir le devTool
-    </n-p>
+  <n-flex align="center" size="large" vertical>
+    <loader-spinner :size-ratio="4" class="spinner" lap-duration="2s">
+      <img alt="logo" class="app-icon" src="@renderer/assets/icon-round.svg" />
+    </loader-spinner>
     <Versions />
     <n-flex justify="center">
       <div>
@@ -38,16 +47,48 @@ const osTheme = osThemeRef;
       </div>
       <div class="link-item link-dot">•</div>
       <div>
-        <n-a href="https://www.naiveui.com/" target="_blank">Naive UI</n-a>
+        <n-a href="https://www.naiveui.com" target="_blank">Naive UI</n-a>
       </div>
       <div class="link-item link-dot">•</div>
       <div>
-        <n-a href="https://echarts.apache.org/en/index.html" target="_blank">Apache Echarts</n-a>
+        <n-a href="https://tabler.io/icons" target="_blank">Tabler Icons</n-a>
+      </div>
+      <div class="link-item link-dot">•</div>
+      <div>
+        <n-a href="https://www.chartjs.org" target="_blank">Chart.js</n-a>
       </div>
     </n-flex>
     <n-flex vertical>
-      <n-card>Le thème actuel de votre système est {{ osTheme }}.</n-card>
+      <n-alert v-if="user.isEnvDev" type="info">
+        <template #header>
+          <span>Environnement de développement</span>
+        </template>
+        <template #default>
+          Appuyez sur
+          <n-tag v-if="isMacos" :bordered="false">⌘ + ⌥ + i</n-tag>
+          <n-tag v-else :bordered="false">CTRL + SHIFT + i</n-tag>
+          pour ouvrir les outils de devs.
+        </template>
+      </n-alert>
+      <n-alert type="info">
+        <template #header>Des problèmes d'actualisation ?</template>
+        <template #default>
+          Vous pouvez appuyer sur
+          <n-tag v-if="isMacos" :bordered="false">⌘ + r</n-tag>
+          <n-tag v-else :bordered="false">CTRL + r</n-tag>
+          pour forcer un rafraichissement de l'application
+        </template>
+      </n-alert>
+      <n-card>Le thème actuel de votre système est {{ osThemeLabel }}</n-card>
     </n-flex>
   </n-flex>
 </template>
-<style lang="sass" scoped></style>
+<style lang="sass" scoped>
+.app-icon
+  position: absolute
+  width: 12em
+  height: 12em
+
+.spinner
+  margin: 2em
+</style>

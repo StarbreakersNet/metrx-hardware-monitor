@@ -1,8 +1,13 @@
+@forward 'animations'
+
+@import "tailwindcss" prefix(tw)
+
 body
   font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', sans-serif
   color: #86a5b1
   background-color: #2f3241
   font-size: 14px
+  user-select: none
 
 a
   font-weight: bold
@@ -13,12 +18,5 @@ a
 a:hover
   border-bottom: 1px solid
 
-.sb-padding
-  padding: .5em
-
-  &.dense
-    padding: .25em
-
-.sb-container
-  flex-grow: 1
-  max-width: 40em
+.sb-scrollbar-overlaping
+  padding: 0 1em

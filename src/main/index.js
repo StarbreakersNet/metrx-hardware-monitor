@@ -1,26 +1,68 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
-import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import icon from "../../resources/icon.png?asset";
-import installExtension from "electron-devtools-installer";
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell } from "electron";
+import { join } from "path";
+import { StatefullBrowserWindow } from "stateful-electron-window";
+import useGnomeHandler from "./handlers/gnome";
+import { getData, initSettingsStore } from "./store";
+import useTray from "./tray";
 import useUpdater from "./updater";
+import useWindowControl from "./window";
+import useMetricsHandler from "./handlers/metrics";
+import PackageJson from "../../package.json";
+
+let mainWindow;
+
+function getTrayIcon() {
+  const resourcePath = join(__dirname, "../../resources");
+
+  if (process.platform === "darwin") {
+    let iconPath = join(resourcePath, "trayIconTemplate@2x.png");
+
+    return nativeImage.createFromPath(iconPath);
+  } else if (process.platform === "win32") {
+    let iconPath = join(resourcePath, "trayIcon.ico");
+    let img = nativeImage.createFromPath(iconPath);
+
+    return img.resize({ width: 32, height: 32 });
+  } else {
+    let iconPath = join(resourcePath, "trayIcon.png");
+    let img = nativeImage.createFromPath(iconPath);
+
+    return img.resize({ width: 32, height: 32 });
+  }
+}
 
 function createWindow() {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  let windowOptions = {
     width: 960,
     height: 1000,
+    minWidth: 500,
+    minHeight: 500,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === "linux" ? { icon } : {}),
+    titleBarStyle: "hidden",
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
+      backgroundThrottling: false,
     },
-  });
+  };
+  // Create the browser window.
+  if (is.dev) {
+    mainWindow = new BrowserWindow(windowOptions);
+  } else {
+    mainWindow = new StatefullBrowserWindow(windowOptions);
+  }
 
   mainWindow.on("ready-to-show", () => {
-    mainWindow.show();
+    if (!getData("startMinimized")) {
+      mainWindow.show();
+    }
+
+    nativeTheme.on("updated", () => {
+      const theme = nativeTheme.shouldUseDarkColors ? "dark" : "light";
+      mainWindow.webContents.send("os-theme-updated", theme);
+    });
   });
 
   mainWindow.webContents.setWindowOpenHandler(details => {
@@ -31,9 +73,6 @@ function createWindow() {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
-      .then(name => console.log(`Added Extension:  ${name}`))
-      .catch(err => console.log("An error occurred: ", err));
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
@@ -45,12 +84,33 @@ function createWindow() {
   });
 
   // Handle build type for renderer
-  ipcMain.handle("build_type", () => {
+  ipcMain.handle("get_app_version", () => {
     return app.getVersion();
   });
+  ipcMain.handle("get_app_name", () => {
+    return app.getName();
+  });
+  ipcMain.handle("get_app_displayName", () => {
+    return PackageJson.displayName;
+  });
+  ipcMain.handle("open_devtools", () => {
+    return mainWindow.webContents.openDevTools();
+  });
 
-  // Handle auto updater
+  useGnomeHandler();
+  const metricsHandler = useMetricsHandler(mainWindow);
+  initSettingsStore(app, mainWindow);
   useUpdater(app, mainWindow);
+  useTray(getTrayIcon(), mainWindow);
+  useWindowControl();
+
+  app.on("before-quit", () => {
+    try {
+      metricsHandler.destroyMetrics();
+    } catch (error) {
+      console.error("Error while destroying metrics before quitting : ", error);
+    }
+  });
 }
 
 // This method will be called when Electron has finished
@@ -58,7 +118,23 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId("com.electron");
+  if (is.dev) {
+    electronApp.setAppUserModelId("com.hardwaremonitor.dev");
+  } else {
+    electronApp.setAppUserModelId("com.hardwaremonitor");
+  }
+  // Change userData folder name for development
+  if (is.dev) {
+    app.setPath("userData", app.getPath("userData") + " Dev");
+  }
+  // Check if the app is already running
+  const gotTheLock = app.requestSingleInstanceLock();
+
+  if (!gotTheLock) {
+    app.quit();
+  } else {
+    createWindow();
+  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -67,12 +143,28 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  createWindow();
-
-  app.on("activate", function () {
+  app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (process.platform === "darwin" && app.dock) {
+        app.dock.show();
+      }
+      mainWindow.show();
+    } else if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+
+  // This will catch the second instance
+  // We send a signal to the first instance to focus the window
+  app.on("second-instance", (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow.isMinimized() || !mainWindow.isVisible()) {
+      mainWindow.show();
+    }
+
+    mainWindow.focus();
   });
 });
 
@@ -84,6 +176,3 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.

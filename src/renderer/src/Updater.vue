@@ -1,82 +1,211 @@
 <script setup>
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import AppUtils, { delay, formatBytes } from "@renderer/appUtils";
+import AppIcon from "@renderer/components/Utils/AppIcon.vue";
+import { useSystemStore } from "@renderer/stores/system";
 import { useUserStore } from "@renderer/stores/user";
-import AppUtils from "@renderer/appUtils";
+import { useMessage, useThemeVars } from "naive-ui";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
-const userStore = useUserStore();
+const user = useUserStore();
+const system = useSystemStore();
+const theme = useThemeVars();
 
-const dialogTitle = ref("Updater");
+const mode = ref(import.meta.env.MODE?.toLowerCase());
+const version = computed(() => "v" + system.app.version);
+const nMessage = useMessage();
+const downloadProgress = reactive({
+  active: false,
+  transferred: "",
+  total: "",
+  bytesPerSecond: "",
+  percent: 0,
+});
 const isUpdateAvailable = ref(false);
-const isHovered = ref(false);
 const loaders = reactive({
   main: new AppUtils.Loader(),
 });
+const silentUpdate = ref(false);
+let message = null;
+
+function createMessage(type, content) {
+  removeMessage();
+  switch (type) {
+    case "loading":
+      message = nMessage.loading(content, {
+        duration: 0,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+    case "success":
+      message = nMessage.success(content, {
+        duration: 1000,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+    case "warning":
+      message = nMessage.warning(content, {
+        duration: 5000,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+    case "error":
+      message = nMessage.error(
+        content.split("\n")[0] + (content.split("\n").length > 1 ? "..." : ""),
+        {
+          duration: 0,
+          closable: true,
+          keepAliveOnHover: true,
+        }
+      );
+      break;
+    default:
+      message = nMessage.info(content, {
+        duration: 3000,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+  }
+}
+
+function removeMessage() {
+  if (message) {
+    message.destroy();
+    message = null;
+  }
+}
+
+function clearAllListeners() {
+  window.electron.ipcRenderer.removeAllListeners("console-log");
+  window.electron.ipcRenderer.removeAllListeners("update-available");
+  window.electron.ipcRenderer.removeAllListeners("update-not-available");
+  window.electron.ipcRenderer.removeAllListeners("update-cancelled");
+  window.electron.ipcRenderer.removeAllListeners("update-check");
+  window.electron.ipcRenderer.removeAllListeners("update-downloaded");
+  window.electron.ipcRenderer.removeAllListeners("download-progress");
+  window.electron.ipcRenderer.removeAllListeners("update-error");
+}
 
 function initListener() {
-  window.electron.ipcRenderer.on("update-status", (event, message) => {
+  clearAllListeners();
+  window.electron.ipcRenderer.on("update-available", () => {
+    if (!silentUpdate.value) {
+      createMessage("success", "Mise à jour disponible");
+    }
+  });
+
+  window.electron.ipcRenderer.on("update-not-available", () => {
+    if (!silentUpdate.value) {
+      createMessage("info", "Aucune mise à jour disponible");
+    }
     loaders.main.stop();
-    window.electron.dialog("showMessageBox", {
-      type: "info",
-      title: dialogTitle.value,
-      message: "Mise à jour de l'application",
-      detail: message,
-    });
-    console.log("[Updater]: " + message);
+  });
+
+  window.electron.ipcRenderer.on("update-cancelled", (event, message) => {
+    if (!silentUpdate.value) {
+      createMessage("warning", "Mise à jour annulée. " + message);
+    }
+    loaders.main.stop();
+  });
+
+  window.electron.ipcRenderer.on("update-check", () => {
+    if (!silentUpdate.value) {
+      createMessage("loading", "Vérification des mises à jour... (actuel: " + version.value + ")");
+    }
   });
 
   window.electron.ipcRenderer.on("download-progress", (event, progressObj) => {
-    window.electron.dialog("showMessageBox", {
-      type: "info",
-      title: dialogTitle.value,
-      message: "Téléchargement de la mise à jour",
-      detail:
-        "Téléchargement en cours... " +
-        progressObj.transferred +
-        "/" +
-        progressObj.total +
-        " (" +
-        progressObj.percent +
-        "% - " +
-        progressObj.bytesPerSecond +
-        "octets/s)",
-    });
-    console.log("[Updater]: Téléchargement en cours: " + progressObj.percent + "%");
+    let formatedTransferred = formatBytes(progressObj.transferred);
+    let formatedTotal = formatBytes(progressObj.total);
+    let formatedBytesPerSecond = formatBytes(progressObj.bytesPerSecond);
+    let roundedPercent = Math.round(progressObj.percent);
+
+    downloadProgress.transferred = formatedTransferred.value + " " + formatedTransferred.unit;
+    downloadProgress.total = formatedTotal.value + " " + formatedTotal.unit;
+    downloadProgress.bytesPerSecond =
+      formatedBytesPerSecond.value + " " + formatedBytesPerSecond.unit + "/s";
+    downloadProgress.percent = roundedPercent;
+
+    if (!downloadProgress.active) {
+      downloadProgress.active = true;
+      if (!silentUpdate.value) {
+        createMessage(
+          "loading",
+          "Téléchargement en cours... " +
+            downloadProgress.transferred +
+            "/" +
+            downloadProgress.total +
+            " (" +
+            downloadProgress.percent +
+            "% - " +
+            downloadProgress.bytesPerSecond +
+            ")"
+        );
+      }
+    }
+  });
+
+  window.electron.ipcRenderer.on("update-downloaded", async () => {
+    downloadProgress.transferred = downloadProgress.total;
+    downloadProgress.percent = 100;
+    await delay(250);
+
+    downloadProgress.active = false;
+    if (!silentUpdate.value) {
+      createMessage("success", "Mise à jour téléchargée");
+    }
+    loaders.main.stop();
+    isUpdateAvailable.value = true;
   });
 
   window.electron.ipcRenderer.on("update-error", (event, message) => {
+    createMessage("error", "Erreur lors de la mise à jour. " + message);
+    console.error("[Updater]:", message, event);
     loaders.main.stop();
-    window.electron.dialog("showMessageBox", {
-      type: "error",
-      title: dialogTitle.value,
-      message: "Erreur lors de la mise à jour",
-      detail: message,
-    });
-    console.error("[Updater]: " + message);
+  });
+
+  window.electron.ipcRenderer.on("update-log", (event, message) => {
+    console.log("[Updater]:", message, event);
   });
 }
 
-async function checkForUpdates() {
+function checkForUpdates(isSilent = false) {
+  silentUpdate.value = isSilent;
   loaders.main.start();
-  let version = await window.electron.getBuildType();
-  console.log("[Updater]: Vérification des mises à jour pour la version " + version);
-  window.electron.ipcRenderer.send("check-for-updates", {
-    beta: version.includes("beta"),
-  });
+  window.electron.ipcRenderer.send("check-for-updates", user.settings.updateChanel);
+}
+
+function installUpdate() {
+  loaders.main.start();
+  window.electron.ipcRenderer.send("install-update");
 }
 
 const buildType = computed(() => {
-  let variable = import.meta.env.MODE;
-  let label = variable.toLowerCase();
+  if (mode.value && version.value) {
+    const types = {
+      stable: {
+        label: "Live",
+        icon: "boltFilled",
+      },
+      beta: {
+        label: "Preview",
+        icon: "flaskFilled",
+      },
+      alpha: {
+        label: "Nightly",
+        icon: "radioactiveFilled",
+      },
+    };
 
-  switch (variable) {
-    case "development":
-      return "Dev";
-    case "beta":
-      return "Beta";
-    case "production":
-      return "Live";
-    default:
-      return label.charAt(0).toUpperCase() + label.slice(1);
+    const typeKeys = Object.keys(types);
+    const foundKey = typeKeys.find(key => version.value.includes(key));
+
+    return foundKey ? types[foundKey] : types.stable;
+  } else {
+    return "loading";
   }
 });
 
@@ -85,57 +214,84 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  if (userStore.settings.autoUpdate) {
-    checkForUpdates();
+  if (user.settings.autoUpdate) {
+    checkForUpdates(true);
   }
 });
 
 onBeforeUnmount(() => {
-  window.electron.ipcRenderer.removeAllListeners("update-status");
-  window.electron.ipcRenderer.removeAllListeners("download-progress");
-  window.electron.ipcRenderer.removeAllListeners("update-error");
+  removeMessage();
+  clearAllListeners();
 });
+
+watch(
+  () => user.settings.updateChanel,
+  () => {
+    checkForUpdates(false);
+  }
+);
 </script>
 
 <template>
-  <n-tag
-    :bordered="false"
-    type="primary"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false">
-    <template #avatar>
-      <font-awesome-icon :icon="['fas', 'code-branch']" />
-    </template>
+  <n-tag :bordered="false" round type="primary">
     <n-flex align="center" size="small">
-      <n-space size="small">
-        {{ buildType }}
-      </n-space>
-      <n-popover v-if="isHovered" :show-arrow="false" trigger="hover">
+      <n-popover v-if="buildType" :show-arrow="false" trigger="hover">
         <template #trigger>
-          <n-button
-            :bordered="false"
-            :loading="loaders.main.loading"
-            size="tiny"
-            @click="checkForUpdates">
-            <font-awesome-icon icon="sync-alt" />
-          </n-button>
+          <app-icon :name="buildType.icon" />
         </template>
-        Vérifier les mises à jour
+        <template #default>Version {{ buildType.label.toLowerCase() }} {{ version }}</template>
       </n-popover>
-      <n-popover v-if="isUpdateAvailable" :show-arrow="false" trigger="hover">
-        <template #trigger>
-          <n-button
-            :bordered="false"
-            :loading="loaders.main.loading"
-            size="tiny"
-            @click="checkForUpdates">
-            <font-awesome-icon icon="download" />
-          </n-button>
-        </template>
-        Une mise à jour est disponible. Cliquez pour la télécharger.
-      </n-popover>
+      <app-icon
+        v-if="buildType === 'loading'"
+        class="tw:animate-spin"
+        name="compassFilled"
+        size="1.25em" />
+      <transition v-else mode="out-in" name="insert">
+        <div v-if="!isUpdateAvailable">
+          <n-popover :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <n-button
+                :bordered="false"
+                :loading="loaders.main.loading"
+                size="tiny"
+                @click="checkForUpdates()">
+                <template #icon>
+                  <app-icon name="refresh" />
+                </template>
+              </n-button>
+            </template>
+            <template #default>Vérifier les mises à jour</template>
+          </n-popover>
+        </div>
+        <n-flex v-else :size="0" align="center">
+          <n-text class="update-subtitle">Nouvelle version disponible</n-text>
+          <n-popover :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <n-button
+                :bordered="false"
+                :loading="loaders.main.loading"
+                size="tiny"
+                @click="installUpdate()">
+                <template #icon>
+                  <app-icon
+                    :color="theme.warningColor"
+                    class="tw:animate-pulse"
+                    name="download"
+                    size="1.5em" />
+                </template>
+              </n-button>
+            </template>
+            <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>
+          </n-popover>
+        </n-flex>
+      </transition>
     </n-flex>
   </n-tag>
 </template>
 
-<style lang="sass"></style>
+<style lang="sass">
+.update-subtitle
+  font-size: 0.8em
+  font-weight: 400
+  color: var(--n-color-text)
+</style>

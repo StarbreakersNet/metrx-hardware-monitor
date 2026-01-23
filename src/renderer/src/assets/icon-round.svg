@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="icon-round" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .cls-1 {
+        clip-path: url(#clippath-2);
+      }
+
+      .cls-2 {
+        clip-path: url(#clippath-6);
+      }
+
+      .cls-3, .cls-4, .cls-5, .cls-6, .cls-7 {
+        fill: none;
+      }
+
+      .cls-3, .cls-8, .cls-9 {
+        stroke-width: 0px;
+      }
+
+      .cls-10 {
+        stroke-width: 10.3px;
+      }
+
+      .cls-10, .cls-4, .cls-5 {
+        stroke: #00ff80;
+        stroke-linejoin: round;
+      }
+
+      .cls-10, .cls-4, .cls-5, .cls-6, .cls-7 {
+        stroke-linecap: round;
+      }
+
+      .cls-10, .cls-9 {
+        fill: #00ff80;
+      }
+
+      .cls-11 {
+        clip-path: url(#clippath-7);
+      }
+
+      .cls-12 {
+        clip-path: url(#clippath-1);
+      }
+
+      .cls-13 {
+        clip-path: url(#clippath-4);
+      }
+
+      .cls-4 {
+        stroke-width: 10.35px;
+      }
+
+      .cls-5 {
+        stroke-width: 7.76px;
+      }
+
+      .cls-14 {
+        clip-path: url(#clippath);
+      }
+
+      .cls-15 {
+        clip-path: url(#clippath-3);
+      }
+
+      .cls-6 {
+        stroke-width: 3.87px;
+      }
+
+      .cls-6, .cls-7 {
+        stroke: #fff;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-7 {
+        stroke-width: 10.33px;
+      }
+
+      .cls-16 {
+        clip-path: url(#clippath-5);
+      }
+
+      .cls-8 {
+        fill: #24303d;
+      }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-3" x="145.97" y="377.45" width="115.21" height="93.55"/>
+    </clipPath>
+    <clipPath id="clippath-1">
+      <rect class="cls-3" x="250.83" y="377.45" width="115.21" height="93.55"/>
+    </clipPath>
+    <clipPath id="clippath-2">
+      <rect class="cls-3" x="41" y="145.97" width="93.55" height="115.21"/>
+    </clipPath>
+    <clipPath id="clippath-3">
+      <rect class="cls-3" x="41" y="250.82" width="93.55" height="115.21"/>
+    </clipPath>
+    <clipPath id="clippath-4">
+      <rect class="cls-3" x="250.82" y="41" width="115.21" height="93.55"/>
+    </clipPath>
+    <clipPath id="clippath-5">
+      <rect class="cls-3" x="145.97" y="41" width="115.21" height="93.55"/>
+    </clipPath>
+    <clipPath id="clippath-6">
+      <rect class="cls-3" x="377.45" y="250.82" width="93.55" height="115.21"/>
+    </clipPath>
+    <clipPath id="clippath-7">
+      <rect class="cls-3" x="377.45" y="145.97" width="93.55" height="115.21"/>
+    </clipPath>
+  </defs>
+  <g>
+    <path class="cls-8" d="M256,499.9c-65.15,0-126.4-25.37-172.46-71.44S12.1,321.15,12.1,256s25.37-126.4,71.44-172.46S190.85,12.1,256,12.1s126.4,25.37,172.46,71.44,71.44,107.31,71.44,172.46-25.37,126.4-71.44,172.46-107.31,71.44-172.46,71.44Z"/>
+    <path class="cls-9" d="M256,18.21c32.11,0,63.25,6.29,92.56,18.68,28.31,11.98,53.75,29.12,75.59,50.97,21.84,21.84,38.99,47.27,50.97,75.59,12.4,29.31,18.68,60.45,18.68,92.56s-6.29,63.25-18.68,92.56c-11.98,28.31-29.12,53.75-50.97,75.59-21.84,21.84-47.27,38.99-75.59,50.97-29.31,12.4-60.45,18.68-92.56,18.68s-63.25-6.29-92.56-18.68c-28.31-11.98-53.75-29.12-75.59-50.97-21.84-21.84-38.99-47.27-50.97-75.59-12.4-29.31-18.68-60.45-18.68-92.56s6.29-63.25,18.68-92.56c11.98-28.31,29.12-53.75,50.97-75.59,21.84-21.84,47.27-38.99,75.59-50.97,29.31-12.4,60.45-18.68,92.56-18.68M256,6C117.93,6,6,117.93,6,256s111.93,250,250,250,250-111.93,250-250S394.07,6,256,6h0Z"/>
+  </g>
+  <g>
+    <g>
+      <rect class="cls-10" x="186.99" y="186.99" width="138.02" height="138.02" rx="2.58" ry="2.58"/>
+      <rect class="cls-7" x="153.01" y="153.01" width="205.98" height="205.98" rx="12.91" ry="12.91"/>
+    </g>
+    <g>
+      <g>
+        <g class="cls-14">
+          <g>
+            <g>
+              <polyline class="cls-4" points="174.65 382.78 174.65 404.43 170.65 412.05"/>
+              <circle class="cls-5" cx="161.4" cy="422.07" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="256" y1="465.82" x2="256" y2="382.63"/>
+            <line class="cls-4" x1="228.27" y1="462.74" x2="228.27" y2="382.63"/>
+            <line class="cls-4" x1="200.54" y1="453.5" x2="200.54" y2="382.63"/>
+          </g>
+        </g>
+        <g class="cls-12">
+          <g>
+            <g>
+              <polyline class="cls-4" points="337.35 382.78 337.35 404.43 341.35 412.05"/>
+              <circle class="cls-5" cx="350.6" cy="422.07" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="256" y1="465.82" x2="256" y2="382.63"/>
+            <line class="cls-4" x1="283.73" y1="462.74" x2="283.73" y2="382.63"/>
+            <line class="cls-4" x1="311.47" y1="453.5" x2="311.47" y2="382.63"/>
+          </g>
+        </g>
+      </g>
+      <g>
+        <g class="cls-1">
+          <g>
+            <g>
+              <polyline class="cls-4" points="129.22 174.65 107.57 174.65 99.95 170.65"/>
+              <circle class="cls-5" cx="89.93" cy="161.4" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="46.18" y1="256" x2="129.37" y2="256"/>
+            <line class="cls-4" x1="49.26" y1="228.27" x2="129.37" y2="228.27"/>
+            <line class="cls-4" x1="58.5" y1="200.54" x2="129.37" y2="200.54"/>
+          </g>
+        </g>
+        <g class="cls-15">
+          <g>
+            <g>
+              <polyline class="cls-4" points="129.22 337.35 107.57 337.35 99.95 341.35"/>
+              <circle class="cls-5" cx="89.93" cy="350.6" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="46.18" y1="256" x2="129.37" y2="256"/>
+            <line class="cls-4" x1="49.26" y1="283.73" x2="129.37" y2="283.73"/>
+            <line class="cls-4" x1="58.5" y1="311.46" x2="129.37" y2="311.46"/>
+          </g>
+        </g>
+      </g>
+      <g>
+        <g class="cls-13">
+          <g>
+            <g>
+              <polyline class="cls-4" points="337.35 129.22 337.35 107.57 341.35 99.95"/>
+              <circle class="cls-5" cx="350.6" cy="89.93" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="256" y1="46.18" x2="256" y2="129.37"/>
+            <line class="cls-4" x1="283.73" y1="49.26" x2="283.73" y2="129.37"/>
+            <line class="cls-4" x1="311.46" y1="58.5" x2="311.46" y2="129.37"/>
+          </g>
+        </g>
+        <g class="cls-16">
+          <g>
+            <g>
+              <polyline class="cls-4" points="174.65 129.22 174.65 107.57 170.65 99.95"/>
+              <circle class="cls-5" cx="161.4" cy="89.93" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="256" y1="46.18" x2="256" y2="129.37"/>
+            <line class="cls-4" x1="228.27" y1="49.26" x2="228.27" y2="129.37"/>
+            <line class="cls-4" x1="200.54" y1="58.5" x2="200.54" y2="129.37"/>
+          </g>
+        </g>
+      </g>
+      <g>
+        <g class="cls-2">
+          <g>
+            <g>
+              <polyline class="cls-4" points="382.78 337.35 404.43 337.35 412.05 341.35"/>
+              <circle class="cls-5" cx="422.07" cy="350.6" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="465.82" y1="256" x2="382.63" y2="256"/>
+            <line class="cls-4" x1="462.74" y1="283.73" x2="382.63" y2="283.73"/>
+            <line class="cls-4" x1="453.5" y1="311.46" x2="382.63" y2="311.46"/>
+          </g>
+        </g>
+        <g class="cls-11">
+          <g>
+            <g>
+              <polyline class="cls-4" points="382.78 174.65 404.43 174.65 412.05 170.65"/>
+              <circle class="cls-5" cx="422.07" cy="161.4" r="11.56"/>
+            </g>
+            <line class="cls-4" x1="465.82" y1="256" x2="382.63" y2="256"/>
+            <line class="cls-4" x1="462.74" y1="228.27" x2="382.63" y2="228.27"/>
+            <line class="cls-4" x1="453.5" y1="200.54" x2="382.63" y2="200.54"/>
+          </g>
+        </g>
+      </g>
+    </g>
+    <g>
+      <circle class="cls-6" cx="379.58" cy="379.58" r="7.74"/>
+      <circle class="cls-6" cx="132.42" cy="379.58" r="7.74"/>
+      <circle class="cls-6" cx="132.42" cy="132.42" r="7.74"/>
+      <circle class="cls-6" cx="379.58" cy="132.42" r="7.74"/>
+    </g>
+  </g>
+</svg>
