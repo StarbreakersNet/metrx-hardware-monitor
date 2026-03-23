@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.7.12-alpha] - 2026-03-23
 
+### Fixed
+
+- Fixed auto-updater not finding `alpha-mac.yml` when checking for updates on the alpha channel by enabling `allowPrerelease` for non-stable channels
+
 ### Changed
 
 - Upgraded Electron to version 41.0.3
