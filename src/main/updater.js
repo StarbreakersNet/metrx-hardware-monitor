@@ -74,6 +74,7 @@ export default function useUpdater(app, window) {
 
       window.webContents.send("update-log", "[autoUpdater] 📺 Channel selected : " + channel);
       autoUpdater.channel = channel;
+      autoUpdater.allowPrerelease = channel !== "latest";
 
       if (process.env.NODE_ENV === "development") {
         window.webContents.send(

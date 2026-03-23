@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.12] - 2026-03-23
+
+### Fixed
+
+- Fixed auto-updater not finding prerelease update files when checking for updates on non-stable channels by enabling `allowPrerelease`
+
+### Changed
+
+- Upgraded Electron to version 41.0.3
+- Upgraded electron-builder to version 26.8.1
+- Upgraded electron-vite to version 5.0.0
+- Upgraded ESLint to version 10.1.0
+- Upgraded Vue to 3.5.30
+- Upgraded Vue Router to 5.0.4
+- Upgraded NaiveUI to 2.43.2
+- Upgraded Less to 4.6.4
+- Upgraded Sass to 1.98.0
+- Upgraded Prettier to 3.8.1
+- Upgraded eslint-plugin-vue to 10.8.0
+- Upgraded SystemInformation to 5.31.5 and removed local patch
+- Dropped Intel Mac (x64) support, macOS builds now target Apple Silicon (arm64) only
+
+## [1.7.12-beta] - 2026-03-23
+
+### Fixed
+
+- Fixed auto-updater not finding prerelease update files when checking for updates on non-stable channels by enabling `allowPrerelease`
+
+### Changed
+
+- Upgraded Electron to version 41.0.3
+- Upgraded electron-builder to version 26.8.1
+- Upgraded electron-vite to version 5.0.0
+- Upgraded ESLint to version 10.1.0
+- Upgraded Vue to 3.5.30
+- Upgraded Vue Router to 5.0.4
+- Upgraded NaiveUI to 2.43.2
+- Upgraded Less to 4.6.4
+- Upgraded Sass to 1.98.0
+- Upgraded Prettier to 3.8.1
+- Upgraded eslint-plugin-vue to 10.8.0
+- Upgraded SystemInformation to 5.31.5 and removed local patch
+- Dropped Intel Mac (x64) support, macOS builds now target Apple Silicon (arm64) only
+
+## [1.7.12-alpha] - 2026-03-23
+
+### Fixed
+
+- Fixed auto-updater not finding `alpha-mac.yml` when checking for updates on the alpha channel by enabling `allowPrerelease` for non-stable channels
+
+### Changed
+
+- Upgraded Electron to version 41.0.3
+- Upgraded electron-builder to version 26.8.1
+- Upgraded electron-vite to version 5.0.0
+- Upgraded ESLint to version 10.1.0
+- Upgraded Vue to 3.5.30
+- Upgraded Vue Router to 5.0.4
+- Upgraded NaiveUI to 2.43.2
+- Upgraded Less to 4.6.4
+- Upgraded Sass to 1.98.0
+- Upgraded Prettier to 3.8.1
+- Upgraded eslint-plugin-vue to 10.8.0
+- Upgraded SystemInformation to 5.31.5 and removed local patch
+- Dropped Intel Mac (x64) support, macOS builds now target Apple Silicon (arm64) only
+
 ## [1.7.11] - 2026-01-23
 
 ### Added
