@@ -15,7 +15,7 @@ nsis:
 mac:
   target:
     target: default
-    arch: universal
+    arch: arm64
   entitlementsInherit: build/entitlements.mac.plist
   type: distribution
   category: public.app-category.utilities
