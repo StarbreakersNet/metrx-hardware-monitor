@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Upgraded Prettier to 3.8.1
 - Upgraded eslint-plugin-vue to 10.8.0
 - Upgraded SystemInformation to 5.31.5 and removed local patch
+- Dropped Intel Mac (x64) support, macOS builds now target Apple Silicon (arm64) only
 
 ## [1.7.11] - 2026-01-23
 
