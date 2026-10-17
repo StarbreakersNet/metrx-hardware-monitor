@@ -6,6 +6,8 @@ files:
   - "!electron.vite.config.{js,ts,mjs,cjs}"
   - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}"
   - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
+  # Tele-metrie (case 15) : la page mobile sert le units.js qui fait foi, meme une fois installee.
+  - src/renderer/src/utils/units.js
 asarUnpack:
   - resources/**
 nsis:

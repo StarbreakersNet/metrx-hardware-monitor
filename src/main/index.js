@@ -4,6 +4,7 @@ import { join } from "path";
 import { StatefullBrowserWindow } from "stateful-electron-window";
 import useGnomeHandler from "./handlers/gnome";
 import { getData, initSettingsStore } from "./store";
+import { initTeleMetrie } from "./teleMetrie";
 import useTray from "./tray";
 import useUpdater from "./updater";
 import useWindowControl from "./window";
@@ -100,6 +101,7 @@ function createWindow() {
   useGnomeHandler();
   const metricsHandler = useMetricsHandler(mainWindow);
   initSettingsStore(app, mainWindow);
+  initTeleMetrie(app, mainWindow);
   useUpdater(app, mainWindow);
   useTray(getTrayIcon(), mainWindow);
   useWindowControl();

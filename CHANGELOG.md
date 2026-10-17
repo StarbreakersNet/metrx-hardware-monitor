@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Remote telemetry (opt-in, **off by default**): a read-only local-network server (`node:http` only, no new runtime dependency) exposes the live metrics to a phone browser; a "Consulter à distance" switch in Settings shows the URL to open on an iPhone (Safari), with an optional access token
+- Self-contained mobile dashboard (no CDN, works offline on iOS): cards refresh every 2 s and format values through the very same `units.js` file the app serves, so units never diverge
+
+### Changed
+
+- Security: upgraded within their declared majors — Electron 41.0.3 → 41.10.7, Vite 7.3.1 → 7.3.7, PostCSS 8.5.6 → 8.5.31, lodash 4.17.21 → 4.18.1, systeminformation 5.31.5 → 5.33.15 (fixes two Linux command injections, GHSA-hvx9-hwr7-wjj9 and GHSA-5xpp-75jx-m839). `yarn npm audit --all` is now clean
+- Tooling: ESLint moved to a flat config (`eslint.config.mjs`) — ESLint 10 cannot read the legacy `.eslintrc.cjs` and `npm run lint` was failing upstream; application code was left untouched (legacy dead code now surfaces as warnings only)
+
+### Fixed
+
+- `npm test` script added (native `node --test` runner, no test dependency added); the test suite covers the telemetry module and the units oracle it serves
+
 ## [1.7.12] - 2026-03-23
 
 ### Fixed

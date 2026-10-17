@@ -10,6 +10,19 @@ const schema = {
     type: "boolean",
     default: false,
   },
+  // Tele-metrie a distance (module optionnel) : ETEINTE par defaut.
+  remoteMetrics: {
+    type: "boolean",
+    default: false,
+  },
+  remoteMetricsPort: {
+    type: "number",
+    default: 8791,
+  },
+  remoteMetricsToken: {
+    type: "string",
+    default: "",
+  },
 };
 const settingsStore = new Store({ schema });
 
@@ -40,6 +53,14 @@ function initSettingsStore(app, window) {
   settingsStore.onDidChange("startMinimized", newValue => {
     window.webContents.send("electron-store-startMinimized", newValue);
   });
+
+  for (const key of ["remoteMetrics", "remoteMetricsPort", "remoteMetricsToken"]) {
+    settingsStore.onDidChange(key, newValue => {
+      if (!window.isDestroyed()) {
+        window.webContents.send("electron-store-" + key, newValue);
+      }
+    });
+  }
 
   // Handle store for renderer
   ipcMain.handle("get_store", (event, key) => {
