@@ -6,6 +6,9 @@ import { computed, reactive, ref, watch } from "vue";
 const electronStore = {
   startOnLogin: await window.electron.store.get("startOnLogin"),
   startMinimized: await window.electron.store.get("startMinimized"),
+  remoteMetrics: await window.electron.store.get("remoteMetrics"),
+  remoteMetricsPort: await window.electron.store.get("remoteMetricsPort"),
+  remoteMetricsToken: await window.electron.store.get("remoteMetricsToken"),
 };
 const observerElectronStoreRegistered = ref(false);
 
@@ -67,6 +70,9 @@ export const useUserStore = defineStore(
     const electron = reactive({
       startOnLogin: electronStore.startOnLogin,
       startMinimized: electronStore.startMinimized,
+      remoteMetrics: electronStore.remoteMetrics,
+      remoteMetricsPort: electronStore.remoteMetricsPort,
+      remoteMetricsToken: electronStore.remoteMetricsToken,
     });
     const settings = reactive({
       ...DEFAULT_USER_SETTINGS,
@@ -107,6 +113,11 @@ export const useUserStore = defineStore(
       window.electron.ipcRenderer.on("electron-store-startMinimized", (event, data) => {
         electron.startMinimized = data;
       });
+      for (const key of ["remoteMetrics", "remoteMetricsPort", "remoteMetricsToken"]) {
+        window.electron.ipcRenderer.on("electron-store-" + key, (event, data) => {
+          electron[key] = data;
+        });
+      }
       observerElectronStoreRegistered.value = true;
     }
 

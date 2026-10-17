@@ -24,6 +24,13 @@ const electron = {
   gnome: {
     getButtonPosition: () => ipcRenderer.invoke("gnome:get-button-position"),
   },
+  remote: {
+    status: () => ipcRenderer.invoke("remote:status"),
+    onStatusChange: callback => {
+      ipcRenderer.removeAllListeners("remote:status-change");
+      ipcRenderer.on("remote:status-change", (event, status) => callback(status));
+    },
+  },
 };
 const api = {
   init: () => ipcRenderer.invoke("metrics:init"),
