@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Favicon de Metrx : reprise simplifiee de l'icone de l'app (puce + pouls, vert #00ff80 sur
+     fond #24303d, cf. src/renderer/src/assets/icon-round.svg). Sert de favicon a l'app
+     (src/renderer/index.html) et a la page distante (route /favicon.svg de remote.js). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#24303d"/>
+  <g stroke="#00ff80" stroke-linecap="round">
+    <rect x="153" y="153" width="206" height="206" rx="13" fill="none" stroke-width="20"/>
+    <g stroke-width="20">
+      <line x1="205" y1="153" x2="205" y2="93"/>
+      <line x1="256" y1="153" x2="256" y2="93"/>
+      <line x1="307" y1="153" x2="307" y2="93"/>
+      <line x1="205" y1="359" x2="205" y2="419"/>
+      <line x1="256" y1="359" x2="256" y2="419"/>
+      <line x1="307" y1="359" x2="307" y2="419"/>
+      <line x1="153" y1="205" x2="93" y2="205"/>
+      <line x1="153" y1="256" x2="93" y2="256"/>
+      <line x1="153" y1="307" x2="93" y2="307"/>
+      <line x1="359" y1="205" x2="419" y2="205"/>
+      <line x1="359" y1="256" x2="419" y2="256"/>
+      <line x1="359" y1="307" x2="419" y2="307"/>
+    </g>
+    <polyline points="189,256 221,256 241,206 271,310 291,256 323,256" fill="none" stroke-width="24" stroke-linejoin="round"/>
+  </g>
+</svg>
