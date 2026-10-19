@@ -3,8 +3,21 @@ import InputSettings from "@renderer/components/InputSettings.vue";
 import AppIcon from "@renderer/components/Utils/AppIcon.vue";
 import settingsAvailable from "@renderer/models/settingsAvailable";
 import { useUserStore } from "@renderer/stores/user";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 const user = useUserStore();
+const remoteEtat = ref({ actif: false, urls: [] });
+
+onMounted(async () => {
+  remoteEtat.value = await window.electron.remote.etat();
+  window.electron.remote.onEtatChange(etat => {
+    remoteEtat.value = etat;
+  });
+});
+
+onBeforeUnmount(() => {
+  window.electron.remote.onEtatChange(() => {});
+});
 </script>
 <template>
   <n-flex vertical>
@@ -52,6 +65,18 @@ const user = useUserStore();
           </n-card>
         </n-flex>
       </template>
+    </template>
+    <template v-if="remoteEtat.actif && remoteEtat.urls.length > 0">
+      <n-h1 prefix="bar">Sur votre iPhone</n-h1>
+      <n-alert type="success" :show-icon="false">
+        <n-flex vertical>
+          <n-text>Dans Safari, sur le même réseau, tapez (ou collez) :</n-text>
+          <n-text v-for="url in remoteEtat.urls" :key="url" code>{{ url }}</n-text>
+          <n-text v-if="remoteEtat.protege" type="warning">
+            Le lien inclut déjà le jeton d'accès ; ne le partagez pas au-delà de votre réseau.
+          </n-text>
+        </n-flex>
+      </n-alert>
     </template>
     <n-h1 prefix="bar" type="error">Zone de danger</n-h1>
     <n-flex vertical>

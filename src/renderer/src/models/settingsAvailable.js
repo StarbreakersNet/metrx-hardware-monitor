@@ -124,6 +124,36 @@ export default [
   },
   {
     type: "categ",
+    label: "Télémétrie à distance",
+    children: [
+      {
+        type: "switch",
+        icon: "broadcast",
+        label: "Consulter à distance",
+        description: "Expose les métriques sur le réseau local, pour les ouvrir depuis un iPhone (Safari)",
+        info: "Lecture seule, réseau local uniquement, éteint par défaut. L'adresse à taper sur votre téléphone s'affiche ci-dessous une fois activée ; ne l'exposez jamais sur un réseau non fiable.",
+        storePath: ["electron", "remoteMetrics"],
+      },
+      {
+        type: "number",
+        icon: "number-1",
+        label: "Port",
+        description: "Port d'écoute du tableau de bord distant (1024 à 65535)",
+        min: 1024,
+        max: 65535,
+        storePath: ["electron", "remoteMetricsPort"],
+      },
+      {
+        type: "text",
+        icon: "key",
+        label: "Jeton d'accès",
+        description: "Mot de passe facultatif demandé aux visiteurs (/api/metrics)",
+        storePath: ["electron", "remoteMetricsToken"],
+      },
+    ],
+  },
+  {
+    type: "categ",
     label: "Mise à jour",
     children: [
       {

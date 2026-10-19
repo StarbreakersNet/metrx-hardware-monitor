@@ -1,5 +1,6 @@
 import { ipcMain } from "electron";
 import Si from "systeminformation";
+import { publierMetriques } from "../remote";
 
 let observer;
 let mainWindowRef;
@@ -11,6 +12,7 @@ function clearObserver() {
 }
 
 function metricsCallback(apiData) {
+  publierMetriques(apiData); // Tele-metrie (module optionnel) : la meme mesure, en lecture seule.
   if (mainWindowRef && !mainWindowRef.isDestroyed()) {
     mainWindowRef.webContents.send("metrics:data", apiData);
   }

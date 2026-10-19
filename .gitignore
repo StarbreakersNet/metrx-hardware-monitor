@@ -1,7 +1,11 @@
 node_modules
 dist
 out
+coverage/
 *.log*
+
+# lockfile npm : le projet reste sur yarn.lock
+package-lock.json
 
 .fleet/
 .idea/
@@ -12,3 +16,11 @@ out
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
+.vs
+specs
+tests
+HANDOFF.md
+journal-de-bord.md
+launch.json
+PLAN.md
+readme.txt
