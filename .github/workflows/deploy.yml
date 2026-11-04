@@ -16,7 +16,7 @@ jobs:
       should_release: ${{ steps.set-release-info.outputs.should_release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Nécessaire pour accéder aux tags
 
@@ -63,13 +63,13 @@ jobs:
           fi
 
       - name: Extract release notes from CHANGELOG file
-        uses: ffurrer2/extract-release-notes@v2
+        uses: ffurrer2/extract-release-notes@v3
         with:
           changelog_file: CHANGELOG.md
           release_notes_file: release-notes.md
 
       - name: Upload release-notes.md
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-notes
           path: release-notes.md
@@ -94,7 +94,7 @@ jobs:
             os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -104,7 +104,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf file
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -169,7 +169,7 @@ jobs:
           ls -la artefacts
 
       - name: Upload artefacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artefacts-${{ matrix.platform }}
           path: artefacts/*
@@ -182,20 +182,20 @@ jobs:
       contents: write
     if: needs.prepare_build.outputs.should_release == 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
       - name: Download release-notes.md
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-notes
           path: .
 
       - name: Download artefacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: artefacts-*
           path: dist
@@ -213,7 +213,7 @@ jobs:
           --output dist/latest.json
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare_build.outputs.version }}
           name: ${{ needs.prepare_build.outputs.version }}

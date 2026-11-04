@@ -25,7 +25,7 @@ export default [
   },
   {
     // Scripts exécutés par Node / Bun (configs, sidecar)
-    files: ["*.config.js", "src-sidecar/**/*.js"],
+    files: ["*.config.js", "src-sidecar/**/*.js", ".github/scripts/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
