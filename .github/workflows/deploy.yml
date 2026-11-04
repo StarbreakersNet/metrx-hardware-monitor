@@ -3,7 +3,7 @@ name: Build & release
 on:
   push:
     tags:
-      - '*.*.*'
+      - "*.*.*"
 
 jobs:
   prepare_build:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Nécessaire pour accéder aux tags
+          fetch-depth: 0 # Nécessaire pour accéder aux tags
 
       - name: Extract version from tag
         id: set-version
@@ -55,6 +55,13 @@ jobs:
           echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
           echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
 
+      - name: Check updater public key
+        run: |
+          if grep -q "REMPLACER_PAR_LA_CLE_PUBLIQUE" src-tauri/tauri.conf.json; then
+            echo "::error::La clé publique de l'updater n'est pas configurée dans src-tauri/tauri.conf.json (plugins.updater.pubkey). Voir README > Mises à jour."
+            exit 1
+          fi
+
       - name: Extract release notes from CHANGELOG file
         uses: ffurrer2/extract-release-notes@v2
         with:
@@ -68,90 +75,142 @@ jobs:
           path: release-notes.md
 
   build:
-    name: Build ${{ matrix.os }}
+    name: Build ${{ matrix.platform }}
     needs: prepare_build
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        include:
+          - platform: windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: macos
+            os: macos-latest
+            target: aarch64-apple-darwin
+          # Ubuntu 22.04 : la plus ancienne base supportée, pour que l'AppImage et le .deb
+          # fonctionnent aussi sur les distributions moins récentes (glibc)
+          - platform: linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf file
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Enable Corepack
         run: corepack enable
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: ${{ matrix.target }}
 
       - name: Update package.json version
         run: yarn version ${{ needs.prepare_build.outputs.version }}
 
       - name: Install dependency
-        run: yarn install
+        run: yarn install --immutable
 
-      - name: Build app
-        run: yarn build
+      # Le sidecar (Bun) est compilé automatiquement par `beforeBuildCommand` (voir tauri.conf.json)
+      - name: Build & package with Tauri
+        run: yarn tauri build --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
+        env:
+          # Signature des mises à jour (toutes plateformes)
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Signature + notarisation macOS (mêmes secrets que la version Electron)
+          APPLE_CERTIFICATE: ${{ matrix.platform == 'macos' && secrets.CSC_LINK || '' }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos' && secrets.CSC_KEY_PASSWORD || '' }}
+          APPLE_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ matrix.platform == 'macos' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_TEAM_ID || '' }}
+          # Signature Windows : à brancher ici une fois le fournisseur choisi (voir README)
 
-      - name: Set macOS environment variables
-        if: matrix.os == 'macos-latest'
+      - name: Collect artefacts
+        shell: bash
         run: |
-          echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> $GITHUB_ENV
-          echo "APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" >> $GITHUB_ENV
-          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> $GITHUB_ENV
-          echo "CSC_LINK=${{ secrets.CSC_LINK }}" >> $GITHUB_ENV
-          echo "CSC_KEY_PASSWORD=${{ secrets.CSC_KEY_PASSWORD }}" >> $GITHUB_ENV
+          BUNDLE=src-tauri/target/${{ matrix.target }}/release/bundle
+          VERSION=${{ needs.prepare_build.outputs.version }}
+          mkdir -p artefacts
 
-      - name: Package with Electron Builder
-        run: npx electron-builder --publish=never "-c.publish.channel=${{ needs.prepare_build.outputs.channel }}"
+          case "${{ matrix.platform }}" in
+            windows)
+              cp "$BUNDLE"/nsis/*-setup.exe "$BUNDLE"/nsis/*-setup.exe.sig artefacts/
+              ;;
+            macos)
+              cp "$BUNDLE"/dmg/*.dmg artefacts/
+              # L'archive de mise à jour n'a ni version ni architecture dans son nom par défaut
+              cp "$BUNDLE"/macos/*.app.tar.gz "artefacts/Metrx_${VERSION}_aarch64.app.tar.gz"
+              cp "$BUNDLE"/macos/*.app.tar.gz.sig "artefacts/Metrx_${VERSION}_aarch64.app.tar.gz.sig"
+              ;;
+            linux)
+              cp "$BUNDLE"/appimage/*.AppImage "$BUNDLE"/appimage/*.AppImage.sig artefacts/
+              cp "$BUNDLE"/deb/*.deb "$BUNDLE"/deb/*.deb.sig artefacts/
+              ;;
+          esac
+
+          ls -la artefacts
 
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
-          name: artefacts-${{ matrix.os }}
-          path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.exe
-            dist/*.deb
-            dist/*.AppImage
-            dist/latest*.yml
-            dist/beta*.yml
-            dist/alpha*.yml
+          name: artefacts-${{ matrix.platform }}
+          path: artefacts/*
 
   create_release:
     name: Create GitHub Release
-    needs: [ prepare_build, build ]
+    needs: [prepare_build, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     if: needs.prepare_build.outputs.should_release == 'true'
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Download release-notes.md
         uses: actions/download-artifact@v4
         with:
           name: release-notes
           path: .
 
-      - name: Download Windows artifacts
+      - name: Download artefacts
         uses: actions/download-artifact@v4
         with:
-          name: artefacts-windows-latest
-          path: dist/windows
+          pattern: artefacts-*
+          path: dist
+          merge-multiple: true
 
-      - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: artefacts-ubuntu-latest
-          path: dist/linux
-
-      - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: artefacts-macos-latest
-          path: dist/mac
+      # Manifeste lu par l'updater de l'application (voir src-tauri/src/updater.rs)
+      - name: Generate latest.json
+        run: >
+          node .github/scripts/updater-manifest.js
+          --dir dist
+          --version "${{ needs.prepare_build.outputs.version }}"
+          --tag "${{ needs.prepare_build.outputs.version }}"
+          --repository "${{ github.repository }}"
+          --notes release-notes.md
+          --output dist/latest.json
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -161,7 +220,11 @@ jobs:
           body_path: release-notes.md
           draft: ${{ needs.prepare_build.outputs.release_type == 'draft' }}
           prerelease: ${{ needs.prepare_build.outputs.release_type == 'prerelease' }}
+          # Les signatures (.sig) sont intégrées dans latest.json, inutile de les publier
           files: |
-            dist/windows/*
-            dist/linux/*
-            dist/mac/*
+            dist/latest.json
+            dist/*-setup.exe
+            dist/*.dmg
+            dist/*.app.tar.gz
+            dist/*.AppImage
+            dist/*.deb

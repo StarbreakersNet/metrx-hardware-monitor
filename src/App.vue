@@ -1,0 +1,219 @@
+<script setup>
+import {
+  getNaiveOverrideTheme,
+  getNaiveTheme,
+  Loader,
+  preferedOsTheme,
+  renderAppIcon,
+  Timer,
+} from "@/appUtils";
+import { notifyWindowReady } from "@/api/app";
+import { onThemeChanged } from "@/api/window";
+import AppFooterMenu from "@/components/Layouts/AppFooterMenu.vue";
+import appMenuOptions from "@/models/appMenuOptions";
+import { useSystemStore } from "@/stores/system";
+import { useUserStore } from "@/stores/user";
+import { dateFrFR, frFR } from "naive-ui";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import AppHeaderMenu from "@/components/Layouts/AppHeaderMenu.vue";
+import LoaderSpinner from "@/components/LoaderSpinner.vue";
+import AppScrollLayout from "@/components/Layouts/AppScrollLayout.vue";
+
+const PRE_TIMEOUT_TIME = 7000;
+const TIMEOUT_TIME = 15000;
+
+const loaders = reactive({
+  initial: new Loader(),
+});
+const router = useRouter();
+const system = useSystemStore();
+const user = useUserStore();
+const keepAliveBlacklist = [];
+const initStartTimer = reactive(new Timer());
+const showLoadingHints = computed(() => {
+  return (
+    initStartTimer.elapsedTime > PRE_TIMEOUT_TIME &&
+    initStartTimer.elapsedTime < TIMEOUT_TIME - 1000
+  );
+});
+const menuConfig = reactive({
+  collapsedWidth: 64,
+});
+const version = computed(() => {
+  return "v" + system.app.version;
+});
+const menuOptions = computed(() => {
+  return appMenuOptions(version.value);
+});
+const theme = ref(getNaiveTheme());
+const themeOverride = ref(getNaiveOverrideTheme());
+
+function setAppTheme(newTheme) {
+  theme.value = getNaiveTheme(newTheme);
+  themeOverride.value = getNaiveOverrideTheme(newTheme);
+}
+
+watch(
+  () => user.settings.theme,
+  value => {
+    setAppTheme(value);
+    user.settings.osTheme = preferedOsTheme();
+  },
+  { immediate: true }
+);
+
+watch(
+  () => initStartTimer.elapsedTime,
+  value => {
+    if (value > TIMEOUT_TIME) {
+      window.location.reload();
+    }
+  }
+);
+
+let unlistenThemeChanged = null;
+
+onThemeChanged(theme => {
+  setAppTheme(theme);
+  user.settings.osTheme = theme;
+}).then(unlisten => {
+  unlistenThemeChanged = unlisten;
+});
+
+onBeforeMount(() => {
+  loaders.initial.start();
+});
+
+onMounted(async () => {
+  notifyWindowReady();
+  initStartTimer.start();
+  await system.init();
+  initStartTimer.stop();
+  loaders.initial.stop();
+});
+
+onBeforeUnmount(() => {
+  unlistenThemeChanged?.();
+  system.destroy();
+});
+</script>
+
+<template>
+  <n-config-provider
+    :date-locale="dateFrFR"
+    :locale="frFR"
+    :theme="theme"
+    :theme-overrides="themeOverride"
+    inline-theme-disabled>
+    <n-loading-bar-provider>
+      <n-message-provider :keep-alive-on-hover="true" :max="5" placement="bottom">
+        <n-flex class="main-view" vertical>
+          <app-header-menu />
+          <transition mode="out-in">
+            <n-flex v-if="loaders.initial.loading" class="tw:grow">
+              <div class="loading-view tw:fixed tw:size-full">
+                <loader-spinner :size-ratio="7">
+                  <n-flex align="center" class="loader-title" vertical>
+                    <img alt="logo" class="loader-img" src="@/assets/icon-round.svg" />
+                    <span>Démarrage du monitoring</span>
+                    <transition name="insert">
+                      <span v-if="showLoadingHints">Le chargement est long...</span>
+                    </transition>
+                  </n-flex>
+                </loader-spinner>
+              </div>
+            </n-flex>
+            <n-layout v-else>
+              <n-layout has-sider position="absolute">
+                <transition name="insert-side">
+                  <n-layout-sider
+                    v-if="user.settings.showSideMenu"
+                    :collapsed="user.settings.sideMenuCollapsed"
+                    :collapsed-width="menuConfig.collapsedWidth"
+                    :native-scrollbar="false"
+                    bordered
+                    collapse-mode="width"
+                    default-collapsed
+                    show-trigger="bar"
+                    width="20em"
+                    @collapse="user.settings.sideMenuCollapsed = true"
+                    @expand="user.settings.sideMenuCollapsed = false">
+                    <n-menu
+                      :collapsed="user.settings.sideMenuCollapsed"
+                      :collapsed-icon-size="22"
+                      :collapsed-width="menuConfig.collapsedWidth"
+                      :icon-size="22"
+                      :options="menuOptions"
+                      :render-icon="renderAppIcon"
+                      :value="router.currentRoute.value.name ?? null"
+                      @update:value="router.push({ name: $event })" />
+                  </n-layout-sider>
+                </transition>
+                <app-scroll-layout>
+                  <div
+                    :class="{ 'more-padding': user.settings.showSideMenu }"
+                    class="router-wrapper">
+                    <router-view v-slot="{ Component }" class="router-view">
+                      <transition mode="out-in" name="view-ios">
+                        <keep-alive :exclude="keepAliveBlacklist">
+                          <component :is="Component" />
+                        </keep-alive>
+                      </transition>
+                    </router-view>
+                  </div>
+                </app-scroll-layout>
+              </n-layout>
+            </n-layout>
+          </transition>
+          <transition mode="out-in">
+            <n-layout-footer
+              v-if="!loaders.initial.loading"
+              :bordered="user.settings.showSideMenu"
+              :class="{ 'with-background': user.settings.showSideMenu }"
+              class="footer-view">
+              <app-footer-menu />
+            </n-layout-footer>
+          </transition>
+        </n-flex>
+      </n-message-provider>
+    </n-loading-bar-provider>
+    <n-global-style />
+  </n-config-provider>
+</template>
+
+<style lang="sass">
+@use "assets/css/animations"
+
+.main-view
+  height: 100vh
+  gap: unset !important
+
+.router-wrapper
+  transition: padding animations.$default-duration animations.$timing-function
+  padding: 0 1em 0 1em
+
+  &.more-padding
+    padding: 0 2em 0 2em
+
+.footer-view
+  overflow: hidden
+  padding: .5em
+
+  &:not(.with-background)
+    background: transparent
+
+.loading-view
+  display: flex
+  justify-content: center
+  align-items: center
+
+  .loader-title
+    img
+      z-index: -1
+      position: absolute
+      top: 0
+      width: 100%
+      height: 100%
+      filter: blur(8px) brightness(.25)
+</style>

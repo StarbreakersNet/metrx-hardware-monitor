@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Migrated the application from Electron to Tauri 2: smaller installers and lower memory usage
+- Hardware metrics are now collected by a Bun sidecar running SystemInformation
+- Upgraded SystemInformation to 6.0.0-beta.21 (`graphics` probe replaced by `gpu`)
+- Auto-updates now use the Tauri updater with signed update packages, keeping the Live / Preview / Nightly channels
+- Settings from the Electron version are not migrated and are reset on first launch
+- Upgraded Vue to 3.5.44, Vue Router to 5.4.0, Pinia to 4.1.0, pinia-plugin-persistedstate to 4.7.1
+- Upgraded NaiveUI to 2.45.3, Chart.js to 4.6.1, Tabler Icons to 3.50.0
+- Upgraded Vite to 8.3.5, Tailwind CSS to 4.3.4 (now through its Vite plugin), Sass to 1.107.1
+- Upgraded ESLint to 10.14.0 with a flat config, Prettier to 3.9.10, Yarn to 4.18.1
+
+### Removed
+
+- Electron, electron-vite, electron-builder and electron-updater
+- Unused Less and vfonts dependencies
+
 ## [1.7.12] - 2026-03-23
 
 ### Fixed

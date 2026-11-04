@@ -1,0 +1,306 @@
+<script setup>
+import {
+  checkForUpdates as checkUpdates,
+  installUpdate as installDownloadedUpdate,
+} from "@/api/updater";
+import AppUtils, { delay, formatBytes } from "@/appUtils";
+import AppIcon from "@/components/Utils/AppIcon.vue";
+import { useSystemStore } from "@/stores/system";
+import { useUserStore } from "@/stores/user";
+import { useMessage, useThemeVars } from "naive-ui";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+
+const user = useUserStore();
+const system = useSystemStore();
+const theme = useThemeVars();
+
+const version = computed(() => "v" + system.app.version);
+const nMessage = useMessage();
+const downloadProgress = reactive({
+  active: false,
+  transferred: "",
+  total: "",
+  bytesPerSecond: "",
+  percent: 0,
+});
+const isUpdateAvailable = ref(false);
+const loaders = reactive({
+  main: new AppUtils.Loader(),
+});
+const silentUpdate = ref(false);
+let message = null;
+
+function createMessage(type, content) {
+  removeMessage();
+  switch (type) {
+    case "loading":
+      message = nMessage.loading(content, {
+        duration: 0,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+    case "success":
+      message = nMessage.success(content, {
+        duration: 1000,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+    case "warning":
+      message = nMessage.warning(content, {
+        duration: 5000,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+    case "error":
+      message = nMessage.error(
+        content.split("\n")[0] + (content.split("\n").length > 1 ? "..." : ""),
+        {
+          duration: 0,
+          closable: true,
+          keepAliveOnHover: true,
+        }
+      );
+      break;
+    default:
+      message = nMessage.info(content, {
+        duration: 3000,
+        closable: false,
+        keepAliveOnHover: true,
+      });
+      break;
+  }
+}
+
+function removeMessage() {
+  if (message) {
+    message.destroy();
+    message = null;
+  }
+}
+
+function onUpdaterEvent({ event, data }) {
+  switch (event) {
+    case "checking":
+      if (!silentUpdate.value) {
+        createMessage(
+          "loading",
+          "Vérification des mises à jour... (actuel: " + version.value + ")"
+        );
+      }
+      break;
+
+    case "available":
+      if (!silentUpdate.value) {
+        createMessage("success", "Mise à jour disponible");
+      }
+      break;
+
+    case "notAvailable":
+      if (!silentUpdate.value) {
+        createMessage("info", "Aucune mise à jour disponible");
+      }
+      loaders.main.stop();
+      break;
+
+    case "cancelled":
+      if (!silentUpdate.value) {
+        createMessage("warning", "Mise à jour annulée. " + data.message);
+      }
+      loaders.main.stop();
+      break;
+
+    case "progress":
+      onDownloadProgress(data);
+      break;
+
+    case "downloaded":
+      onUpdateDownloaded();
+      break;
+
+    case "error":
+      createMessage("error", "Erreur lors de la mise à jour. " + data.message);
+      console.error("[Updater]:", data.message);
+      loaders.main.stop();
+      break;
+
+    case "log":
+      console.log("[Updater]:", data.message);
+      break;
+  }
+}
+
+function onDownloadProgress(progress) {
+  let formatedTransferred = formatBytes(progress.transferred);
+  let formatedTotal = formatBytes(progress.total);
+  let formatedBytesPerSecond = formatBytes(progress.bytesPerSecond);
+  let roundedPercent = Math.round(progress.percent);
+
+  downloadProgress.transferred = formatedTransferred.value + " " + formatedTransferred.unit;
+  downloadProgress.total = formatedTotal.value + " " + formatedTotal.unit;
+  downloadProgress.bytesPerSecond =
+    formatedBytesPerSecond.value + " " + formatedBytesPerSecond.unit + "/s";
+  downloadProgress.percent = roundedPercent;
+
+  if (!downloadProgress.active) {
+    downloadProgress.active = true;
+    if (!silentUpdate.value) {
+      createMessage(
+        "loading",
+        "Téléchargement en cours... " +
+          downloadProgress.transferred +
+          "/" +
+          downloadProgress.total +
+          " (" +
+          downloadProgress.percent +
+          "% - " +
+          downloadProgress.bytesPerSecond +
+          ")"
+      );
+    }
+  }
+}
+
+async function onUpdateDownloaded() {
+  downloadProgress.transferred = downloadProgress.total;
+  downloadProgress.percent = 100;
+  await delay(250);
+
+  downloadProgress.active = false;
+  if (!silentUpdate.value) {
+    createMessage("success", "Mise à jour téléchargée");
+  }
+  loaders.main.stop();
+  isUpdateAvailable.value = true;
+}
+
+async function checkForUpdates(isSilent = false) {
+  silentUpdate.value = isSilent;
+  loaders.main.start();
+
+  try {
+    await checkUpdates(user.settings.updateChanel, onUpdaterEvent);
+  } catch (error) {
+    onUpdaterEvent({ event: "error", data: { message: String(error) } });
+  }
+}
+
+async function installUpdate() {
+  loaders.main.start();
+
+  try {
+    await installDownloadedUpdate();
+  } catch (error) {
+    onUpdaterEvent({ event: "error", data: { message: String(error) } });
+  }
+}
+
+const buildType = computed(() => {
+  if (system.app.version) {
+    const types = {
+      stable: {
+        label: "Live",
+        icon: "boltFilled",
+      },
+      beta: {
+        label: "Preview",
+        icon: "flaskFilled",
+      },
+      alpha: {
+        label: "Nightly",
+        icon: "radioactiveFilled",
+      },
+    };
+
+    const typeKeys = Object.keys(types);
+    const foundKey = typeKeys.find(key => version.value.includes(key));
+
+    return foundKey ? types[foundKey] : types.stable;
+  } else {
+    return "loading";
+  }
+});
+
+onMounted(() => {
+  if (user.settings.autoUpdate) {
+    checkForUpdates(true);
+  }
+});
+
+onBeforeUnmount(() => {
+  removeMessage();
+});
+
+watch(
+  () => user.settings.updateChanel,
+  () => {
+    checkForUpdates(false);
+  }
+);
+</script>
+
+<template>
+  <n-tag :bordered="false" round type="primary">
+    <n-flex align="center" size="small">
+      <n-popover v-if="buildType" :show-arrow="false" trigger="hover">
+        <template #trigger>
+          <app-icon :name="buildType.icon" />
+        </template>
+        <template #default>Version {{ buildType.label.toLowerCase() }} {{ version }}</template>
+      </n-popover>
+      <app-icon
+        v-if="buildType === 'loading'"
+        class="tw:animate-spin"
+        name="compassFilled"
+        size="1.25em" />
+      <transition v-else mode="out-in" name="insert">
+        <div v-if="!isUpdateAvailable">
+          <n-popover :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <n-button
+                :bordered="false"
+                :loading="loaders.main.loading"
+                size="tiny"
+                @click="checkForUpdates()">
+                <template #icon>
+                  <app-icon name="refresh" />
+                </template>
+              </n-button>
+            </template>
+            <template #default>Vérifier les mises à jour</template>
+          </n-popover>
+        </div>
+        <n-flex v-else :size="0" align="center">
+          <n-text class="update-subtitle">Nouvelle version disponible</n-text>
+          <n-popover :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <n-button
+                :bordered="false"
+                :loading="loaders.main.loading"
+                size="tiny"
+                @click="installUpdate()">
+                <template #icon>
+                  <app-icon
+                    :color="theme.warningColor"
+                    class="tw:animate-pulse"
+                    name="download"
+                    size="1.5em" />
+                </template>
+              </n-button>
+            </template>
+            <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>
+          </n-popover>
+        </n-flex>
+      </transition>
+    </n-flex>
+  </n-tag>
+</template>
+
+<style lang="sass">
+.update-subtitle
+  font-size: 0.8em
+  font-weight: 400
+  color: var(--n-color-text)
+</style>

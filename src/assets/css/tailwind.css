@@ -1,0 +1,2 @@
+/* Tailwind CSS 4 : toutes les classes utilitaires sont préfixées par `tw:` (ex : tw:flex) */
+@import "tailwindcss" prefix(tw);

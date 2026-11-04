@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Metrx",
+  "version": "../package.json",
+  "identifier": "com.starbreakers.metrx",
+  "build": {
+    "beforeDevCommand": "yarn sidecar:build && yarn vite:dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "yarn sidecar:build && yarn vite:build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [],
+    "security": {
+      "csp": {
+        "default-src": "'self' ipc: http://ipc.localhost",
+        "connect-src": "'self' ipc: http://ipc.localhost",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: asset: http://asset.localhost",
+        "font-src": "'self' data:"
+      },
+      "devCsp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "app", "dmg", "appimage", "deb"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": ["binaries/metrx-metrics"],
+    "createUpdaterArtifacts": false,
+    "publisher": "Starbreakers",
+    "copyright": "Copyright © TheRedfoox — MIT License",
+    "license": "MIT",
+    "homepage": "https://github.com/StarbreakersNet/metrx-hardware-monitor",
+    "category": "Utility",
+    "shortDescription": "Moniteur matériel en temps réel",
+    "longDescription": "Metrx affiche en temps réel l'utilisation du CPU, du GPU, de la mémoire et leurs températures.",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "hardenedRuntime": true,
+      "entitlements": "./Entitlements.plist"
+    },
+    "linux": {
+      "deb": {
+        "section": "utils"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYxNkUyOUNFREM5NkZENDIKUldSQy9aYmN6aWx1OFpGWTdLVmhVVWY4TVNmM3YvcjE4YjRyVlZoVHkzQ0xncVNsOXhpMUVPaUwK",
+      "endpoints": [],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

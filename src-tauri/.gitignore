@@ -1,0 +1,8 @@
+# Généré par Cargo
+/target/
+
+# Généré par Tauri (schémas des capabilities)
+/gen/schemas
+
+# Sidecar compilé par `yarn sidecar:build`
+/binaries/
