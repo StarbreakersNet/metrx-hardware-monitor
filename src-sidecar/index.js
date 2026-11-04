@@ -14,6 +14,8 @@
  *
  * stderr est réservé aux logs (affichés dans la console de `tauri dev`).
  */
+// Doit rester le premier import (corrige child_process avant systeminformation)
+import "./bun-compat.js";
 import { createInterface } from "node:readline";
 import * as si from "systeminformation";
 import siPackage from "systeminformation/package.json" with { type: "json" };
@@ -133,6 +135,11 @@ async function handleLine(line) {
     send({ id, error: error?.message ?? String(error) });
   }
 }
+
+// systeminformation v6 est en beta : une erreur inattendue est journalisée sans arrêter
+// la collecte (Tauri relancerait sinon le sidecar en boucle).
+process.on("uncaughtException", error => log("Erreur non gérée :", error));
+process.on("unhandledRejection", error => log("Promesse rejetée non gérée :", error));
 
 const EXIT_TIMEOUT = 5000;
 const input = createInterface({ input: process.stdin });
