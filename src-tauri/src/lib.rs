@@ -1,4 +1,5 @@
 mod app_info;
+mod autostart;
 mod gnome;
 mod i18n;
 mod menu;
@@ -26,9 +27,14 @@ pub fn run() {
         )
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::default().build())
+        // Lance le sidecar. En 2.x, il intercepte aussi tous les clics sur les liens `target="_blank"`
+        // pour les ouvrir avec sa commande `open` (permission `shell:allow-open`), avant le plugin
+        // opener, sans option pour le désactiver : https://github.com/tauri-apps/plugins-workspace/issues/3753
+        // Quand l'option `open_js_links_on_click(false)` sera publiée (shell 2.7), l'utiliser ici et
+        // retirer `shell:allow-open` des capabilities pour laisser les liens au plugin opener.
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_os::init())
-        // Ouvre les liens `target="_blank"` dans le navigateur par défaut
+        // Ouvre les liens `target="_blank"` dans le navigateur par défaut (voir le plugin shell)
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

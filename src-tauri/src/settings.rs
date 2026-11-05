@@ -6,10 +6,9 @@
 use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Runtime};
-use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_store::StoreExt;
 
-use crate::{i18n, menu, tray};
+use crate::{autostart, i18n, menu, tray};
 
 const STORE_FILE: &str = "settings.json";
 pub const SETTINGS_CHANGED_EVENT: &str = "settings:changed";
@@ -44,8 +43,12 @@ pub fn init<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Er
     store.save()?;
 
     i18n::set_language(&get_language(app));
-    // Réaligne l'autostart du système avec la préférence (ex : chemin changé après une mise à jour)
-    sync_autostart(app, get_bool(app, START_ON_LOGIN));
+
+    // Aligne le lancement au démarrage entre la préférence et le système (voir autostart.rs)
+    if let Some(enabled) = autostart::init(app, get_bool(app, START_ON_LOGIN)) {
+        store.set(START_ON_LOGIN, enabled);
+        store.save()?;
+    }
 
     Ok(())
 }
@@ -76,7 +79,7 @@ pub fn set_bool<R: Runtime>(app: &AppHandle<R>, key: &str, value: bool) -> Resul
     save(app, key, Value::Bool(value))?;
 
     if key == START_ON_LOGIN {
-        sync_autostart(app, value);
+        autostart::set(app, value);
     }
 
     tray::refresh(app);
@@ -117,27 +120,6 @@ fn save<R: Runtime>(app: &AppHandle<R>, key: &str, value: Value) -> Result<(), S
 
     store.set(key, value);
     store.save().map_err(|error| error.to_string())
-}
-
-fn sync_autostart<R: Runtime>(app: &AppHandle<R>, enabled: bool) {
-    // En développement, on évite d'inscrire le binaire de debug au démarrage de la session
-    if cfg!(debug_assertions) {
-        eprintln!("[settings] Lancement au démarrage ignoré en développement ({enabled})");
-        return;
-    }
-
-    let autolaunch = app.autolaunch();
-    let result = if enabled {
-        autolaunch.enable()
-    } else if autolaunch.is_enabled().unwrap_or(false) {
-        autolaunch.disable()
-    } else {
-        Ok(())
-    };
-
-    if let Err(error) = result {
-        eprintln!("[settings] Impossible de modifier le lancement au démarrage : {error}");
-    }
 }
 
 #[tauri::command]
