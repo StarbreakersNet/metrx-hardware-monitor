@@ -165,6 +165,12 @@ jobs:
           APPLE_CERTIFICATE: ${{ secrets.CSC_LINK }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
+      # Lance le sidecar compilé pour cet OS : la release n'est pas publiée s'il ne répond pas
+      - name: Check sidecar
+        shell: bash
+        timeout-minutes: 3
+        run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-${{ matrix.target }}${{ matrix.platform == 'windows' && '.exe' || '' }}
+
       - name: Collect artefacts
         shell: bash
         run: |
