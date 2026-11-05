@@ -125,16 +125,8 @@ jobs:
 
       - name: Check sidecar
         shell: bash
-        timeout-minutes: 2
-        run: |
-          BINARIES=src-tauri/binaries
-          ls -la "$BINARIES"
-          SIDECAR=$(ls "$BINARIES"/metrx-metrics-${{ matrix.target }}*)
-          # Le sidecar doit répondre à une requête puis s'arrêter quand stdin se ferme
-          printf '{"id":1,"method":"versions"}\n{"id":2,"method":"get","params":{"currentLoad":"currentLoad","mem":"total, used","cpuTemperature":"main","gpu":"vendor, model","version":"*"}}\n' > requests.jsonl
-          "$SIDECAR" < requests.jsonl | tee responses.jsonl
-          grep -q '"id":1,"result"' responses.jsonl
-          grep -q '"id":2,"result"' responses.jsonl
+        timeout-minutes: 3
+        run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-${{ matrix.target }}${{ matrix.platform == 'windows' && '.exe' || '' }}
 
       - name: Upload installers
         uses: actions/upload-artifact@v7
