@@ -1,5 +1,7 @@
-# Vérifie que l'application compile et se package sur les 3 OS : sur les pull requests vers
-# main / develop, ou à la demande (onglet Actions > CI > Run workflow), pas à chaque push.
+# Vérifie que l'application compile et se package sur les 3 OS, pas à chaque push :
+# - sur les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
+#   touchent autre chose que la documentation
+# - à la demande (onglet Actions > CI > Run workflow)
 # Rien n'est signé ni publié : les installeurs sont seulement disponibles en artefacts
 # du workflow (7 jours, un fichier par installeur) pour pouvoir les tester.
 # Les releases passent par deploy.yml (tags).
@@ -10,6 +12,14 @@ on:
     branches:
       - main
       - develop
+    # ready_for_review : passage d'une PR brouillon à « Ready for review »
+    types: [opened, reopened, synchronize, ready_for_review]
+    # Une PR qui ne modifie que ces fichiers ne relance pas les builds
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".vscode/**"
   workflow_dispatch:
 
 concurrency:
@@ -19,6 +29,8 @@ concurrency:
 jobs:
   lint:
     name: Lint & tests
+    # Pas de CI sur les PR en brouillon (elle se lance au passage en « Ready for review »)
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
@@ -72,6 +84,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.platform }}
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
