@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The license link in the About page opened the MIT license of the old project template instead of the GNU GPL
+
 ## [2.0.0-beta.2] - 2026-11-05
 
 ### Fixed
