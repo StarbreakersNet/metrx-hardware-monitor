@@ -197,27 +197,36 @@ async function installUpdate() {
   }
 }
 
+// Les versions Live / Preview / Nightly viennent exclusivement des tags de release (voir
+// .github/workflows/deploy.yml) : tout le reste (ex : 0.0.0-dev) est une version de dev.
 const buildType = computed(() => {
   if (system.app.version) {
     const types = {
       stable: {
         label: "Live",
         icon: "boltFilled",
+        pattern: /^\d+\.\d+\.\d+$/,
       },
       beta: {
         label: "Preview",
         icon: "flaskFilled",
+        pattern: /^\d+\.\d+\.\d+-beta(\.\d+)?$/,
       },
       alpha: {
         label: "Nightly",
         icon: "radioactiveFilled",
+        pattern: /^\d+\.\d+\.\d+-alpha(\.\d+)?$/,
+      },
+      dev: {
+        label: "Dev",
+        icon: "code",
       },
     };
 
     const typeKeys = Object.keys(types);
-    const foundKey = typeKeys.find(key => version.value.includes(key));
+    const foundKey = typeKeys.find(key => types[key].pattern?.test(system.app.version));
 
-    return foundKey ? types[foundKey] : types.stable;
+    return foundKey ? types[foundKey] : types.dev;
   } else {
     return "loading";
   }
@@ -244,7 +253,7 @@ watch(
 <template>
   <n-tag :bordered="false" round type="primary">
     <n-flex align="center" size="small">
-      <n-popover v-if="buildType" :show-arrow="false" trigger="hover">
+      <n-popover v-if="buildType !== 'loading'" :show-arrow="false" trigger="hover">
         <template #trigger>
           <app-icon :name="buildType.icon" />
         </template>
