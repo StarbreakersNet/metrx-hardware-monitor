@@ -17,7 +17,8 @@
     "sidecar:dev": "bun src-sidecar/index.js",
     "vite:dev": "vite",
     "vite:build": "vite build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "release": "release-it"
   },
   "dependencies": {
     "@tabler/icons-vue": "^3.50.0",
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@release-it/keep-a-changelog": "^8.0.1",
     "@tailwindcss/vite": "^4.3.4",
     "@tauri-apps/cli": "^2.12.4",
     "@vitejs/plugin-vue": "^6.0.10",
@@ -51,6 +53,7 @@
     "globals": "^17.14.0",
     "node-gyp": "^13.1.0",
     "prettier": "^3.9.10",
+    "release-it": "^21.1.2",
     "sass": "^1.107.1",
     "tailwindcss": "^4.3.4",
     "vite": "^8.3.5",
