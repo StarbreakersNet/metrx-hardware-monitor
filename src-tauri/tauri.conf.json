@@ -38,7 +38,7 @@
     "createUpdaterArtifacts": false,
     "publisher": "StarbreakersNet",
     "copyright": "Copyright © StarbreakersNet",
-    "license": "MIT",
+    "license": "GPL-3.0-or-later",
     "homepage": "https://github.com/StarbreakersNet/metrx-hardware-monitor",
     "category": "Utility",
     "shortDescription": "Real-time hardware monitor",

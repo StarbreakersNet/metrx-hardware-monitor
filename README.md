@@ -137,8 +137,13 @@ with `pinia-plugin-persistedstate`, system settings (start on login, start minim
 
 ### Contributing
 
-Contributions are welcome! Please read our contributing guidelines before submitting merge requests.
+Contributions are welcome! Feel free to open an issue or a pull request. By contributing, you agree
+that your contributions are licensed under the GPL-3.0-or-later license of the project.
 
 ### License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Copyright (C) 2022-2026 StarbreakersNet
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. See the [LICENSE](LICENSE) file for details.

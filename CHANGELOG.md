@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Upgraded Vite to 8.3.5, Tailwind CSS to 4.3.4 (now through its Vite plugin), Sass to 1.107.1
 - Upgraded ESLint to 10.14.0 with a flat config, Prettier to 3.9.10, Yarn to 4.18.1
 
+- License changed from MIT to GPL-3.0-or-later
+
 ### Removed
 
 - Electron, electron-vite, electron-builder and electron-updater
