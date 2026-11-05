@@ -41,6 +41,10 @@ The application is available in French and English. Texts live in `locales/*.jso
 
 Both files must contain the same keys: a Rust test (`cargo test`) checks it in CI.
 
+Issue templates (`.github/ISSUE_TEMPLATE`) only exist in French and English: for any other language,
+the "Report an issue" link opens the English template (`ISSUE_TEMPLATE_LANGUAGES` in
+`src/models/repository.js`).
+
 ## Recommended IDE Setup
 
 - [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/) with [Vue.js](https://www.jetbrains.com/help/idea/vue-js.html), [ESLint](https://www.jetbrains.com/help/idea/eslint.html), [Prettier](https://www.jetbrains.com/help/idea/prettier.html) and [Rust](https://www.jetbrains.com/rust/)

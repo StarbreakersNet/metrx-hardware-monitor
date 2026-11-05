@@ -1,12 +1,13 @@
-name: 🇬🇧 Report a bug
+name: Report a bug (English)
 description: Something in Metrx does not work as expected
-title: "[Bug] "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to report this issue! The more precise the description, the easier it is to fix.
+
+        Before you start, check that it has not already been reported in the [existing issues](https://github.com/StarbreakersNet/metrx-hardware-monitor/issues?q=is%3Aissue%20label%3Abug).
   - type: textarea
     id: description
     attributes:
@@ -30,6 +31,17 @@ body:
     attributes:
       label: Expected behavior
       description: What should have happened instead?
+    validations:
+      required: false
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequency
+      description: Does the problem happen every time?
+      options:
+        - Every time
+        - Sometimes
+        - Only once
     validations:
       required: false
   - type: input
@@ -58,7 +70,15 @@ body:
   - type: textarea
     id: screenshots
     attributes:
-      label: Screenshots or logs
+      label: Screenshots
       description: You can drag and drop images here.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console logs
+      description: Right-click the 🐞 icon at the bottom right of the window to open the developer tools, then copy the content of the "Console" tab.
+      render: shell
     validations:
       required: false

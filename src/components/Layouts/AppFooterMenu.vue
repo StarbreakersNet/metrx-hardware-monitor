@@ -3,7 +3,7 @@ import { getOsLabel, openDevTools } from "@/api/app";
 import { renderAppIcon } from "@/appUtils";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import appMenuOptions from "@/models/appMenuOptions";
-import { REPOSITORY_URL } from "@/models/repository";
+import { ISSUE_TEMPLATE_LANGUAGES, REPOSITORY_URL } from "@/models/repository";
 import { useSystemStore } from "@/stores/system";
 import { useUserStore } from "@/stores/user";
 import Updater from "@/Updater.vue";
@@ -16,10 +16,11 @@ const user = useUserStore();
 const router = useRouter();
 const { t, locale } = useI18n();
 
-// Modèle de bug dans la langue de l'app (.github/ISSUE_TEMPLATE), version et OS pré-remplis
+// Modèle de bug dans la langue de l'app (anglais à défaut), version et OS pré-remplis
 const bugReportUrl = computed(() => {
+  const language = ISSUE_TEMPLATE_LANGUAGES.includes(locale.value) ? locale.value : "en";
   const params = new URLSearchParams({
-    template: `bug_report_${locale.value}.yml`,
+    template: `bug_report_${language}.yml`,
     version: system.app.version,
     os: getOsLabel(),
   });
