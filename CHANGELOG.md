@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - macOS: "Launch at startup" now registers Metrx as a login item (SMAppService), listed under its own name and icon in System Settings > General > Login Items instead of the developer name
 - macOS: turning off Metrx in System Settings > General > Login Items is now reflected in the "Launch at startup" setting
+- Removed an error logged at every startup by the notifications plugin (missing read-only permission)
 
 ## [2.0.0-beta] - 2026-11-05
 
