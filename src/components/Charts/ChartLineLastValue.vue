@@ -83,21 +83,27 @@ function onSerieColorRemove(serie) {
     :type="lastValue.colorType"
     round>
     <template v-if="props.icon" #avatar>
-      <n-avatar
-        :style="{
-          background: 'transparent',
-          color: getSerieColor(lastValue),
-        }">
-        <app-icon v-if="!settings.showChartTitle" :name="props.icon" />
-        <app-icon v-else name="circle-filled" />
-        <n-color-picker
-          :actions="['clear']"
-          :modes="['hsl', 'hex']"
-          :value="getSerieColor(lastValue)"
-          class="hidden-color-picker"
-          @clear="onSerieColorRemove(lastValue)"
-          @update:value="onSerieColorChange(lastValue, $event)" />
-      </n-avatar>
+      <n-color-picker
+        :actions="['clear']"
+        :modes="['hsl', 'hex']"
+        :value="getSerieColor(lastValue)"
+        @clear="onSerieColorRemove(lastValue)"
+        @update:value="onSerieColorChange(lastValue, $event)">
+        <!-- L'avatar remplace le déclencheur par défaut (pastille de couleur) du color picker -->
+        <template #trigger="{ onClick, ref: setTriggerRef }">
+          <n-avatar
+            :ref="setTriggerRef"
+            :style="{
+              background: 'transparent',
+              color: getSerieColor(lastValue),
+              cursor: 'pointer',
+            }"
+            @click="onClick">
+            <app-icon v-if="!settings.showChartTitle" :name="props.icon" />
+            <app-icon v-else name="circle-filled" />
+          </n-avatar>
+        </template>
+      </n-color-picker>
     </template>
     <template #default>
       <n-flex size="small">
@@ -120,13 +126,4 @@ function onSerieColorRemove(serie) {
 <style lang="sass" scoped>
 .number-container
   min-width: 3em
-
-.hidden-color-picker
-  opacity: 0
-  position: absolute
-  height: unset
-  top: 0
-  left: 0
-  right: 0
-  bottom: 0
 </style>
