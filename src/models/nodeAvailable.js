@@ -1,28 +1,33 @@
+/** Sondes de données disponibles (`labelKey` : clé de traduction dans `probes.*`) */
 export default [
   {
-    label: "Temps",
+    labelKey: "probes.time",
     options: [
-      { label: "Heure locale", apiKey: "time", params: ["current"] },
-      { label: "Allumé depuis", apiKey: "time", params: ["uptime"] },
-      { label: "Fuseau", apiKey: "time", params: ["timezone"] },
-      { label: "Nom du fuseau", apiKey: "time", params: ["timezoneName"] },
+      { labelKey: "probes.currentTime", apiKey: "time", params: ["current"] },
+      { labelKey: "probes.uptime", apiKey: "time", params: ["uptime"] },
+      { labelKey: "probes.timezone", apiKey: "time", params: ["timezone"] },
+      { labelKey: "probes.timezoneName", apiKey: "time", params: ["timezoneName"] },
     ],
   },
   {
-    label: "CPU",
+    labelKey: "probes.cpu",
     options: [
-      { label: "Utilisation", apiKey: "currentLoad", params: ["currentLoad", "currentLoadIdle"] },
-      { label: "Température", apiKey: "cpuTemperature", params: ["*"] }, // Warning: Ne marche pas sans lancer en tant qu'admin
-      { label: "Horloge", apiKey: "cpuCurrentSpeed", params: ["*"] },
+      {
+        labelKey: "probes.cpuUsage",
+        apiKey: "currentLoad",
+        params: ["currentLoad", "currentLoadIdle"],
+      },
+      { labelKey: "probes.cpuTemperature", apiKey: "cpuTemperature", params: ["*"] }, // Warning: Ne marche pas sans lancer en tant qu'admin
+      { labelKey: "probes.cpuClock", apiKey: "cpuCurrentSpeed", params: ["*"] },
     ],
   },
   {
-    label: "GPU",
+    labelKey: "probes.gpu",
     apiKey: "gpu",
     params: ["*"],
   },
   {
-    label: "Mémoire",
+    labelKey: "probes.memory",
     apiKey: "mem",
     params: ["*"],
   },

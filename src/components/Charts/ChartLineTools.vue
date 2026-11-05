@@ -3,6 +3,7 @@ import AppIcon from "@/components/Utils/AppIcon.vue";
 import chartLineToolsAvailable from "@/models/chartLineToolsAvailable";
 import { useUserStore } from "@/stores/user";
 import { computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 const thresholdsData = defineModel("thresholdsData", {
   type: Object,
@@ -21,6 +22,7 @@ const props = defineProps({
 });
 
 const { settings } = useUserStore();
+const { t } = useI18n();
 
 const chartConfig = computed(() => {
   return settings.chartsSettings.find(chart => chart.id === props.chartId);
@@ -151,7 +153,7 @@ defineExpose({
         <template #header>
           <n-flex align="center">
             <app-icon name="tools" />
-            <n-text>Outils du graphique</n-text>
+            <n-text>{{ t("charts.tools.title") }}</n-text>
           </n-flex>
         </template>
         <template #header-extra>
@@ -163,27 +165,27 @@ defineExpose({
                 </template>
               </n-button>
             </template>
-            <template #default>Réinitialiser</template>
+            <template #default>{{ t("common.reset") }}</template>
           </n-popover>
         </template>
         <template #default>
           <n-flex vertical>
-            <template v-for="setting in chartLineToolsAvailable" :key="setting.label">
+            <template v-for="setting in chartLineToolsAvailable" :key="setting.storeKey">
               <template v-if="setting.type === 'checkbox'">
                 <n-checkbox
                   :checked="chartConfigValues[setting.storeKey]"
-                  :label="setting.label"
+                  :label="t(setting.labelKey)"
                   @update:checked="udpateChartSettings(setting.storeKey, $event)" />
               </template>
             </template>
             <n-checkbox
               :checked="showThresholds"
               @update:checked="setThresholds({ newShowThresholds: $event })">
-              Afficher les seuils
+              {{ t("charts.tools.showThresholds") }}
             </n-checkbox>
             <n-flex align="flex-end" vertical>
               <n-flex>
-                <span>Seuil d'avertissement</span>
+                <span>{{ t("charts.tools.warningThreshold") }}</span>
                 <n-input-number
                   :disabled="!showThresholds"
                   :loading="!thresholdWarning"
@@ -196,7 +198,7 @@ defineExpose({
                 </n-input-number>
               </n-flex>
               <n-flex>
-                <span>Seuil de danger</span>
+                <span>{{ t("charts.tools.dangerThreshold") }}</span>
                 <n-input-number
                   :disabled="!showThresholds"
                   :loading="!thresholdDanger"

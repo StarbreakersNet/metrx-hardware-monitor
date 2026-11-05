@@ -1,12 +1,12 @@
 /**
- * Réglages « système » (lancement au démarrage, ouverture minimisée).
+ * Réglages « système » (lancement au démarrage, ouverture minimisée, langue).
  *
  * Ils sont stockés côté Rust (voir `src-tauri/src/settings.rs`) car le tray les utilise aussi.
  */
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
-export const DESKTOP_SETTING_KEYS = ["startOnLogin", "startMinimized"];
+export const DESKTOP_SETTING_KEYS = ["startOnLogin", "startMinimized", "language"];
 
 let desktopSettings = {};
 

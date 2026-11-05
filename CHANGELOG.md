@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- English translation: the application is now available in French and English, following the system language by default, with a new "Language" setting (interface, tray menu, notifications and macOS menu bar)
+- "Dev" build type for versions that are not built from a release tag
+
 ### Changed
 
 - Migrated the application from Electron to Tauri 2: smaller installers and lower memory usage
@@ -14,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Upgraded SystemInformation to 6.0.0-beta.21 (`graphics` probe replaced by `gpu`)
 - Auto-updates now use the Tauri updater with signed update packages, keeping the Live / Preview / Nightly channels
 - Settings from the Electron version are not migrated and are reset on first launch
+- Release assets are now the installers themselves (`.exe`, `.dmg`, `.deb`, `.AppImage`)
 - Upgraded Vue to 3.5.44, Vue Router to 5.4.0, Pinia to 4.1.0, pinia-plugin-persistedstate to 4.7.1
 - Upgraded NaiveUI to 2.45.3, Chart.js to 4.6.1, Tabler Icons to 3.50.0
 - Upgraded Vite to 8.3.5, Tailwind CSS to 4.3.4 (now through its Vite plugin), Sass to 1.107.1

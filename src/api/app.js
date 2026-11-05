@@ -9,6 +9,7 @@ let appInfo = {
   version: "",
   tauriVersion: "",
   webviewVersion: null,
+  systemLocale: "",
 };
 
 /** Charge les infos de l'application (à appeler une fois au démarrage, voir main.js) */

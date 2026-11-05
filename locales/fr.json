@@ -1,0 +1,252 @@
+{
+  "app": {
+    "common": {
+      "reset": "Réinitialiser",
+      "validate": "Valider",
+      "devEnvironment": "Environnement de développement"
+    },
+    "loading": {
+      "starting": "Démarrage du monitoring",
+      "slow": "Le chargement est long..."
+    },
+    "menu": {
+      "home": "Accueil",
+      "nodes": "Données",
+      "probes": "Sondes",
+      "settings": "Paramètres",
+      "other": "Autres",
+      "about": "À propos",
+      "unknownVersion": "Version ?"
+    },
+    "footer": {
+      "reportIssue": "Signaler un problème sur GitHub"
+    },
+    "units": {
+      "b": "octets",
+      "kb": "Ko",
+      "mb": "Mo",
+      "gb": "Go",
+      "tb": "To",
+      "pb": "Po",
+      "eb": "Eo",
+      "zb": "Zo",
+      "yb": "Yo"
+    },
+    "charts": {
+      "titles": {
+        "usage": "Utilisation",
+        "clock": "Horloge",
+        "temperature": "Température",
+        "vramUsage": "Utilisation VRAM",
+        "power": "Puissance",
+        "fanSpeed": "Vitesse des ventilateurs"
+      },
+      "organize": "Organiser les graphiques",
+      "mergeTitle": "Fusion des graphiques",
+      "tools": {
+        "title": "Outils du graphique",
+        "showGraph": "Afficher le graphique",
+        "showAverage": "Afficher la moyenne",
+        "showMinMax": "Afficher min/max",
+        "showThresholds": "Afficher les seuils",
+        "warningThreshold": "Seuil d'avertissement",
+        "dangerThreshold": "Seuil de danger"
+      }
+    },
+    "stats": {
+      "title": "Statistiques",
+      "columns": {
+        "name": "Nom",
+        "value": "Valeur",
+        "unit": "Unité",
+        "documentation": "Documentation"
+      },
+      "seeDocumentation": "Voir la documentation",
+      "time": "Temps",
+      "hour": "Heure",
+      "date": "Date",
+      "cpu": "CPU",
+      "gpu": "GPU",
+      "memory": "Mémoire",
+      "manufacturer": "Constructeur",
+      "model": "Modèle",
+      "cores": "Cœurs",
+      "logicalProcessors": "Processeurs logiques",
+      "socket": "Socket",
+      "usage": "Utilisation",
+      "temperature": "Température",
+      "clock": "Horloge",
+      "virtualization": "Virtualisation",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "driver": "Driver",
+      "vram": "VRAM",
+      "used": "Utilisé",
+      "total": "Total",
+      "power": "Puissance",
+      "fanSpeed": "Vitesse des ventilateurs"
+    },
+    "probes": {
+      "title": "Sondes de données",
+      "time": "Temps",
+      "currentTime": "Heure locale",
+      "uptime": "Allumé depuis",
+      "timezone": "Fuseau",
+      "timezoneName": "Nom du fuseau",
+      "cpu": "CPU",
+      "cpuUsage": "Utilisation",
+      "cpuTemperature": "Température",
+      "cpuClock": "Horloge",
+      "gpu": "GPU",
+      "memory": "Mémoire"
+    },
+    "settings": {
+      "categories": {
+        "interface": "Interface",
+        "charts": "Graphiques",
+        "system": "Système",
+        "update": "Mise à jour",
+        "danger": "Zone de danger"
+      },
+      "items": {
+        "language": {
+          "label": "Langue",
+          "description": "Définit la langue de l'application",
+          "system": "Système"
+        },
+        "theme": {
+          "label": "Thème",
+          "description": "Définit le thème de l'application",
+          "dark": "Sombre",
+          "light": "Clair",
+          "system": "Système"
+        },
+        "nodeFrequency": {
+          "label": "Fréquence de rafraîchissement",
+          "description": "Définit la fréquence de rafraîchissement des données"
+        },
+        "showSideMenu": {
+          "label": "Menu latéral",
+          "description": "Affiche le menu de l'application sur le côté gauche"
+        },
+        "chartColumns": {
+          "label": "Nombre de colonnes",
+          "description": "Définit le nombre de colonnes pour l'affichage des graphiques"
+        },
+        "chartHeight": {
+          "label": "Hauteur des graphiques",
+          "description": "Définit la hauteur des graphiques affichés"
+        },
+        "chartBufferSize": {
+          "label": "Taille du buffer",
+          "description": "Définit le temps en minutes des données à conserver dans les graphiques"
+        },
+        "chartCursorSync": {
+          "label": "Synchroniser les curseurs",
+          "description": "Synchronise la position des curseurs entre les graphiques"
+        },
+        "showXLabel": {
+          "label": "Heures des graphiques",
+          "description": "Affiche sur l'axe des abscisses l'heure de la donnée"
+        },
+        "showChartTitle": {
+          "label": "Titres des graphiques",
+          "description": "Affiche le titre des graphiques"
+        },
+        "chartAnimation": {
+          "label": "Animation des graphiques",
+          "description": "Active ou désactive les animations lors de l'actualisation des graphiques",
+          "info": "L'activation des animations peut augmenter la charge, particulièrement avec un grand nombre de graphiques affichés simultanément"
+        },
+        "startOnLogin": {
+          "label": "Lancer au démarrage",
+          "description": "Lance l'application au démarrage de l'ordinateur"
+        },
+        "startMinimized": {
+          "label": "Ouvrir minimisé",
+          "description": "Ouvre l'application seulement dans la barre des tâches"
+        },
+        "autoUpdate": {
+          "label": "Mise à jour automatique",
+          "description": "Vérifie si une mise à jour est disponible au démarrage de l'application"
+        },
+        "updateChanel": {
+          "label": "Canal de mise à jour",
+          "description": "Vérifiera et installera automatiquement la dernière version du canal sélectionné"
+        }
+      },
+      "reset": {
+        "info": "Permet de restaurer {allSettings} à leurs valeurs {defaults}, y compris les {charts}. Cette réinitialisation peut être utile lorsque vous rencontrez des problèmes d'affichage ou des comportements inattendus dans l'interface après une mise à jour. Si c'est le cas, cette option vous permet de repartir sur une base saine.",
+        "allSettings": "tous les paramètres de l'application",
+        "defaults": "par défaut",
+        "charts": "configurations des graphiques",
+        "button": "Réinitialiser tous les paramètres",
+        "confirm": "Êtes-vous sûr de vouloir réinitialiser tous vos paramètres ?"
+      }
+    },
+    "about": {
+      "devToolsHint": "Appuyez sur {shortcut} pour ouvrir les outils de développement.",
+      "refreshTitle": "Des problèmes d'actualisation ?",
+      "refreshHint": "Vous pouvez appuyer sur {shortcut} pour forcer un rafraîchissement de l'application",
+      "osTheme": "Le thème actuel de votre système est {theme}",
+      "themeDark": "sombre 🌙",
+      "themeLight": "clair ☀️"
+    },
+    "updater": {
+      "checking": "Vérification des mises à jour... (actuelle : {version})",
+      "available": "Mise à jour disponible",
+      "notAvailable": "Aucune mise à jour disponible",
+      "cancelled": "Mise à jour annulée. {message}",
+      "downloading": "Téléchargement en cours... {transferred}/{total} ({percent} % - {speed})",
+      "downloaded": "Mise à jour téléchargée",
+      "error": "Erreur lors de la mise à jour. {message}",
+      "buildVersion": "Version {type} {version}",
+      "check": "Vérifier les mises à jour",
+      "newVersion": "Nouvelle version disponible",
+      "install": "Une mise à jour est disponible. Cliquez pour l'installer."
+    }
+  },
+  "native": {
+    "menu": {
+      "about": "À propos de {name}",
+      "services": "Services",
+      "hide": "Masquer {name}",
+      "hideOthers": "Masquer les autres",
+      "showAll": "Tout afficher",
+      "quit": "Quitter {name}",
+      "file": "Fichier",
+      "edit": "Édition",
+      "undo": "Annuler",
+      "redo": "Rétablir",
+      "cut": "Couper",
+      "copy": "Copier",
+      "paste": "Coller",
+      "selectAll": "Tout sélectionner",
+      "view": "Présentation",
+      "fullscreen": "Passer en mode plein écran",
+      "window": "Fenêtre",
+      "minimize": "Placer dans le Dock",
+      "zoom": "Réduire/agrandir",
+      "closeWindow": "Fermer la fenêtre",
+      "help": "Aide"
+    },
+    "tray": {
+      "open": "Ouvrir",
+      "startOnLogin": "Lancer au démarrage",
+      "startMinimized": "Ouvrir minimisé",
+      "quit": "Quitter"
+    },
+    "update": {
+      "readyTitle": "Une nouvelle mise à jour est prête",
+      "readyBody": "La dernière version de {name} a été téléchargée et sera automatiquement installée à la fermeture de l'application",
+      "devMode": "Impossible de vérifier les mises à jour en mode développement",
+      "alreadyChecking": "Une vérification est déjà en cours",
+      "listFailed": "Impossible de récupérer la liste des versions : {error}",
+      "invalidResponse": "Réponse GitHub invalide : {error}",
+      "checkFailed": "Erreur lors de la vérification des mises à jour : {error}",
+      "downloadFailed": "Erreur lors du téléchargement de la mise à jour : {error}",
+      "installFailed": "Erreur lors de l'installation de la mise à jour : {error}",
+      "noneDownloaded": "Aucune mise à jour téléchargée"
+    }
+  }
+}

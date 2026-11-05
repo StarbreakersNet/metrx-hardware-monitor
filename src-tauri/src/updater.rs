@@ -17,6 +17,7 @@ use tauri::{AppHandle, Manager, Runtime, State, Url};
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_updater::{Update, UpdaterExt};
 
+use crate::i18n::{t, tf};
 use crate::sidecar;
 
 const RELEASES_API: &str =
@@ -136,14 +137,14 @@ pub async fn updater_check<R: Runtime>(
 
     if cfg!(debug_assertions) {
         send(UpdaterEvent::Cancelled {
-            message: "Impossible de vérifier les mises à jour en mode développement".into(),
+            message: t("update.devMode"),
         });
         return Ok(());
     }
 
     if state.checking.swap(true, Ordering::SeqCst) {
         send(UpdaterEvent::Cancelled {
-            message: "Une vérification est déjà en cours".into(),
+            message: t("update.alreadyChecking"),
         });
         return Ok(());
     }
@@ -192,7 +193,7 @@ async fn check_and_download<R: Runtime>(
         .map_err(|error| error.to_string())?
         .check()
         .await
-        .map_err(|error| format!("Erreur lors de la vérification des mises à jour : {error}"))?;
+        .map_err(|error| tf("update.checkFailed", &[("error", &error.to_string())]))?;
 
     let Some(update) = update else {
         send(UpdaterEvent::NotAvailable);
@@ -226,7 +227,7 @@ async fn check_and_download<R: Runtime>(
             || {},
         )
         .await
-        .map_err(|error| format!("Erreur lors du téléchargement de la mise à jour : {error}"))?;
+        .map_err(|error| tf("update.downloadFailed", &[("error", &error.to_string())]))?;
 
     *state.downloaded.lock().unwrap() = Some(DownloadedUpdate { update, bytes });
     send(UpdaterEvent::Downloaded {
@@ -253,10 +254,10 @@ async fn find_manifest(channel: UpdateChannel) -> Result<Option<Url>, String> {
         .send()
         .await
         .and_then(|response| response.error_for_status())
-        .map_err(|error| format!("Impossible de récupérer la liste des versions : {error}"))?
+        .map_err(|error| tf("update.listFailed", &[("error", &error.to_string())]))?
         .json()
         .await
-        .map_err(|error| format!("Réponse GitHub invalide : {error}"))?;
+        .map_err(|error| tf("update.invalidResponse", &[("error", &error.to_string())]))?;
 
     let manifest = releases
         .into_iter()
@@ -283,10 +284,8 @@ fn notify_downloaded<R: Runtime>(app: &AppHandle<R>) {
     let result = app
         .notification()
         .builder()
-        .title("Une nouvelle mise à jour est prête")
-        .body(format!(
-            "La dernière version de {name} a été téléchargée et sera automatiquement installée à la fermeture de l'application"
-        ))
+        .title(t("update.readyTitle"))
+        .body(tf("update.readyBody", &[("name", name)]))
         .show();
 
     if let Err(error) = result {
@@ -305,7 +304,7 @@ pub fn updater_install<R: Runtime>(
         .lock()
         .unwrap()
         .take()
-        .ok_or("Aucune mise à jour téléchargée")?;
+        .ok_or_else(|| t("update.noneDownloaded"))?;
 
     install(&app, downloaded)?;
     app.restart();
@@ -330,7 +329,7 @@ fn install<R: Runtime>(app: &AppHandle<R>, downloaded: DownloadedUpdate) -> Resu
     downloaded
         .update
         .install(&downloaded.bytes)
-        .map_err(|error| format!("Erreur lors de l'installation de la mise à jour : {error}"))
+        .map_err(|error| tf("update.installFailed", &[("error", &error.to_string())]))
 }
 
 #[cfg(test)]

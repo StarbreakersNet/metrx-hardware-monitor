@@ -1,6 +1,7 @@
 <script setup>
 import _ from "lodash";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUserStore } from "@/stores/user";
 import { useSystemStore } from "@/stores/system";
 import AppScrollLayout from "@/components/Layouts/AppScrollLayout.vue";
@@ -15,27 +16,28 @@ defineEmits({
 
 const user = useUserStore();
 const system = useSystemStore();
+const { t } = useI18n();
 
 const listSummary = computed(() => {
   let list = [];
 
   if (system.metrics.currentLoad) {
     getEntryList(list, {
-      title: "Utilisation",
+      titleKey: "usage",
       description: "CPU",
       unit: "%",
     });
   }
   if (system.metrics.cpuCurrentSpeed) {
     getEntryList(list, {
-      title: "Horloge",
+      titleKey: "clock",
       description: "CPU",
       unit: "Ghz",
     });
   }
   if (system.metrics.cpuTemperature) {
     getEntryList(list, {
-      title: "Température",
+      titleKey: "temperature",
       description: "CPU",
       unit: "°C",
     });
@@ -49,37 +51,37 @@ const listSummary = computed(() => {
       }
 
       getEntryList(list, {
-        title: "Utilisation",
+        titleKey: "usage",
         description: description,
         unit: "%",
       });
 
       getEntryList(list, {
-        title: "Utilisation VRAM",
+        titleKey: "vramUsage",
         description: description,
         unit: "Mo",
       });
 
       getEntryList(list, {
-        title: "Température",
+        titleKey: "temperature",
         description: description,
         unit: "°C",
       });
 
       getEntryList(list, {
-        title: "Puissance",
+        titleKey: "power",
         description: description,
         unit: "W",
       });
 
       getEntryList(list, {
-        title: "Horloge",
+        titleKey: "clock",
         description: description,
         unit: "Mhz",
       });
 
       getEntryList(list, {
-        title: "Vitesse des ventilateurs",
+        titleKey: "fanSpeed",
         description: description,
         unit: "%",
       });
@@ -87,7 +89,7 @@ const listSummary = computed(() => {
   }
   if (system.metrics.mem) {
     getEntryList(list, {
-      title: "Utilisation",
+      titleKey: "usage",
       description: "RAM",
       unit: "B",
     });
@@ -96,11 +98,12 @@ const listSummary = computed(() => {
   return _.sortBy(list, "order");
 });
 
-function getEntryList(list, { title, description, unit }) {
-  let id = (title + "#" + description).toLowerCase();
+// Même id que dans GraphSummary.vue (clé du titre + description)
+function getEntryList(list, { titleKey, description, unit }) {
+  let id = (titleKey + "#" + description).toLowerCase();
   list.push({
     id,
-    title,
+    title: t(`charts.titles.${titleKey}`),
     description,
     unit,
     order: user.settings.chartsOrder[id] ?? 0,
@@ -156,12 +159,12 @@ function getSelectValues(id) {
     :style="{ width: '75vw' }"
     preset="card"
     size="small"
-    title="Fusion des graphiques">
+    :title="t('charts.mergeTitle')">
     <template #default>
       <app-scroll-layout :style="{ height: '75vh' }" color="var(--n-color-modal)">
         <n-flex class="sb-scrollbar-overlaping">
           <n-grid :cols="user.settings.chartColumns" x-gap="12" y-gap="12">
-            <n-gi v-for="item in listSummary" :key="item.title + '#' + item.description">
+            <n-gi v-for="item in listSummary" :key="item.id">
               <n-card :class="{ disabled: item.disabled }" size="small">
                 <template #header>
                   <n-text :delete="item.disabled">{{ item.title }} {{ item.description }}</n-text>
@@ -185,8 +188,8 @@ function getSelectValues(id) {
     </template>
     <template #action>
       <n-flex justify="end">
-        <n-button @click="user.settings.chartsMerged = {}">Réinitialiser</n-button>
-        <n-button type="primary" @click="onModalConfirm()">Valider</n-button>
+        <n-button @click="user.settings.chartsMerged = {}">{{ t("common.reset") }}</n-button>
+        <n-button type="primary" @click="onModalConfirm()">{{ t("common.validate") }}</n-button>
       </n-flex>
     </template>
   </n-modal>

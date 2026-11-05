@@ -1,0 +1,252 @@
+{
+  "app": {
+    "common": {
+      "reset": "Reset",
+      "validate": "Confirm",
+      "devEnvironment": "Development environment"
+    },
+    "loading": {
+      "starting": "Starting monitoring",
+      "slow": "Loading is taking a while..."
+    },
+    "menu": {
+      "home": "Home",
+      "nodes": "Data",
+      "probes": "Probes",
+      "settings": "Settings",
+      "other": "More",
+      "about": "About",
+      "unknownVersion": "Version ?"
+    },
+    "footer": {
+      "reportIssue": "Report an issue on GitHub"
+    },
+    "units": {
+      "b": "bytes",
+      "kb": "KB",
+      "mb": "MB",
+      "gb": "GB",
+      "tb": "TB",
+      "pb": "PB",
+      "eb": "EB",
+      "zb": "ZB",
+      "yb": "YB"
+    },
+    "charts": {
+      "titles": {
+        "usage": "Usage",
+        "clock": "Clock",
+        "temperature": "Temperature",
+        "vramUsage": "VRAM usage",
+        "power": "Power",
+        "fanSpeed": "Fan speed"
+      },
+      "organize": "Arrange charts",
+      "mergeTitle": "Merge charts",
+      "tools": {
+        "title": "Chart tools",
+        "showGraph": "Show chart",
+        "showAverage": "Show average",
+        "showMinMax": "Show min/max",
+        "showThresholds": "Show thresholds",
+        "warningThreshold": "Warning threshold",
+        "dangerThreshold": "Danger threshold"
+      }
+    },
+    "stats": {
+      "title": "Statistics",
+      "columns": {
+        "name": "Name",
+        "value": "Value",
+        "unit": "Unit",
+        "documentation": "Documentation"
+      },
+      "seeDocumentation": "See documentation",
+      "time": "Time",
+      "hour": "Time",
+      "date": "Date",
+      "cpu": "CPU",
+      "gpu": "GPU",
+      "memory": "Memory",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "cores": "Cores",
+      "logicalProcessors": "Logical processors",
+      "socket": "Socket",
+      "usage": "Usage",
+      "temperature": "Temperature",
+      "clock": "Clock",
+      "virtualization": "Virtualization",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "driver": "Driver",
+      "vram": "VRAM",
+      "used": "Used",
+      "total": "Total",
+      "power": "Power",
+      "fanSpeed": "Fan speed"
+    },
+    "probes": {
+      "title": "Data probes",
+      "time": "Time",
+      "currentTime": "Local time",
+      "uptime": "Uptime",
+      "timezone": "Time zone",
+      "timezoneName": "Time zone name",
+      "cpu": "CPU",
+      "cpuUsage": "Usage",
+      "cpuTemperature": "Temperature",
+      "cpuClock": "Clock",
+      "gpu": "GPU",
+      "memory": "Memory"
+    },
+    "settings": {
+      "categories": {
+        "interface": "Interface",
+        "charts": "Charts",
+        "system": "System",
+        "update": "Updates",
+        "danger": "Danger zone"
+      },
+      "items": {
+        "language": {
+          "label": "Language",
+          "description": "Sets the application language",
+          "system": "System"
+        },
+        "theme": {
+          "label": "Theme",
+          "description": "Sets the application theme",
+          "dark": "Dark",
+          "light": "Light",
+          "system": "System"
+        },
+        "nodeFrequency": {
+          "label": "Refresh rate",
+          "description": "Sets how often the data is refreshed"
+        },
+        "showSideMenu": {
+          "label": "Side menu",
+          "description": "Shows the application menu on the left side"
+        },
+        "chartColumns": {
+          "label": "Number of columns",
+          "description": "Sets the number of columns used to display the charts"
+        },
+        "chartHeight": {
+          "label": "Chart height",
+          "description": "Sets the height of the displayed charts"
+        },
+        "chartBufferSize": {
+          "label": "Buffer size",
+          "description": "Sets how many minutes of data the charts keep"
+        },
+        "chartCursorSync": {
+          "label": "Sync cursors",
+          "description": "Syncs the cursor position across charts"
+        },
+        "showXLabel": {
+          "label": "Chart times",
+          "description": "Shows the time of each value on the horizontal axis"
+        },
+        "showChartTitle": {
+          "label": "Chart titles",
+          "description": "Shows the chart titles"
+        },
+        "chartAnimation": {
+          "label": "Chart animations",
+          "description": "Enables or disables animations when the charts are refreshed",
+          "info": "Animations can increase the load, especially when many charts are displayed at once"
+        },
+        "startOnLogin": {
+          "label": "Launch at startup",
+          "description": "Launches the application when the computer starts"
+        },
+        "startMinimized": {
+          "label": "Start minimized",
+          "description": "Opens the application in the system tray only"
+        },
+        "autoUpdate": {
+          "label": "Automatic updates",
+          "description": "Checks for updates when the application starts"
+        },
+        "updateChanel": {
+          "label": "Update channel",
+          "description": "Automatically checks for and installs the latest version of the selected channel"
+        }
+      },
+      "reset": {
+        "info": "Restores {allSettings} to their {defaults}, including the {charts}. This can help if you run into display issues or unexpected behavior in the interface after an update, so you can start again from a clean state.",
+        "allSettings": "all the application settings",
+        "defaults": "default values",
+        "charts": "chart configurations",
+        "button": "Reset all settings",
+        "confirm": "Are you sure you want to reset all your settings?"
+      }
+    },
+    "about": {
+      "devToolsHint": "Press {shortcut} to open the developer tools.",
+      "refreshTitle": "Refresh issues?",
+      "refreshHint": "You can press {shortcut} to force the application to refresh",
+      "osTheme": "Your system theme is currently {theme}",
+      "themeDark": "dark 🌙",
+      "themeLight": "light ☀️"
+    },
+    "updater": {
+      "checking": "Checking for updates... (current: {version})",
+      "available": "Update available",
+      "notAvailable": "No update available",
+      "cancelled": "Update cancelled. {message}",
+      "downloading": "Downloading... {transferred}/{total} ({percent}% - {speed})",
+      "downloaded": "Update downloaded",
+      "error": "Update failed. {message}",
+      "buildVersion": "{type} version {version}",
+      "check": "Check for updates",
+      "newVersion": "New version available",
+      "install": "An update is available. Click to install it."
+    }
+  },
+  "native": {
+    "menu": {
+      "about": "About {name}",
+      "services": "Services",
+      "hide": "Hide {name}",
+      "hideOthers": "Hide Others",
+      "showAll": "Show All",
+      "quit": "Quit {name}",
+      "file": "File",
+      "edit": "Edit",
+      "undo": "Undo",
+      "redo": "Redo",
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste",
+      "selectAll": "Select All",
+      "view": "View",
+      "fullscreen": "Enter Full Screen",
+      "window": "Window",
+      "minimize": "Minimize",
+      "zoom": "Zoom",
+      "closeWindow": "Close Window",
+      "help": "Help"
+    },
+    "tray": {
+      "open": "Open",
+      "startOnLogin": "Launch at startup",
+      "startMinimized": "Start minimized",
+      "quit": "Quit"
+    },
+    "update": {
+      "readyTitle": "A new update is ready",
+      "readyBody": "The latest version of {name} has been downloaded and will be installed automatically when the application closes",
+      "devMode": "Updates cannot be checked in development mode",
+      "alreadyChecking": "An update check is already in progress",
+      "listFailed": "Unable to fetch the list of versions: {error}",
+      "invalidResponse": "Invalid GitHub response: {error}",
+      "checkFailed": "Error while checking for updates: {error}",
+      "downloadFailed": "Error while downloading the update: {error}",
+      "installFailed": "Error while installing the update: {error}",
+      "noneDownloaded": "No update has been downloaded"
+    }
+  }
+}

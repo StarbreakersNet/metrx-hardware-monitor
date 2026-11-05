@@ -5,15 +5,17 @@ import Versions from "@/components/Versions.vue";
 import { useUserStore } from "@/stores/user";
 import { useOsTheme } from "naive-ui";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 const osThemeRef = useOsTheme();
 const user = useUserStore();
+const { t } = useI18n();
 const osThemeLabel = computed(() => {
   switch (osThemeRef.value) {
     case "dark":
-      return "sombre 🌙";
+      return t("about.themeDark");
     case "light":
-      return "claire ☀️";
+      return t("about.themeLight");
     default:
       return null;
   }
@@ -62,25 +64,29 @@ const isMacos = computed(() => {
     <n-flex vertical>
       <n-alert v-if="user.isEnvDev" type="info">
         <template #header>
-          <span>Environnement de développement</span>
+          <span>{{ t("common.devEnvironment") }}</span>
         </template>
         <template #default>
-          Appuyez sur
-          <n-tag v-if="isMacos" :bordered="false">⌘ + ⌥ + i</n-tag>
-          <n-tag v-else :bordered="false">CTRL + SHIFT + i</n-tag>
-          pour ouvrir les outils de devs.
+          <i18n-t keypath="about.devToolsHint" scope="global" tag="span">
+            <template #shortcut>
+              <n-tag v-if="isMacos" :bordered="false">⌘ + ⌥ + i</n-tag>
+              <n-tag v-else :bordered="false">CTRL + SHIFT + i</n-tag>
+            </template>
+          </i18n-t>
         </template>
       </n-alert>
       <n-alert type="info">
-        <template #header>Des problèmes d'actualisation ?</template>
+        <template #header>{{ t("about.refreshTitle") }}</template>
         <template #default>
-          Vous pouvez appuyer sur
-          <n-tag v-if="isMacos" :bordered="false">⌘ + r</n-tag>
-          <n-tag v-else :bordered="false">CTRL + r</n-tag>
-          pour forcer un rafraichissement de l'application
+          <i18n-t keypath="about.refreshHint" scope="global" tag="span">
+            <template #shortcut>
+              <n-tag v-if="isMacos" :bordered="false">⌘ + r</n-tag>
+              <n-tag v-else :bordered="false">CTRL + r</n-tag>
+            </template>
+          </i18n-t>
         </template>
       </n-alert>
-      <n-card>Le thème actuel de votre système est {{ osThemeLabel }}</n-card>
+      <n-card>{{ t("about.osTheme", { theme: osThemeLabel }) }}</n-card>
     </n-flex>
   </n-flex>
 </template>

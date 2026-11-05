@@ -2102,6 +2102,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
+ "sys-locale",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",

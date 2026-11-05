@@ -9,10 +9,12 @@ import { useSystemStore } from "@/stores/system";
 import { useUserStore } from "@/stores/user";
 import { useMessage, useThemeVars } from "naive-ui";
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 const user = useUserStore();
 const system = useSystemStore();
 const theme = useThemeVars();
+const { t } = useI18n();
 
 const version = computed(() => "v" + system.app.version);
 const nMessage = useMessage();
@@ -85,29 +87,26 @@ function onUpdaterEvent({ event, data }) {
   switch (event) {
     case "checking":
       if (!silentUpdate.value) {
-        createMessage(
-          "loading",
-          "Vérification des mises à jour... (actuel: " + version.value + ")"
-        );
+        createMessage("loading", t("updater.checking", { version: version.value }));
       }
       break;
 
     case "available":
       if (!silentUpdate.value) {
-        createMessage("success", "Mise à jour disponible");
+        createMessage("success", t("updater.available"));
       }
       break;
 
     case "notAvailable":
       if (!silentUpdate.value) {
-        createMessage("info", "Aucune mise à jour disponible");
+        createMessage("info", t("updater.notAvailable"));
       }
       loaders.main.stop();
       break;
 
     case "cancelled":
       if (!silentUpdate.value) {
-        createMessage("warning", "Mise à jour annulée. " + data.message);
+        createMessage("warning", t("updater.cancelled", { message: data.message }));
       }
       loaders.main.stop();
       break;
@@ -121,7 +120,7 @@ function onUpdaterEvent({ event, data }) {
       break;
 
     case "error":
-      createMessage("error", "Erreur lors de la mise à jour. " + data.message);
+      createMessage("error", t("updater.error", { message: data.message }));
       console.error("[Updater]:", data.message);
       loaders.main.stop();
       break;
@@ -149,15 +148,12 @@ function onDownloadProgress(progress) {
     if (!silentUpdate.value) {
       createMessage(
         "loading",
-        "Téléchargement en cours... " +
-          downloadProgress.transferred +
-          "/" +
-          downloadProgress.total +
-          " (" +
-          downloadProgress.percent +
-          "% - " +
-          downloadProgress.bytesPerSecond +
-          ")"
+        t("updater.downloading", {
+          transferred: downloadProgress.transferred,
+          total: downloadProgress.total,
+          percent: downloadProgress.percent,
+          speed: downloadProgress.bytesPerSecond,
+        })
       );
     }
   }
@@ -170,7 +166,7 @@ async function onUpdateDownloaded() {
 
   downloadProgress.active = false;
   if (!silentUpdate.value) {
-    createMessage("success", "Mise à jour téléchargée");
+    createMessage("success", t("updater.downloaded"));
   }
   loaders.main.stop();
   isUpdateAvailable.value = true;
@@ -257,7 +253,9 @@ watch(
         <template #trigger>
           <app-icon :name="buildType.icon" />
         </template>
-        <template #default>Version {{ buildType.label.toLowerCase() }} {{ version }}</template>
+        <template #default>
+          {{ t("updater.buildVersion", { type: buildType.label, version }) }}
+        </template>
       </n-popover>
       <app-icon
         v-if="buildType === 'loading'"
@@ -278,11 +276,11 @@ watch(
                 </template>
               </n-button>
             </template>
-            <template #default>Vérifier les mises à jour</template>
+            <template #default>{{ t("updater.check") }}</template>
           </n-popover>
         </div>
         <n-flex v-else :size="0" align="center">
-          <n-text class="update-subtitle">Nouvelle version disponible</n-text>
+          <n-text class="update-subtitle">{{ t("updater.newVersion") }}</n-text>
           <n-popover :show-arrow="false" trigger="hover">
             <template #trigger>
               <n-button
@@ -299,7 +297,7 @@ watch(
                 </template>
               </n-button>
             </template>
-            <template #default>Une mise à jour est disponible. Cliquez pour l'installer.</template>
+            <template #default>{{ t("updater.install") }}</template>
           </n-popover>
         </n-flex>
       </transition>

@@ -3,6 +3,7 @@ use tauri::menu::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, Runtime};
 
+use crate::i18n::t;
 use crate::settings::{self, START_MINIMIZED, START_ON_LOGIN};
 use crate::window;
 
@@ -11,19 +12,21 @@ const MENU_START_ON_LOGIN: &str = "start-on-login";
 const MENU_START_MINIMIZED: &str = "start-minimized";
 const MENU_QUIT: &str = "quit";
 
-/// Cases à cocher du menu, mises à jour quand un réglage change depuis la webview.
+/// Entrées du menu, mises à jour quand un réglage (ou la langue) change depuis la webview.
 struct TrayMenuState<R: Runtime> {
+    open: MenuItem<R>,
     start_on_login: CheckMenuItem<R>,
     start_minimized: CheckMenuItem<R>,
+    quit: MenuItem<R>,
 }
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let label = MenuItem::with_id(app, "label", app_label(app), false, None::<&str>)?;
-    let open = MenuItem::with_id(app, MENU_OPEN, "Ouvrir", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, MENU_OPEN, t("tray.open"), true, None::<&str>)?;
     let start_on_login = CheckMenuItem::with_id(
         app,
         MENU_START_ON_LOGIN,
-        "Lancer au démarrage",
+        t("tray.startOnLogin"),
         true,
         settings::get_bool(app, START_ON_LOGIN),
         None::<&str>,
@@ -31,12 +34,12 @@ pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let start_minimized = CheckMenuItem::with_id(
         app,
         MENU_START_MINIMIZED,
-        "Ouvrir minimisé",
+        t("tray.startMinimized"),
         true,
         settings::get_bool(app, START_MINIMIZED),
         None::<&str>,
     )?;
-    let quit = MenuItem::with_id(app, MENU_QUIT, "Quitter", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, MENU_QUIT, t("tray.quit"), true, None::<&str>)?;
 
     let menu = Menu::with_items(
         app,
@@ -72,16 +75,22 @@ pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .build(app)?;
 
     app.manage(TrayMenuState {
+        open,
         start_on_login,
         start_minimized,
+        quit,
     });
 
     Ok(())
 }
 
-/// Resynchronise les cases à cocher avec les réglages enregistrés.
+/// Resynchronise les libellés (langue) et les cases à cocher avec les réglages enregistrés.
 pub fn refresh<R: Runtime>(app: &AppHandle<R>) {
     if let Some(state) = app.try_state::<TrayMenuState<R>>() {
+        let _ = state.open.set_text(t("tray.open"));
+        let _ = state.start_on_login.set_text(t("tray.startOnLogin"));
+        let _ = state.start_minimized.set_text(t("tray.startMinimized"));
+        let _ = state.quit.set_text(t("tray.quit"));
         let _ = state
             .start_on_login
             .set_checked(settings::get_bool(app, START_ON_LOGIN));

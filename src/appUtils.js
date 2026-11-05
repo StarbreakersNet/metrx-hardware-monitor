@@ -1,4 +1,5 @@
 import { naiveDark, naiveLight } from "@/assets/themes/naiveTheme";
+import { i18n } from "@/i18n";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import _ from "lodash";
 import { darkTheme, lightTheme, NIcon } from "naive-ui";
@@ -63,17 +64,23 @@ export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Clés des unités dans locales/*.json (app.units) : octets, Ko, Mo… / bytes, KB, MB…
+const BYTE_UNIT_KEYS = ["b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"];
+
+function byteUnit(index) {
+  return i18n.global.t("units." + BYTE_UNIT_KEYS[index]);
+}
+
 export function formatBytes(bytes, decimals = 2) {
   if (+bytes) {
     const k = 1000;
     const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ["octets", "Ko", "Mo", "Go", "To", "Po", "Eo", "Zo", "Yo"];
 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return { value: parseFloat((bytes / Math.pow(k, i)).toFixed(dm)), unit: sizes[i] };
+    return { value: parseFloat((bytes / Math.pow(k, i)).toFixed(dm)), unit: byteUnit(i) };
   } else {
-    return { value: 0, unit: "octets" };
+    return { value: 0, unit: byteUnit(0) };
   }
 }
 

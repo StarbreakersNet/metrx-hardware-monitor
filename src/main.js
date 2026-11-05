@@ -1,7 +1,8 @@
 import { loadAppInfo } from "@/api/app";
-import { loadDesktopSettings } from "@/api/desktop";
+import { getDesktopSettings, loadDesktopSettings } from "@/api/desktop";
 import { installShortcuts } from "@/api/shortcuts";
 import "@/assets/css/tailwind.css";
+import { i18n, setLocale } from "@/i18n";
 import "@/assets/css/styles.sass";
 import About from "@/views/About.vue";
 import Home from "@/views/Home.vue";
@@ -28,6 +29,7 @@ async function bootstrap() {
 
   // Données nécessaires aux stores dès leur création (version, réglages système)
   await Promise.all([loadAppInfo(), loadDesktopSettings()]);
+  setLocale(getDesktopSettings().language);
 
   const pinia = createPinia();
   const app = createApp(App);
@@ -43,6 +45,7 @@ async function bootstrap() {
   );
 
   app.use(pinia);
+  app.use(i18n);
   app.use(naive);
   app.use(router);
   app.mount("#app");

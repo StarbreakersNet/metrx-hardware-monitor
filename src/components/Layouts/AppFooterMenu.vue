@@ -7,11 +7,13 @@ import { useSystemStore } from "@/stores/system";
 import { useUserStore } from "@/stores/user";
 import Updater from "@/Updater.vue";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 const system = useSystemStore();
 const user = useUserStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const themeSelector = computed({
   get: () => user.settings.theme === "dark",
@@ -24,7 +26,7 @@ const version = computed(() => {
   return "v" + system.app.version;
 });
 const menuOptions = computed(() => {
-  return appMenuOptions(version.value);
+  return appMenuOptions(version.value, t);
 });
 </script>
 
@@ -65,7 +67,7 @@ const menuOptions = computed(() => {
               <n-a
                 href="https://github.com/StarbreakersNet/metrx-hardware-monitor/issues/new/choose"
                 target="_blank">
-                Signaler un problème sur GitHub
+                {{ t("footer.reportIssue") }}
               </n-a>
             </n-space>
           </template>
@@ -76,7 +78,7 @@ const menuOptions = computed(() => {
           <template #trigger>
             <app-icon name="crane" />
           </template>
-          Environnement de développement
+          {{ t("common.devEnvironment") }}
         </n-popover>
       </n-tag>
       <updater />

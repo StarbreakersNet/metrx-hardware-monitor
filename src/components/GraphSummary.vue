@@ -8,11 +8,13 @@ import { useUserStore } from "@/stores/user";
 import _ from "lodash";
 import { useLoadingBar } from "naive-ui";
 import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 
 const system = useSystemStore();
 const user = useUserStore();
 const loadingBar = useLoadingBar();
+const { t, locale } = useI18n();
 
 const listSummary = ref([]);
 const editMode = ref(false);
@@ -29,7 +31,7 @@ function setSummary() {
     getEntryList(list, {
       max: 100,
       min: 0,
-      title: "Utilisation",
+      titleKey: "usage",
       description: "CPU",
       icon: "cpu",
       unit: "%",
@@ -40,7 +42,7 @@ function setSummary() {
     getEntryList(list, {
       max: system.metrics.cpuCurrentSpeed?.max,
       min: 0,
-      title: "Horloge",
+      titleKey: "clock",
       description: "CPU",
       icon: "wave-square",
       unit: "Ghz",
@@ -51,7 +53,7 @@ function setSummary() {
     getEntryList(list, {
       max: 100,
       min: 0,
-      title: "Température",
+      titleKey: "temperature",
       description: "CPU",
       icon: "temperature",
       unit: "°C",
@@ -69,7 +71,7 @@ function setSummary() {
       getEntryList(list, {
         max: 100,
         min: 0,
-        title: "Utilisation",
+        titleKey: "usage",
         description: description,
         icon: "cpu2",
         unit: "%",
@@ -80,7 +82,7 @@ function setSummary() {
         getEntryList(list, {
           max: controller.vram,
           min: 0,
-          title: "Utilisation VRAM",
+          titleKey: "vramUsage",
           icon: "section-filled",
           description: description,
           unit: "Mo",
@@ -91,7 +93,7 @@ function setSummary() {
       getEntryList(list, {
         max: 100,
         min: 0,
-        title: "Température",
+        titleKey: "temperature",
         description: description,
         icon: "temperature",
         unit: "°C",
@@ -102,7 +104,7 @@ function setSummary() {
         getEntryList(list, {
           max: controller.powerLimit,
           min: 0,
-          title: "Puissance",
+          titleKey: "power",
           description: description,
           icon: "bolt-filled",
           unit: "W",
@@ -113,7 +115,7 @@ function setSummary() {
       getEntryList(list, {
         max: 5000,
         min: 0,
-        title: "Horloge",
+        titleKey: "clock",
         icon: "wave-square",
         description: description,
         unit: "Mhz",
@@ -123,7 +125,7 @@ function setSummary() {
       getEntryList(list, {
         max: 100,
         min: 0,
-        title: "Vitesse des ventilateurs",
+        titleKey: "fanSpeed",
         icon: "windmill-filled",
         description: description,
         unit: "%",
@@ -135,7 +137,7 @@ function setSummary() {
     getEntryList(list, {
       max: system.metrics.mem.total,
       min: 0,
-      title: "Utilisation",
+      titleKey: "usage",
       description: "RAM",
       icon: "section-filled",
       unit: "B",
@@ -184,11 +186,13 @@ function processMergedCharts(list) {
   });
 }
 
-function getEntryList(list, { title, description, icon, value, unit, min, max }) {
-  let id = (title + "#" + description).toLowerCase();
+// L'id (ordre, fusions) repose sur la clé du titre et non sur le texte traduit :
+// changer de langue ne fait pas perdre la configuration des graphiques.
+function getEntryList(list, { titleKey, description, icon, value, unit, min, max }) {
+  let id = (titleKey + "#" + description).toLowerCase();
   list.push({
     id,
-    title,
+    title: t(`charts.titles.${titleKey}`),
     description,
     icon,
     value: value ?? 0,
@@ -227,7 +231,7 @@ function resetChartsOrder() {
 onMounted(() => {
   loadingBar.start();
   watch(
-    () => system.metrics,
+    [() => system.metrics, locale],
     () => {
       setSummary();
     },
@@ -254,8 +258,9 @@ onMounted(() => {
         type="transition">
         <chart-line
           v-for="(item, index) in listSummary"
-          :key="item.title + '#' + item.description"
+          :key="item.id"
           :buffer-size="user.settings.chartBufferSize"
+          :chart-key="item.id"
           :data="item.value"
           :description="item.description"
           :edit-mode="editMode"

@@ -3,9 +3,11 @@ import { formatValue, getValueUnit, Loader } from "@/appUtils";
 import { useSystemStore } from "@/stores/system";
 import { NA, useLoadingBar } from "naive-ui";
 import { computed, h, onMounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import LoaderSpinner from "@/components/LoaderSpinner.vue";
 
 const system = useSystemStore();
+const { t, locale } = useI18n();
 const loaders = reactive({
   main: new Loader(),
 });
@@ -13,27 +15,27 @@ const loading = computed(() => loaders.main.loading);
 const loadingBar = useLoadingBar();
 
 const listSummary = ref([]);
-const columns = [
+const columns = computed(() => [
   {
-    title: "Nom",
+    title: t("stats.columns.name"),
     key: "label",
   },
   {
-    title: "Valeur",
+    title: t("stats.columns.value"),
     key: "value",
   },
   {
-    title: "Unité",
+    title: t("stats.columns.unit"),
     key: "valueAppend",
   },
   {
-    title: "Documentation",
+    title: t("stats.columns.documentation"),
     key: "link",
   },
-];
+]);
 const renderCell = (value, rowData, column) => {
   if (column.key === "link" && value) {
-    return h(NA, { href: value, target: "_blank" }, { default: () => "Voir la documentation" });
+    return h(NA, { href: value, target: "_blank" }, { default: () => t("stats.seeDocumentation") });
   } else {
     return value;
   }
@@ -45,11 +47,13 @@ function setSummary() {
   if (system.metrics.time) {
     let listEntry = [];
 
-    getEntryList(listEntry, "Heure", new Date(system.metrics.time.current).toLocaleTimeString());
-    getEntryList(listEntry, "Date", new Date(system.metrics.time.current).toLocaleDateString());
+    const currentDate = new Date(system.metrics.time.current);
+
+    getEntryList(listEntry, t("stats.hour"), currentDate.toLocaleTimeString(locale.value));
+    getEntryList(listEntry, t("stats.date"), currentDate.toLocaleDateString(locale.value));
 
     list.push({
-      label: "Temps",
+      label: t("stats.time"),
       listEntry,
       link: "https://systeminformation.io/general.html",
     });
@@ -60,22 +64,22 @@ function setSummary() {
   if (system.metrics.currentLoad || system.info.cpu) {
     let listEntry = [];
 
-    getEntryList(listEntry, "Constructeur", system.info.cpu?.manufacturer);
-    getEntryList(listEntry, "Modèle", system.info.cpu?.brand);
-    getEntryList(listEntry, "Coeurs", system.info.cpu?.physicalCores);
-    getEntryList(listEntry, "Processeurs logiques", system.info.cpu?.cores);
-    getEntryList(listEntry, "Socket", system.info.cpu?.socket);
-    getEntryList(listEntry, "Utilisation", system.metrics.currentLoad?.currentLoad, "%");
-    getEntryList(listEntry, "Température", system.metrics.cpuTemperature?.main, "°C");
-    getEntryList(listEntry, "Horloge", system.metrics.cpuCurrentSpeed?.avg, "Mhz");
+    getEntryList(listEntry, t("stats.manufacturer"), system.info.cpu?.manufacturer);
+    getEntryList(listEntry, t("stats.model"), system.info.cpu?.brand);
+    getEntryList(listEntry, t("stats.cores"), system.info.cpu?.physicalCores);
+    getEntryList(listEntry, t("stats.logicalProcessors"), system.info.cpu?.cores);
+    getEntryList(listEntry, t("stats.socket"), system.info.cpu?.socket);
+    getEntryList(listEntry, t("stats.usage"), system.metrics.currentLoad?.currentLoad, "%");
+    getEntryList(listEntry, t("stats.temperature"), system.metrics.cpuTemperature?.main, "°C");
+    getEntryList(listEntry, t("stats.clock"), system.metrics.cpuCurrentSpeed?.avg, "Mhz");
     getEntryList(
       listEntry,
-      "Virtualisation",
-      system.info.cpu?.virtualization ? "Activé" : "Désactivé"
+      t("stats.virtualization"),
+      system.info.cpu?.virtualization ? t("stats.enabled") : t("stats.disabled")
     );
 
     list.push({
-      label: "CPU",
+      label: t("stats.cpu"),
       listEntry,
       link: "https://systeminformation.io/cpu.html",
     });
@@ -83,57 +87,57 @@ function setSummary() {
 
   if (system.metrics.gpu?.length) {
     system.metrics.gpu.forEach((controller, index) => {
-      let title = "GPU";
+      let title = t("stats.gpu");
       let listEntry = [];
 
       if (system.metrics.gpu.length > 1) {
         title += " " + index;
       }
 
-      getEntryList(listEntry, "Constructeur", controller.vendor);
-      getEntryList(listEntry, "Modèle", controller.model);
-      getEntryList(listEntry, "Driver", controller.driverVersion);
+      getEntryList(listEntry, t("stats.manufacturer"), controller.vendor);
+      getEntryList(listEntry, t("stats.model"), controller.model);
+      getEntryList(listEntry, t("stats.driver"), controller.driverVersion);
 
       if (controller.vram !== undefined && controller.vram !== null) {
         let subEntry = [];
 
         subEntry.push({
-          label: "Utilisé",
+          label: t("stats.used"),
           value: getUsage(controller.memoryUsed, controller.memoryTotal, "Mo") ?? 0,
           valueAppend: getValueUnit(controller.memoryUsed, "Mo"),
         });
 
-        getEntryList(subEntry, "Total", controller.memoryTotal, "Mo", 2);
+        getEntryList(subEntry, t("stats.total"), controller.memoryTotal, "Mo", 2);
 
         listEntry.push({
-          label: "VRAM",
+          label: t("stats.vram"),
           listEntry: subEntry,
         });
       }
 
       // Obligé de toujours afficher les entry du GPU car l'API ne retourne pas de valeur à 0
       listEntry.push({
-        label: "Utilisation",
+        label: t("stats.usage"),
         value: formatValue({ value: controller.utilizationGpu ?? 0 }),
         valueAppend: "%",
       });
       listEntry.push({
-        label: "Température",
+        label: t("stats.temperature"),
         value: formatValue({ value: controller.temperatureGpu ?? 0 }),
         valueAppend: "°C",
       });
       listEntry.push({
-        label: "Puissance",
+        label: t("stats.power"),
         value: formatValue({ value: controller.powerDraw ?? 0 }),
         valueAppend: "W",
       });
       listEntry.push({
-        label: "Horloge",
+        label: t("stats.clock"),
         value: formatValue({ value: controller.clockCore ?? 0 }),
         valueAppend: "Mhz",
       });
       listEntry.push({
-        label: "Vitesse des ventilateurs",
+        label: t("stats.fanSpeed"),
         value: formatValue({ value: controller.fanSpeed ?? 0 }),
         valueAppend: "%",
       });
@@ -151,14 +155,14 @@ function setSummary() {
 
     getEntryList(
       listEntry,
-      "Utilisé",
+      t("stats.used"),
       getUsage(system.metrics.mem.used, system.metrics.mem.total, "B"),
       getValueUnit(system.metrics.mem.used, "B")
     );
-    getEntryList(listEntry, "Total", system.metrics.mem.total, "B", 2);
+    getEntryList(listEntry, t("stats.total"), system.metrics.mem.total, "B", 2);
 
     list.push({
-      label: "Mémoire",
+      label: t("stats.memory"),
       listEntry,
       link: "https://systeminformation.io/memory.html",
     });

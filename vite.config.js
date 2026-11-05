@@ -26,6 +26,12 @@ export default defineConfig({
       ignored: ["**/src-tauri/**", "**/src-sidecar/**"],
     },
   },
+  // vue-i18n : API Composition seulement (compilation des messages sans eval, compatible CSP)
+  define: {
+    __VUE_I18N_FULL_INSTALL__: true,
+    __VUE_I18N_LEGACY_API__: false,
+    __INTLIFY_PROD_DEVTOOLS__: false,
+  },
   envPrefix: ["VITE_", "TAURI_ENV_*"],
   build: {
     // WebView2 (Chromium) sous Windows, WebKit sous macOS (13+, imposé par Bun) et Linux

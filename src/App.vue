@@ -13,8 +13,10 @@ import AppFooterMenu from "@/components/Layouts/AppFooterMenu.vue";
 import appMenuOptions from "@/models/appMenuOptions";
 import { useSystemStore } from "@/stores/system";
 import { useUserStore } from "@/stores/user";
-import { dateFrFR, frFR } from "naive-ui";
+import { setLocale } from "@/i18n";
+import { dateEnUS, dateFrFR, enUS, frFR } from "naive-ui";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import AppHeaderMenu from "@/components/Layouts/AppHeaderMenu.vue";
 import LoaderSpinner from "@/components/LoaderSpinner.vue";
@@ -27,6 +29,7 @@ const loaders = reactive({
   initial: new Loader(),
 });
 const router = useRouter();
+const { t, locale } = useI18n();
 const system = useSystemStore();
 const user = useUserStore();
 const keepAliveBlacklist = [];
@@ -44,8 +47,10 @@ const version = computed(() => {
   return "v" + system.app.version;
 });
 const menuOptions = computed(() => {
-  return appMenuOptions(version.value);
+  return appMenuOptions(version.value, t);
 });
+const naiveLocale = computed(() => (locale.value === "fr" ? frFR : enUS));
+const naiveDateLocale = computed(() => (locale.value === "fr" ? dateFrFR : dateEnUS));
 const theme = ref(getNaiveTheme());
 const themeOverride = ref(getNaiveOverrideTheme());
 
@@ -62,6 +67,8 @@ watch(
   },
   { immediate: true }
 );
+
+watch(() => user.desktop.language, setLocale);
 
 watch(
   () => initStartTimer.elapsedTime,
@@ -101,8 +108,8 @@ onBeforeUnmount(() => {
 
 <template>
   <n-config-provider
-    :date-locale="dateFrFR"
-    :locale="frFR"
+    :date-locale="naiveDateLocale"
+    :locale="naiveLocale"
     :theme="theme"
     :theme-overrides="themeOverride"
     inline-theme-disabled>
@@ -116,9 +123,9 @@ onBeforeUnmount(() => {
                 <loader-spinner :size-ratio="7">
                   <n-flex align="center" class="loader-title" vertical>
                     <img alt="logo" class="loader-img" src="@/assets/icon-round.svg" />
-                    <span>Démarrage du monitoring</span>
+                    <span>{{ t("loading.starting") }}</span>
                     <transition name="insert">
-                      <span v-if="showLoadingHints">Le chargement est long...</span>
+                      <span v-if="showLoadingHints">{{ t("loading.slow") }}</span>
                     </transition>
                   </n-flex>
                 </loader-spinner>

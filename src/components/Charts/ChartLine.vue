@@ -23,6 +23,7 @@ import { useCrosshairPlugin } from "@/components/Charts/ChartJsCrosshair";
 import _ from "lodash";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { Line } from "vue-chartjs";
+import { useI18n } from "vue-i18n";
 
 const { crosshairPlugin } = useCrosshairPlugin();
 
@@ -45,7 +46,13 @@ const chartTools = ref(null);
 
 const chartTheme = useChartTheme();
 const user = useUserStore();
+const { t, locale } = useI18n();
 const props = defineProps({
+  // Identifiant stable du graphique (indépendant de la langue du titre)
+  chartKey: {
+    type: String,
+    default: null,
+  },
   data: {
     type: [Number, Array],
     default: null,
@@ -90,7 +97,9 @@ const props = defineProps({
 const emit = defineEmits(["editOrders"]);
 
 const chartId = computed(() => {
-  if (props.description == null) {
+  if (props.chartKey) {
+    return props.chartKey;
+  } else if (props.description == null) {
     return props.title.toLowerCase();
   } else if (props.title) {
     return props.title.toLowerCase() + "#" + props.description?.toLowerCase();
@@ -219,7 +228,7 @@ const lineChartOptions = ref({
       callbacks: {
         title(context) {
           if (context[0].label) {
-            return new Date(context[0].parsed.x).toLocaleTimeString();
+            return new Date(context[0].parsed.x).toLocaleTimeString(locale.value);
           } else {
             return "";
           }
@@ -522,7 +531,7 @@ onUnmounted(() => {
                 </template>
               </n-button>
             </template>
-            <template #default>Organiser les graphiques</template>
+            <template #default>{{ t("charts.organize") }}</template>
           </n-popover>
           <chart-line-tools
             ref="chartTools"

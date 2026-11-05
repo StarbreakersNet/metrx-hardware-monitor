@@ -1,25 +1,41 @@
+/**
+ * Paramètres affichés dans la page « Paramètres ».
+ *
+ * Les textes sont traduits à l'affichage : `key` désigne la catégorie (`settings.categories.*`)
+ * ou le réglage (`settings.items.*.label`, `.description` et `.info` si `info: true`).
+ * Les options utilisent `labelKey` (traduit) ou `label` (affiché tel quel).
+ */
 export default [
   {
     type: "categ",
-    label: "Interface",
+    key: "interface",
     children: [
       {
         type: "select",
-        icon: "palette-filled",
-        label: "Thème",
-        description: "Défini le thème de l'application",
+        icon: "language",
+        key: "language",
         options: [
-          { label: "Sombre", value: "dark" },
-          { label: "Clair", value: "light" },
-          { label: "Système", value: "system" },
+          { labelKey: "settings.items.language.system", value: "system" },
+          { label: "Français", value: "fr" },
+          { label: "English", value: "en" },
+        ],
+        storePath: ["desktop", "language"],
+      },
+      {
+        type: "select",
+        icon: "palette-filled",
+        key: "theme",
+        options: [
+          { labelKey: "settings.items.theme.dark", value: "dark" },
+          { labelKey: "settings.items.theme.light", value: "light" },
+          { labelKey: "settings.items.theme.system", value: "system" },
         ],
         storePath: ["settings", "theme"],
       },
       {
         type: "select",
         icon: "metronome",
-        label: "Fréquence de rafraichissement",
-        description: "Défini la fréquence de rafraichissement des données",
+        key: "nodeFrequency",
         options: [
           { label: "500ms", value: 500 },
           { label: "1s", value: 1000 },
@@ -37,28 +53,25 @@ export default [
       {
         type: "switch",
         icon: "layout-sidebar-left-collapse-filled",
-        label: "Menu latéral",
-        description: "Affiche le menu de l'application sur le côté gauche",
+        key: "showSideMenu",
         storePath: ["settings", "showSideMenu"],
       },
     ],
   },
   {
     type: "categ",
-    label: "Graphiques",
+    key: "charts",
     children: [
       {
         type: "number",
         icon: "table-filled",
-        label: "Nombre de colonnes",
-        description: "Défini le nombre de colonnes pour l'affichage des graphiques",
+        key: "chartColumns",
         storePath: ["settings", "chartColumns"],
       },
       {
         type: "number",
         icon: "ruler-measure-2",
-        label: "Hauteur des graphiques",
-        description: "Défini la hauteur des graphiques affichés",
+        key: "chartHeight",
         min: 5,
         max: 50,
         storePath: ["settings", "chartHeight"],
@@ -66,79 +79,69 @@ export default [
       {
         type: "number",
         icon: "arrow-autofit-width-filled",
-        label: "Taille du buffer",
-        description: "Défini le temps en minute des données à conserver dans les graphiques",
+        key: "chartBufferSize",
         max: 30,
         storePath: ["settings", "chartBufferSize"],
       },
       {
         type: "switch",
         icon: "crosshair",
-        label: "Synchroniser les curseurs",
-        description: "Synchronise la position des curseurs entre les graphiques",
+        key: "chartCursorSync",
         storePath: ["settings", "chartCursorSync"],
       },
       {
         type: "switch",
         icon: "chart-area-filled",
-        label: "Heures des graphiques",
-        description: "Affiche sur l'axe des abscisses l'heure de la donnée",
+        key: "showXLabel",
         storePath: ["settings", "showXLabel"],
       },
       {
         type: "switch",
         icon: "heading",
-        label: "Titres des graphiques",
-        description: "Affiche le titre des graphiques",
+        key: "showChartTitle",
         storePath: ["settings", "showChartTitle"],
       },
       {
         type: "switch",
         icon: "player-play-filled",
-        label: "Animation des graphiques",
-        description: "Active ou désactive les animations lors de l'actualisation des graphiques",
-        info: "L'activation des animations peut augmenter la charge, particulièrement avec un grand nombre affichés simultanément",
+        key: "chartAnimation",
+        info: true,
         storePath: ["settings", "chartAnimation"],
       },
     ],
   },
   {
     type: "categ",
-    label: "Système",
+    key: "system",
     children: [
       {
         type: "switch",
         icon: "power",
-        label: "Lancer au démarrage",
-        description: "Lance l'application au démarrage de l'ordinateur",
+        key: "startOnLogin",
         storePath: ["desktop", "startOnLogin"],
       },
       {
         type: "switch",
         icon: "minimize",
-        label: "Ouvrir minimisé",
-        description: "Ouvre l'application seulement dans la barre des tâches",
+        key: "startMinimized",
         storePath: ["desktop", "startMinimized"],
       },
     ],
   },
   {
     type: "categ",
-    label: "Mise à jour",
+    key: "update",
     children: [
       {
         type: "switch",
         icon: "refresh",
-        label: "Mise à jour automatique",
-        description: "Vérifie si une mise à jour est disponible au démarrage de l'application",
+        key: "autoUpdate",
         storePath: ["settings", "autoUpdate"],
       },
       {
         type: "select",
         icon: "git-branch",
-        label: "Canal de mise à jour",
-        description:
-          "Vérifiera et installera automatiquement la dernière version du canal sélectionné",
+        key: "updateChanel",
         options: [
           { label: "Live", value: "latest" },
           { label: "Preview", value: "beta" },

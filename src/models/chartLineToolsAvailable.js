@@ -1,17 +1,18 @@
+/** Options affichées dans les outils d'un graphique (`labelKey` : clé de traduction) */
 export default [
   {
     type: "checkbox",
-    label: "Afficher le graphique",
+    labelKey: "charts.tools.showGraph",
     storeKey: "showGraph",
   },
   {
     type: "checkbox",
-    label: "Afficher la moyenne",
+    labelKey: "charts.tools.showAverage",
     storeKey: "showAverage",
   },
   {
     type: "checkbox",
-    label: "Afficher min/max",
+    labelKey: "charts.tools.showMinMax",
     storeKey: "showMinMax",
   },
 ];

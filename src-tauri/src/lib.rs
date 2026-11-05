@@ -1,5 +1,7 @@
 mod app_info;
 mod gnome;
+mod i18n;
+mod menu;
 mod settings;
 mod sidecar;
 mod tray;
@@ -45,6 +47,7 @@ pub fn run() {
             let handle = app.handle();
 
             settings::init(handle)?;
+            menu::refresh(handle);
             window::create_main_window(handle)?;
             tray::init(handle)?;
             sidecar::init(handle);
