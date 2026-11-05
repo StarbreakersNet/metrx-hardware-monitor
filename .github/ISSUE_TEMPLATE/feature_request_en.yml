@@ -1,6 +1,5 @@
-name: 🇬🇧 Suggest an idea
+name: Suggest an idea (English)
 description: A new feature or an improvement for Metrx
-title: "[Idea] "
 labels: ["enhancement"]
 body:
   - type: textarea
