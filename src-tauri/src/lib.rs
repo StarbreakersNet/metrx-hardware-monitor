@@ -1,4 +1,5 @@
 mod app_info;
+mod autostart;
 mod gnome;
 mod i18n;
 mod menu;
