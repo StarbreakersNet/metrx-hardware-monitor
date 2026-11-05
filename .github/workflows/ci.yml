@@ -1,6 +1,7 @@
 # Vérifie à chaque push que l'application compile et se package sur les 3 OS.
 # Rien n'est signé ni publié : les installeurs sont seulement disponibles en artefacts
-# du workflow (7 jours) pour pouvoir les tester. Les releases passent par deploy.yml (tags).
+# du workflow (7 jours, un fichier par installeur) pour pouvoir les tester.
+# Les releases passent par deploy.yml (tags).
 name: CI
 
 on:
@@ -77,12 +78,15 @@ jobs:
           - platform: windows
             os: windows-latest
             target: x86_64-pc-windows-msvc
+            installer: nsis/*-setup.exe
           - platform: macos
             os: macos-latest
             target: aarch64-apple-darwin
+            installer: dmg/*.dmg
           - platform: linux
             os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
+            installer: deb/*.deb
     steps:
       - uses: actions/checkout@v7
 
@@ -128,13 +132,18 @@ jobs:
         timeout-minutes: 3
         run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-${{ matrix.target }}${{ matrix.platform == 'windows' && '.exe' || '' }}
 
-      - name: Upload installers
+      # Un artefact par installeur, sans archive zip : le fichier se télécharge directement
+      - name: Upload installer
         uses: actions/upload-artifact@v7
         with:
-          name: metrx-${{ matrix.platform }}
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.installer }}
+          archive: false
           retention-days: 7
-          path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe
-            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
-            src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
-            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+
+      - name: Upload AppImage
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v7
+        with:
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          archive: false
+          retention-days: 7

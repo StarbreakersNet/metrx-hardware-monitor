@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import packageJson from "../package.json" with { type: "json" };
+import tauriConfig from "../src-tauri/tauri.conf.json" with { type: "json" };
 
 const SIDECAR_NAME = "metrx-metrics";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -122,7 +123,7 @@ async function build() {
       windows: {
         icon: join(root, "src-tauri", "icons", "icon.ico"),
         title: `${packageJson.displayName} metrics`,
-        publisher: packageJson.author,
+        publisher: tauriConfig.bundle.publisher,
         version: packageJson.version.split("-")[0],
         description: `${packageJson.displayName} hardware metrics collector`,
       },

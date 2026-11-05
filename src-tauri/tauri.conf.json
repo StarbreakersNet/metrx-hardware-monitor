@@ -36,16 +36,17 @@
     ],
     "externalBin": ["binaries/metrx-metrics"],
     "createUpdaterArtifacts": false,
-    "publisher": "Starbreakers",
-    "copyright": "Copyright © TheRedfoox — MIT License",
+    "publisher": "StarbreakersNet",
+    "copyright": "Copyright © StarbreakersNet",
     "license": "MIT",
     "homepage": "https://github.com/StarbreakersNet/metrx-hardware-monitor",
     "category": "Utility",
-    "shortDescription": "Moniteur matériel en temps réel",
-    "longDescription": "Metrx affiche en temps réel l'utilisation du CPU, du GPU, de la mémoire et leurs températures.",
+    "shortDescription": "Real-time hardware monitor",
+    "longDescription": "Metrx displays your CPU, GPU and memory usage and temperatures in real time.",
     "windows": {
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "languages": ["English", "French"]
       }
     },
     "macOS": {

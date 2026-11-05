@@ -135,12 +135,15 @@ jobs:
           # Signature des mises à jour (toutes plateformes)
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          # Signature + notarisation macOS (mêmes secrets que la version Electron)
+          # Signature macOS (mêmes secrets que la version Electron)
           APPLE_CERTIFICATE: ${{ matrix.platform == 'macos' && secrets.CSC_LINK || '' }}
           APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos' && secrets.CSC_KEY_PASSWORD || '' }}
-          APPLE_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_ID || '' }}
-          APPLE_PASSWORD: ${{ matrix.platform == 'macos' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
-          APPLE_TEAM_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_TEAM_ID || '' }}
+          # Notarisation macOS : nécessite un abonnement Apple Developer Program actif. Pour publier
+          # une version signée mais non notarisée, créer la variable de dépôt MACOS_NOTARIZE=false
+          # (Settings > Secrets and variables > Actions > Variables) : Tauri saute alors l'étape.
+          APPLE_ID: ${{ matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false' && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false' && secrets.APPLE_TEAM_ID || '' }}
           # Signature Windows : à brancher ici une fois le fournisseur choisi (voir README)
 
       - name: Collect artefacts

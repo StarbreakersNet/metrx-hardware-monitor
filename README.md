@@ -32,6 +32,15 @@ Vue (webview) ──invoke──▶ Rust (Tauri) ──stdin──▶ sidecar (B
 The Rust side only relays messages: to expose a new systeminformation function, add it to
 `src-sidecar/index.js` and call it from `src/api/metrics.js`.
 
+### Translations
+
+The application is available in French and English. Texts live in `locales/*.json`:
+
+- `app`: the interface, through [vue-i18n](https://vue-i18n.intlify.dev)
+- `native`: texts displayed by Rust (tray menu, notifications, macOS menu bar, update messages)
+
+Both files must contain the same keys: a Rust test (`cargo test`) checks it in CI.
+
 ## Recommended IDE Setup
 
 - [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/) with [Vue.js](https://www.jetbrains.com/help/idea/vue-js.html), [ESLint](https://www.jetbrains.com/help/idea/eslint.html), [Prettier](https://www.jetbrains.com/help/idea/prettier.html) and [Rust](https://www.jetbrains.com/rust/)
@@ -115,6 +124,10 @@ yarn tauri signer generate -w ~/.tauri/metrx.key
 | macOS    | `CSC_LINK` (base64 `.p12` Developer ID certificate), `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` |
 | Windows  | Not signed yet                                                                                                                      |
 | Linux    | Not signed (AppImage / .deb)                                                                                                        |
+
+macOS notarization requires an active Apple Developer Program membership. To publish a signed but
+not notarized macOS build, create the repository variable `MACOS_NOTARIZE` with the value `false`
+(Settings > Secrets and variables > Actions > Variables).
 
 ## Configuration
 
