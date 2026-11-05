@@ -12,6 +12,7 @@
     "core:window:allow-internal-toggle-maximize",
     "os:default",
     "opener:default",
+    "shell:allow-open",
     "notification:allow-is-permission-granted"
   ]
 }
