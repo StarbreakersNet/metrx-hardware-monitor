@@ -177,7 +177,7 @@ async function checkForUpdates(isSilent = false) {
   loaders.main.start();
 
   try {
-    await checkUpdates(user.settings.updateChanel, onUpdaterEvent);
+    await checkUpdates(user.settings.updateChannel, onUpdaterEvent);
   } catch (error) {
     onUpdaterEvent({ event: "error", data: { message: String(error) } });
   }
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => user.settings.updateChanel,
+  () => user.settings.updateChannel,
   () => {
     checkForUpdates(false);
   }

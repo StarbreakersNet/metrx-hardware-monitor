@@ -170,7 +170,7 @@
           "label": "Mise à jour automatique",
           "description": "Vérifie si une mise à jour est disponible au démarrage de l'application"
         },
-        "updateChanel": {
+        "updateChannel": {
           "label": "Canal de mise à jour",
           "description": "Vérifiera et installera automatiquement la dernière version du canal sélectionné"
         }
@@ -190,7 +190,13 @@
       "refreshHint": "Vous pouvez appuyer sur {shortcut} pour forcer un rafraîchissement de l'application",
       "osTheme": "Le thème actuel de votre système est {theme}",
       "themeDark": "sombre 🌙",
-      "themeLight": "clair ☀️"
+      "themeLight": "clair ☀️",
+      "legal": {
+        "copyright": "Copyright © 2022-{year} StarbreakersNet",
+        "license": "Metrx est un logiciel libre : vous pouvez le redistribuer et le modifier selon les termes de la {license}. Il est fourni sans aucune garantie.",
+        "licenseName": "licence GNU GPL v3 ou ultérieure",
+        "sourceCode": "Code source sur GitHub"
+      }
     },
     "updater": {
       "checking": "Vérification des mises à jour... (actuelle : {version})",

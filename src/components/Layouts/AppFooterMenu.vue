@@ -1,8 +1,9 @@
 <script setup>
-import { openDevTools } from "@/api/app";
+import { getOsLabel, openDevTools } from "@/api/app";
 import { renderAppIcon } from "@/appUtils";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import appMenuOptions from "@/models/appMenuOptions";
+import { REPOSITORY_URL } from "@/models/repository";
 import { useSystemStore } from "@/stores/system";
 import { useUserStore } from "@/stores/user";
 import Updater from "@/Updater.vue";
@@ -13,7 +14,18 @@ import { useRouter } from "vue-router";
 const system = useSystemStore();
 const user = useUserStore();
 const router = useRouter();
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+// Modèle de bug dans la langue de l'app (.github/ISSUE_TEMPLATE), version et OS pré-remplis
+const bugReportUrl = computed(() => {
+  const params = new URLSearchParams({
+    template: `bug_report_${locale.value}.yml`,
+    version: system.app.version,
+    os: getOsLabel(),
+  });
+
+  return `${REPOSITORY_URL}/issues/new?${params}`;
+});
 
 const themeSelector = computed({
   get: () => user.settings.theme === "dark",
@@ -64,9 +76,7 @@ const menuOptions = computed(() => {
           <template #default>
             <n-space align="center" size="small">
               <app-icon name="brand-github" />
-              <n-a
-                href="https://github.com/StarbreakersNet/metrx-hardware-monitor/issues/new/choose"
-                target="_blank">
+              <n-a :href="bugReportUrl" target="_blank">
                 {{ t("footer.reportIssue") }}
               </n-a>
             </n-space>

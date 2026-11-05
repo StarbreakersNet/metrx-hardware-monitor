@@ -1,8 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
-import { platform } from "@tauri-apps/plugin-os";
+import { platform, version } from "@tauri-apps/plugin-os";
 
 /** Plateforme courante : "windows", "macos" ou "linux" */
 export const currentPlatform = platform();
+
+const PLATFORM_NAMES = { windows: "Windows", macos: "macOS", linux: "Linux" };
+
+/** Système et version, ex : "Windows 10.0.26100" (pour pré-remplir les rapports de bug) */
+export function getOsLabel() {
+  return `${PLATFORM_NAMES[currentPlatform] ?? currentPlatform} ${version()}`;
+}
 
 let appInfo = {
   name: "",

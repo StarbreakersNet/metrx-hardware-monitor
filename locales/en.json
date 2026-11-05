@@ -170,7 +170,7 @@
           "label": "Automatic updates",
           "description": "Checks for updates when the application starts"
         },
-        "updateChanel": {
+        "updateChannel": {
           "label": "Update channel",
           "description": "Automatically checks for and installs the latest version of the selected channel"
         }
@@ -190,7 +190,13 @@
       "refreshHint": "You can press {shortcut} to force the application to refresh",
       "osTheme": "Your system theme is currently {theme}",
       "themeDark": "dark 🌙",
-      "themeLight": "light ☀️"
+      "themeLight": "light ☀️",
+      "legal": {
+        "copyright": "Copyright © 2022-{year} StarbreakersNet",
+        "license": "Metrx is free software: you can redistribute it and/or modify it under the terms of the {license}. It comes with absolutely no warranty.",
+        "licenseName": "GNU GPL v3 or later license",
+        "sourceCode": "Source code on GitHub"
+      }
     },
     "updater": {
       "checking": "Checking for updates... (current: {version})",

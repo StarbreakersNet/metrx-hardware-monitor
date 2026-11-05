@@ -141,13 +141,13 @@ export default [
       {
         type: "select",
         icon: "git-branch",
-        key: "updateChanel",
+        key: "updateChannel",
         options: [
           { label: "Live", value: "latest" },
           { label: "Preview", value: "beta" },
           { label: "Nightly", value: "alpha" },
         ],
-        storePath: ["settings", "updateChanel"],
+        storePath: ["settings", "updateChannel"],
       },
     ],
   },

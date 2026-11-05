@@ -12,7 +12,7 @@ function getDefaultUserSettings() {
     theme: "system",
     osTheme: null,
     autoUpdate: false,
-    updateChanel: getDefaultUpdateChanel(),
+    updateChannel: getDefaultUpdateChannel(),
     nodeFrequency: 1000,
     chartColumns: 2,
     chartHeight: 10,
@@ -51,11 +51,11 @@ const DEFAULT_NODE_SELECTED = [
 ];
 
 /** Canal de mise à jour déduit de la version : 2.0.0 → latest, 2.0.0-beta.1 → beta */
-function getDefaultUpdateChanel() {
+function getDefaultUpdateChannel() {
   const subVersion = getAppInfo().version.split("-")[1] ?? "";
-  const chanel = /^(alpha|beta)/.exec(subVersion)?.[1];
+  const channel = /^(alpha|beta)/.exec(subVersion)?.[1];
 
-  return chanel ?? "latest";
+  return channel ?? "latest";
 }
 
 export const useUserStore = defineStore(
@@ -116,7 +116,7 @@ export const useUserStore = defineStore(
       settings,
       isEnvDev,
       resetAllSettings,
-      getDefaultUpdateChanel,
+      getDefaultUpdateChannel,
     };
   },
   {

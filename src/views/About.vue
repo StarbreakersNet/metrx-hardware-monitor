@@ -1,6 +1,7 @@
 <script setup>
 import { currentPlatform } from "@/api/app";
 import LoaderSpinner from "@/components/LoaderSpinner.vue";
+import { LICENSE_URL, REPOSITORY_URL } from "@/models/repository";
 import Versions from "@/components/Versions.vue";
 import { useUserStore } from "@/stores/user";
 import { useOsTheme } from "naive-ui";
@@ -10,6 +11,7 @@ import { useI18n } from "vue-i18n";
 const osThemeRef = useOsTheme();
 const user = useUserStore();
 const { t } = useI18n();
+const currentYear = new Date().getFullYear();
 const osThemeLabel = computed(() => {
   switch (osThemeRef.value) {
     case "dark":
@@ -87,6 +89,18 @@ const isMacos = computed(() => {
         </template>
       </n-alert>
       <n-card>{{ t("about.osTheme", { theme: osThemeLabel }) }}</n-card>
+      <!-- Mention de licence recommandée par la GPL pour les applications avec une interface -->
+      <n-card size="small">
+        <n-flex size="small" vertical>
+          <n-text strong>{{ t("about.legal.copyright", { year: currentYear }) }}</n-text>
+          <i18n-t keypath="about.legal.license" scope="global" tag="span">
+            <template #license>
+              <n-a :href="LICENSE_URL" target="_blank">{{ t("about.legal.licenseName") }}</n-a>
+            </template>
+          </i18n-t>
+          <n-a :href="REPOSITORY_URL" target="_blank">{{ t("about.legal.sourceCode") }}</n-a>
+        </n-flex>
+      </n-card>
     </n-flex>
   </n-flex>
 </template>

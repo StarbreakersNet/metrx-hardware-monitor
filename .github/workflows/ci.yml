@@ -1,13 +1,15 @@
-# Vérifie à chaque push que l'application compile et se package sur les 3 OS.
+# Vérifie que l'application compile et se package sur les 3 OS : sur les pull requests vers
+# main / develop, ou à la demande (onglet Actions > CI > Run workflow), pas à chaque push.
 # Rien n'est signé ni publié : les installeurs sont seulement disponibles en artefacts
 # du workflow (7 jours, un fichier par installeur) pour pouvoir les tester.
 # Les releases passent par deploy.yml (tags).
 name: CI
 
 on:
-  push:
+  pull_request:
     branches:
-      - "**"
+      - main
+      - develop
   workflow_dispatch:
 
 concurrency:
