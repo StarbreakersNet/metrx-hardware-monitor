@@ -101,9 +101,26 @@ yarn format
 
 ## Releases
 
-Pushing a tag (`2.0.0`, `2.0.0-beta`, `2.0.0-alpha`…) runs `.github/workflows/deploy.yml`, which
-builds, signs and publishes the release with its `latest.json` update manifest. Tags containing
-`-beta` or `-alpha` are published as pre-releases and delivered to the matching update channel.
+Versions follow [Semantic Versioning](https://semver.org/): successive pre-releases of a version are
+numbered `2.1.0-alpha.1`, `2.1.0-beta.1`, `2.1.0-beta.2`… before `2.1.0`.
+
+User-facing changes are listed under `## [Unreleased]` in `CHANGELOG.md` as they are merged. Tooling,
+CI or dev dependency changes are not listed and do not need a release.
+
+To publish a version, from an up-to-date `develop` (pre-releases) or `main` (releases):
+
+```bash
+yarn release 2.1.0-beta.1
+```
+
+[release-it](https://github.com/release-it/release-it) renames the `[Unreleased]` section to the
+version and date, commits `docs(changelog): Prepare the 2.1.0-beta.1 release notes`, creates the tag
+and pushes both after confirmation. It stops if the `[Unreleased]` section is empty.
+
+Pushing the tag runs `.github/workflows/deploy.yml`, which builds, signs and publishes the release
+with its `latest.json` update manifest and the notes of that `CHANGELOG.md` section (the workflow
+fails before building if the section is missing). Tags containing `-beta` or `-alpha` are published
+as pre-releases and delivered to the matching update channel.
 
 ### Auto-updates
 

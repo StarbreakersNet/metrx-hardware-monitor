@@ -55,6 +55,19 @@ jobs:
           echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
           echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
 
+      # Les notes de release sont tirées de la première section numérotée du CHANGELOG :
+      # elle doit être celle de la version du tag (voir README > Releases, `yarn release`)
+      - name: Check CHANGELOG entry
+        if: steps.set-release-info.outputs.should_release == 'true'
+        run: |
+          VERSION="${{ steps.set-version.outputs.version }}"
+          LATEST=$(grep -m1 -oE '^## \[[0-9][^]]*\]' CHANGELOG.md || true)
+
+          if [ "$LATEST" != "## [$VERSION]" ]; then
+            echo "::error::La dernière section du CHANGELOG est « ${LATEST:-aucune} » au lieu de « ## [$VERSION] ». Préparer la release avec « yarn release $VERSION », puis replacer le tag."
+            exit 1
+          fi
+
       - name: Check updater public key
         run: |
           if grep -q "REMPLACER_PAR_LA_CLE_PUBLIQUE" src-tauri/tauri.conf.json; then
