@@ -128,23 +128,42 @@ jobs:
       - name: Install dependency
         run: yarn install --immutable
 
-      # Le sidecar (Bun) est compilé automatiquement par `beforeBuildCommand` (voir tauri.conf.json)
+      # Le sidecar (Bun) est compilé automatiquement par `beforeBuildCommand` (voir tauri.conf.json).
+      # Une étape par cas, qui ne reçoit que les secrets dont elle a besoin : Tauri considère une
+      # variable vide comme définie (il tenterait par exemple de notariser avec un Team ID vide).
       - name: Build & package with Tauri
+        if: matrix.platform != 'macos'
         run: yarn tauri build --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
         env:
-          # Signature des mises à jour (toutes plateformes)
+          # Signature des mises à jour
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          # Signature macOS (mêmes secrets que la version Electron)
-          APPLE_CERTIFICATE: ${{ matrix.platform == 'macos' && secrets.CSC_LINK || '' }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos' && secrets.CSC_KEY_PASSWORD || '' }}
-          # Notarisation macOS : nécessite un abonnement Apple Developer Program actif. Pour publier
-          # une version signée mais non notarisée, créer la variable de dépôt MACOS_NOTARIZE=false
-          # (Settings > Secrets and variables > Actions > Variables) : Tauri saute alors l'étape.
-          APPLE_ID: ${{ matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false' && secrets.APPLE_ID || '' }}
-          APPLE_PASSWORD: ${{ matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
-          APPLE_TEAM_ID: ${{ matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false' && secrets.APPLE_TEAM_ID || '' }}
           # Signature Windows : à brancher ici une fois le fournisseur choisi (voir README)
+
+      # macOS : signature (mêmes secrets que la version Electron) et notarisation. La notarisation
+      # nécessite un abonnement Apple Developer Program actif : pour publier une version signée mais
+      # non notarisée, créer la variable de dépôt MACOS_NOTARIZE=false
+      # (Settings > Secrets and variables > Actions > Variables).
+      - name: Build, sign & notarize with Tauri
+        if: matrix.platform == 'macos' && vars.MACOS_NOTARIZE != 'false'
+        run: yarn tauri build --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.CSC_LINK }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Build & sign with Tauri (not notarized)
+        if: matrix.platform == 'macos' && vars.MACOS_NOTARIZE == 'false'
+        run: yarn tauri build --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.CSC_LINK }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Collect artefacts
         shell: bash
