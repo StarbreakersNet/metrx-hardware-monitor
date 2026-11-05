@@ -1,0 +1,64 @@
+name: 🇫🇷 Signaler un bug
+description: Quelque chose ne fonctionne pas comme prévu dans Metrx
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler ce problème ! Plus la description est précise, plus il sera simple à corriger.
+  - type: textarea
+    id: description
+    attributes:
+      label: Que se passe-t-il ?
+      description: Décrivez le problème rencontré.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      description: Comment faire apparaître le problème ?
+      placeholder: |
+        1. Ouvrir la page « Paramètres »
+        2. Activer « Lancer au démarrage »
+        3. …
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportement attendu
+      description: Qu'auriez-vous dû voir à la place ?
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version de Metrx
+      description: Visible dans « Autres » > « À propos ».
+      placeholder: ex. 2.0.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Système d'exploitation
+      placeholder: ex. Windows 11, macOS 15.1, Ubuntu 24.04
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Matériel concerné
+      description: Processeur, carte graphique… si le problème concerne une mesure.
+      placeholder: ex. AMD Ryzen 7 7800X3D, NVIDIA RTX 4070
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Captures d'écran ou logs
+      description: Vous pouvez glisser des images directement ici.
+    validations:
+      required: false

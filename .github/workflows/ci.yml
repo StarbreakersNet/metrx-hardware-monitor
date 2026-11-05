@@ -1,0 +1,164 @@
+# Vérifie que l'application compile et se package sur les 3 OS, pas à chaque push :
+# - sur les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
+#   touchent autre chose que la documentation
+# - à la demande (onglet Actions > CI > Run workflow)
+# Rien n'est signé ni publié : les installeurs sont seulement disponibles en artefacts
+# du workflow (7 jours, un fichier par installeur) pour pouvoir les tester.
+# Les releases passent par deploy.yml (tags).
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    # ready_for_review : passage d'une PR brouillon à « Ready for review »
+    types: [opened, reopened, synchronize, ready_for_review]
+    # Une PR qui ne modifie que ces fichiers ne relance pas les builds
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".vscode/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint & tests
+    # Pas de CI sur les PR en brouillon (elle se lance au passage en « Ready for review »)
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install dependency
+        run: yarn install --immutable
+
+      - name: ESLint
+        run: yarn eslint .
+
+      - name: Prettier
+        run: yarn prettier --check .
+
+      # tauri-build vérifie que le sidecar existe avant de compiler
+      - name: Build sidecar
+        run: yarn sidecar:build
+
+      - name: Rust format
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test
+
+  build:
+    name: Build ${{ matrix.platform }}
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            installer: nsis/*-setup.exe
+          - platform: macos
+            os: macos-latest
+            target: aarch64-apple-darwin
+            installer: dmg/*.dmg
+          - platform: linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            installer: deb/*.deb
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf file
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: ${{ matrix.target }}
+
+      - name: Install dependency
+        run: yarn install --immutable
+
+      # macOS : signature « ad hoc » (-) pour que l'app puisse se lancer sur Apple Silicon
+      - name: Build & package with Tauri
+        shell: bash
+        run: |
+          CONFIG='{}'
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            CONFIG='{"bundle":{"macOS":{"signingIdentity":"-"}}}'
+          fi
+          yarn tauri build --target ${{ matrix.target }} --config "$CONFIG"
+
+      - name: Check sidecar
+        shell: bash
+        timeout-minutes: 3
+        run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-${{ matrix.target }}${{ matrix.platform == 'windows' && '.exe' || '' }}
+
+      # Un artefact par installeur, sans archive zip : le fichier se télécharge directement
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.installer }}
+          archive: false
+          retention-days: 7
+
+      - name: Upload AppImage
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v7
+        with:
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          archive: false
+          retention-days: 7
