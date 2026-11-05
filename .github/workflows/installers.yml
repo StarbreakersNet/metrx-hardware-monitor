@@ -1,0 +1,92 @@
+# Installeurs de test d'une branche, à la demande : onglet Actions > Test installers > Run workflow.
+# Rien n'est signé ni publié : les installeurs sont disponibles en artefacts du workflow
+# (7 jours, un fichier par installeur). Les releases passent par deploy.yml (tags).
+name: Test installers
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: installers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            installer: nsis/*-setup.exe
+          - platform: macos
+            os: macos-latest
+            target: aarch64-apple-darwin
+            installer: dmg/*.dmg
+          - platform: linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            installer: deb/*.deb
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf file
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: ${{ matrix.target }}
+
+      - name: Install dependency
+        run: yarn install --immutable
+
+      # macOS : signature « ad hoc » (-) pour que l'app puisse se lancer sur Apple Silicon
+      - name: Build & package with Tauri
+        shell: bash
+        run: |
+          CONFIG='{}'
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            CONFIG='{"bundle":{"macOS":{"signingIdentity":"-"}}}'
+          fi
+          yarn tauri build --target ${{ matrix.target }} --config "$CONFIG"
+
+      - name: Check sidecar
+        shell: bash
+        timeout-minutes: 3
+        run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-${{ matrix.target }}${{ matrix.platform == 'windows' && '.exe' || '' }}
+
+      # Un artefact par installeur, sans archive zip : le fichier se télécharge directement
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.installer }}
+          archive: false
+          retention-days: 7
+
+      - name: Upload AppImage
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v7
+        with:
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          archive: false
+          retention-days: 7

@@ -117,10 +117,14 @@ yarn release 2.1.0-beta.1
 version and date, commits `docs(changelog): Prepare the 2.1.0-beta.1 release notes`, creates the tag
 and pushes both after confirmation. It stops if the `[Unreleased]` section is empty.
 
-Pushing the tag runs `.github/workflows/deploy.yml`, which builds, signs and publishes the release
-with its `latest.json` update manifest and the notes of that `CHANGELOG.md` section (the workflow
-fails before building if the section is missing). Tags containing `-beta` or `-alpha` are published
-as pre-releases and delivered to the matching update channel.
+Pushing the tag runs `.github/workflows/deploy.yml`. It first runs the same lint and tests as pull
+requests (`.github/workflows/ci.yml`), then builds, signs and publishes the release on the three
+platforms with its `latest.json` update manifest and the notes of that `CHANGELOG.md` section. Nothing
+is built if the tests fail or if the section is missing. Tags containing `-beta` or `-alpha` are
+published as pre-releases and delivered to the matching update channel.
+
+Pull requests only run the lint and tests. To get unsigned test installers of a branch, run the
+"Test installers" workflow (Actions > Test installers > Run workflow).
 
 ### Auto-updates
 

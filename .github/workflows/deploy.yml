@@ -87,9 +87,15 @@ jobs:
           name: release-notes
           path: release-notes.md
 
+  # Même job « Lint & tests » que sur les pull requests (ci.yml), sur le code du tag
+  tests:
+    name: Tests
+    uses: ./.github/workflows/ci.yml
+
   build:
     name: Build ${{ matrix.platform }}
-    needs: prepare_build
+    # Les builds par OS ne démarrent que si le lint et les tests réussissent
+    needs: [prepare_build, tests]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

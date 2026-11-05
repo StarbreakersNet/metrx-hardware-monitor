@@ -1,11 +1,12 @@
-# Vérifie les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
-# touchent autre chose que la documentation : lint, format, Clippy et tests Rust, build du front
-# et du sidecar, qui est lancé pour vérifier qu'il répond (Linux).
+# Lint, format, Clippy et tests Rust, build du front et du sidecar, qui est lancé pour vérifier
+# qu'il répond (Linux). Tourne :
+# - sur les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
+#   touchent autre chose que la documentation
+# - à chaque release : deploy.yml appelle ce workflow (workflow_call) avant les builds par OS,
+#   qui ne démarrent que s'il réussit
 #
-# Les builds par OS (installeurs) ne tournent qu'à la release (deploy.yml, sur les tags) : un
-# problème propre à un OS y bloque la publication et se corrige par un correctif.
-# Pour tester les installeurs d'une branche : onglet Actions > CI > Run workflow. Rien n'est alors
-# signé ni publié, les installeurs sont disponibles en artefacts du workflow (7 jours).
+# Les builds par OS (installeurs) ne tournent qu'à la release. Pour tester les installeurs d'une
+# branche : installers.yml (onglet Actions > Test installers > Run workflow).
 name: CI
 
 on:
@@ -15,13 +16,14 @@ on:
       - develop
     # ready_for_review : passage d'une PR brouillon à « Ready for review »
     types: [opened, reopened, synchronize, ready_for_review]
-    # Une PR qui ne modifie que ces fichiers ne relance pas les builds
+    # Une PR qui ne modifie que ces fichiers ne relance pas la CI
     paths-ignore:
       - "**.md"
       - "LICENSE"
       - ".github/ISSUE_TEMPLATE/**"
       - ".vscode/**"
-  workflow_dispatch:
+  # Appelé par deploy.yml avant les builds de la release
+  workflow_call:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -91,85 +93,3 @@ jobs:
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test
-
-  # Installeurs de test, seulement à la demande (Run workflow)
-  build:
-    name: Build ${{ matrix.platform }}
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: windows
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            installer: nsis/*-setup.exe
-          - platform: macos
-            os: macos-latest
-            target: aarch64-apple-darwin
-            installer: dmg/*.dmg
-          - platform: linux
-            os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            installer: deb/*.deb
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install Linux dependencies
-        if: matrix.platform == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf file
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Cache Rust build
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
-          key: ${{ matrix.target }}
-
-      - name: Install dependency
-        run: yarn install --immutable
-
-      # macOS : signature « ad hoc » (-) pour que l'app puisse se lancer sur Apple Silicon
-      - name: Build & package with Tauri
-        shell: bash
-        run: |
-          CONFIG='{}'
-          if [ "${{ matrix.platform }}" = "macos" ]; then
-            CONFIG='{"bundle":{"macOS":{"signingIdentity":"-"}}}'
-          fi
-          yarn tauri build --target ${{ matrix.target }} --config "$CONFIG"
-
-      - name: Check sidecar
-        shell: bash
-        timeout-minutes: 3
-        run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-${{ matrix.target }}${{ matrix.platform == 'windows' && '.exe' || '' }}
-
-      # Un artefact par installeur, sans archive zip : le fichier se télécharge directement
-      - name: Upload installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.installer }}
-          archive: false
-          retention-days: 7
-
-      - name: Upload AppImage
-        if: matrix.platform == 'linux'
-        uses: actions/upload-artifact@v7
-        with:
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
-          archive: false
-          retention-days: 7
