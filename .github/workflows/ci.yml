@@ -1,10 +1,11 @@
-# Vérifie que l'application compile et se package sur les 3 OS, pas à chaque push :
-# - sur les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
-#   touchent autre chose que la documentation
-# - à la demande (onglet Actions > CI > Run workflow)
-# Rien n'est signé ni publié : les installeurs sont seulement disponibles en artefacts
-# du workflow (7 jours, un fichier par installeur) pour pouvoir les tester.
-# Les releases passent par deploy.yml (tags).
+# Vérifie les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
+# touchent autre chose que la documentation : lint, format, Clippy et tests Rust, build du front
+# et du sidecar, qui est lancé pour vérifier qu'il répond (Linux).
+#
+# Les builds par OS (installeurs) ne tournent qu'à la release (deploy.yml, sur les tags) : un
+# problème propre à un OS y bloque la publication et se corrige par un correctif.
+# Pour tester les installeurs d'une branche : onglet Actions > CI > Run workflow. Rien n'est alors
+# signé ni publié, les installeurs sont disponibles en artefacts du workflow (7 jours).
 name: CI
 
 on:
@@ -32,6 +33,8 @@ jobs:
     # Pas de CI sur les PR en brouillon (elle se lance au passage en « Ready for review »)
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-22.04
+    # Prend 2 à 4 minutes : au-delà, un blocage (ex : miroir apt) ne doit pas occuper le runner 6 h
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -66,9 +69,16 @@ jobs:
       - name: Prettier
         run: yarn prettier --check .
 
+      - name: Build frontend
+        run: yarn vite:build
+
       # tauri-build vérifie que le sidecar existe avant de compiler
       - name: Build sidecar
         run: yarn sidecar:build
+
+      - name: Check sidecar
+        timeout-minutes: 3
+        run: node .github/scripts/check-sidecar.js src-tauri/binaries/metrx-metrics-x86_64-unknown-linux-gnu
 
       - name: Rust format
         working-directory: src-tauri
@@ -82,9 +92,10 @@ jobs:
         working-directory: src-tauri
         run: cargo test
 
+  # Installeurs de test, seulement à la demande (Run workflow)
   build:
     name: Build ${{ matrix.platform }}
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
