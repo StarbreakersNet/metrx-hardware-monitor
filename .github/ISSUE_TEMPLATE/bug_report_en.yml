@@ -1,0 +1,84 @@
+name: Report a bug (English)
+description: Something in Metrx does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this issue! The more precise the description, the easier it is to fix.
+
+        Before you start, check that it has not already been reported in the [existing issues](https://github.com/StarbreakersNet/metrx-hardware-monitor/issues?q=is%3Aissue%20label%3Abug).
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem you ran into.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can the problem be reproduced?
+      placeholder: |
+        1. Open the "Settings" page
+        2. Enable "Launch at startup"
+        3. …
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: false
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequency
+      description: Does the problem happen every time?
+      options:
+        - Every time
+        - Sometimes
+        - Only once
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Metrx version
+      description: Shown in "More" > "About".
+      placeholder: e.g. 2.0.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: e.g. Windows 11, macOS 15.1, Ubuntu 24.04
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware involved
+      description: CPU, graphics card… if the problem is about a measurement.
+      placeholder: e.g. AMD Ryzen 7 7800X3D, NVIDIA RTX 4070
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: You can drag and drop images here.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console logs
+      description: Right-click the 🐞 icon at the bottom right of the window to open the developer tools, then copy the content of the "Console" tab.
+      render: shell
+    validations:
+      required: false

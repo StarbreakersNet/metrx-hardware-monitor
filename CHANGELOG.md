@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- English translation: the application is now available in French and English, following the system language by default, with a new "Language" setting (interface, tray menu, notifications and macOS menu bar)
+- Issue templates in French and English: "Report an issue" opens the bug form with the Metrx version and the operating system already filled in
+- License notice and link to the source code in the "About" page
+
+### Changed
+
+- The Electron version cannot update automatically to this version: install it manually, then uninstall the previous one
+- Settings from the Electron version are not migrated and are reset on first launch
+- Migrated the application from Electron to Tauri 2: installers are 3 to 6 times smaller, and the application uses less memory and CPU
+- Hardware metrics are now collected by a Bun sidecar running SystemInformation
+- Upgraded SystemInformation to 6.0.0-beta.21 (`graphics` probe replaced by `gpu`)
+- Auto-updates now use the Tauri updater with signed update packages, keeping the Live / Preview / Nightly channels
+- macOS 13 (Ventura) or later is now required
+- Upgraded Vue to 3.5.44, Vue Router to 5.4.0, Pinia to 4.1.0, pinia-plugin-persistedstate to 4.7.1
+- Upgraded NaiveUI to 2.45.3, Chart.js to 4.6.1, Tabler Icons to 3.50.0
+- Upgraded Vite to 8.3.5, Tailwind CSS to 4.3.4 (now through its Vite plugin), Sass to 1.107.1
+- Upgraded ESLint to 10.14.0 with a flat config, Prettier to 3.9.10, Yarn to 4.18.1
+- License changed from MIT to GPL-3.0-or-later
+
+### Removed
+
+- Electron, electron-vite, electron-builder and electron-updater
+- Unused Less and vfonts dependencies
+
+## [2.0.0-beta.2] - 2026-11-05
+
+### Fixed
+
+- macOS: "Launch at startup" now registers Metrx as a login item (SMAppService), listed under its own name and icon in System Settings > General > Login Items instead of the developer name
+- macOS: turning off Metrx in System Settings > General > Login Items is now reflected in the "Launch at startup" setting
+- External links ("Report an issue on GitHub", links in the About page) did nothing when clicked
+- Removed an error logged at every startup by the notifications plugin (missing read-only permission)
+
+## [2.0.0-beta] - 2026-11-05
+
+### Added
+
+- English translation: the application is now available in French and English, following the system language by default, with a new "Language" setting (interface, tray menu, notifications and macOS menu bar)
+- "Dev" build type for versions that are not built from a release tag
+- Issue templates in French and English: "Report an issue" opens the bug form with the Metrx version and the operating system already filled in
+- License notice and link to the source code in the "About" page
+
+### Changed
+
+- Migrated the application from Electron to Tauri 2: installers are 3 to 6 times smaller and use less memory
+- Hardware metrics are now collected by a Bun sidecar running SystemInformation
+- Upgraded SystemInformation to 6.0.0-beta.21 (`graphics` probe replaced by `gpu`)
+- Auto-updates now use the Tauri updater with signed update packages, keeping the Live / Preview / Nightly channels
+- The Electron version cannot update automatically to this version: install it manually, then uninstall the previous one
+- Settings from the Electron version are not migrated and are reset on first launch
+- macOS 13 (Ventura) or later is now required
+- Release assets are now the installers themselves (`.exe`, `.dmg`, `.deb`, `.AppImage`)
+- Upgraded Vue to 3.5.44, Vue Router to 5.4.0, Pinia to 4.1.0, pinia-plugin-persistedstate to 4.7.1
+- Upgraded NaiveUI to 2.45.3, Chart.js to 4.6.1, Tabler Icons to 3.50.0
+- Upgraded Vite to 8.3.5, Tailwind CSS to 4.3.4 (now through its Vite plugin), Sass to 1.107.1
+- Upgraded ESLint to 10.14.0 with a flat config, Prettier to 3.9.10, Yarn to 4.18.1
+- License changed from MIT to GPL-3.0-or-later
+
+### Removed
+
+- Electron, electron-vite, electron-builder and electron-updater
+- Unused Less and vfonts dependencies
+
 ## [1.7.12] - 2026-03-23
 
 ### Fixed

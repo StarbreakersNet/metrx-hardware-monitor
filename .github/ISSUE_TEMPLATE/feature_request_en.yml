@@ -1,0 +1,25 @@
+name: Suggest an idea (English)
+description: A new feature or an improvement for Metrx
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What need?
+      description: What problem would this idea solve, or what would it let you do?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How do you picture the feature?
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Have you considered other solutions, or do you use a workaround today?
+    validations:
+      required: false

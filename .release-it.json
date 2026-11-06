@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/release-it/schema/release-it.json",
+  "git": {
+    "commitMessage": "docs(changelog): Prepare the ${version} release notes",
+    "tagName": "${version}",
+    "tagAnnotation": "Metrx ${version}",
+    "requireBranch": ["develop", "main"]
+  },
+  "npm": false,
+  "github": {
+    "release": false
+  },
+  "plugins": {
+    "@release-it/keep-a-changelog": {
+      "filename": "CHANGELOG.md",
+      "addUnreleased": true
+    }
+  }
+}

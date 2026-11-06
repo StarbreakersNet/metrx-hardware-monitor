@@ -1,6 +1,9 @@
-out
+node_modules
 dist
-pnpm-lock.yaml
-LICENSE.md
-tsconfig.json
-tsconfig.*.json
+.yarn
+src-tauri/target
+src-tauri/gen
+src-tauri/binaries
+yarn.lock
+CHANGELOG.md
+LICENSE

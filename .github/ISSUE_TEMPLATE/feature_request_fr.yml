@@ -1,0 +1,25 @@
+name: Proposer une idée (français)
+description: Une nouvelle fonctionnalité ou une amélioration pour Metrx
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Quel besoin ?
+      description: Quel problème cette idée résoudrait-elle, ou que permettrait-elle de faire ?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution envisagée
+      description: Comment imaginez-vous la fonctionnalité ?
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Avez-vous pensé à d'autres solutions, ou utilisez-vous un contournement aujourd'hui ?
+    validations:
+      required: false
