@@ -198,7 +198,7 @@ function getEntryList(list, label, value, valueAppend, precision = 0) {
       value: formatValue({
         value: value,
         unit: valueAppend,
-        decimals: precision,
+        precision,
       }),
       valueAppend: getValueUnit(value, valueAppend),
     });
@@ -211,7 +211,7 @@ function getUsage(used, total, unit) {
     formatValue({
       value: used,
       unit: unit,
-      decimals: 2,
+      precision: 2,
     }) +
     " (" +
     percent +

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Merged charts: the vertical scale now covers every merged series instead of only the first one
 - Units follow the application language, such as "Octet" / "Byte" in the chart merge window
 - Statistics: the CPU clock was shown in MHz instead of GHz
+- Chart tooltips round temperatures, clock speeds and percentages like the rest of the chart
 
 ## [2.0.0] - 2026-11-07
 
