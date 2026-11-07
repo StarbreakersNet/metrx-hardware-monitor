@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- The GPU VRAM chart can now be merged with the RAM chart: both are measured in bytes ([#78](https://github.com/StarbreakersNet/metrx-hardware-monitor/issues/78))
+- The RAM and GPU VRAM charts can now be merged: the VRAM is displayed in bytes like the RAM (#78)
 
 ### Fixed
 
-- Merged charts: the vertical scale now covers every merged series instead of only the first one
+- The vertical scale of a merged chart now covers all its series (e.g. 32 GB of RAM with 8 GB of VRAM)
+- The statistics showed the CPU clock with the MHz unit instead of GHz
+- The chart tooltip ignored the value precision (52.3 °C in the tooltip, 52 °C under the chart)
 - Units follow the application language, such as "Octet" / "Byte" in the chart merge window
-- Statistics: the CPU clock was shown in MHz instead of GHz
-- Chart tooltips round temperatures, clock speeds and percentages like the rest of the chart
 
 ## [2.0.0] - 2026-11-07
 
