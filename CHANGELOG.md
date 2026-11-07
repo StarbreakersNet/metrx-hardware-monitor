@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - The RAM and GPU VRAM charts can now be merged: the VRAM is displayed in bytes like the RAM (#78)
 - The CPU and GPU clock charts can now be merged: both are displayed in hertz (MHz, GHz)
+- macOS: GPU usage of Apple Silicon chips, read from `ioreg` (no administrator rights needed)
 
 ### Fixed
 
@@ -19,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The chart tooltip ignored the value precision (52.3 °C in the tooltip, 52 °C under the chart)
 - Units are shown as symbols that follow the application language: o / B for bytes, Hz, W, °C, %
 - The chart merge window offered charts missing from the home page, such as the VRAM of a GPU that does not report it: merging a chart into one of them made it disappear
+- Metrics the hardware does not report are hidden instead of showing 0: GPU usage, temperature, clock, fan speed and VRAM usage of non-NVIDIA GPUs, CPU temperature without a sensor
+- macOS: the CPU clock chart is hidden, as macOS only reports the nominal frequency (a flat line); it is still listed in the statistics
 
 ## [2.0.0] - 2026-11-07
 

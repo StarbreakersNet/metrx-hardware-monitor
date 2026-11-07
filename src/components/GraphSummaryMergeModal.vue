@@ -3,6 +3,7 @@ import { getUnitLabel } from "@/appUtils";
 import _ from "lodash";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { currentPlatform } from "@/api/app";
 import { getActiveMerges, getChartEntries } from "@/models/chartEntries";
 import { useUserStore } from "@/stores/user";
 import { useSystemStore } from "@/stores/system";
@@ -17,11 +18,13 @@ defineEmits({
 });
 
 const user = useUserStore();
+// macOS ne remonte que la fréquence nominale du CPU : pas de graphique d'horloge CPU
+const chartOptions = { nominalCpuClock: currentPlatform === "macos" };
 const system = useSystemStore();
 const { t } = useI18n();
 
 // Mêmes graphiques que l'accueil (GraphSummary.vue) : on ne propose que ce qui est affiché
-const entries = computed(() => getChartEntries(system.metrics));
+const entries = computed(() => getChartEntries(system.metrics, chartOptions));
 const activeMerges = computed(() => getActiveMerges(user.settings.chartsMerged, entries.value));
 
 const listSummary = computed(() => {
