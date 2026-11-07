@@ -22,7 +22,7 @@
       "reportIssue": "Report an issue on GitHub"
     },
     "units": {
-      "b": "bytes",
+      "b": "B",
       "kb": "KB",
       "mb": "MB",
       "gb": "GB",
@@ -30,7 +30,14 @@
       "pb": "PB",
       "eb": "EB",
       "zb": "ZB",
-      "yb": "YB"
+      "yb": "YB",
+      "labels": {
+        "percent": "%",
+        "bytes": "B",
+        "hertz": "Hz",
+        "celsius": "°C",
+        "watt": "W"
+      }
     },
     "charts": {
       "titles": {

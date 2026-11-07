@@ -1,5 +1,6 @@
 import { naiveDark, naiveLight } from "@/assets/themes/naiveTheme";
 import { i18n } from "@/i18n";
+import { UNITS } from "@/models/units";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import _ from "lodash";
 import { darkTheme, lightTheme, NIcon } from "naive-ui";
@@ -64,43 +65,67 @@ export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Clés des unités dans locales/*.json (app.units) : octets, Ko, Mo… / bytes, KB, MB…
+// Clés des multiples d'octets dans locales/*.json (units.*) : o, Ko, Mo… / B, KB, MB…
 const BYTE_UNIT_KEYS = ["b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"];
+// Les symboles des hertz sont les mêmes dans toutes les langues
+const HERTZ_UNITS = ["Hz", "kHz", "MHz", "GHz", "THz"];
 
 function byteUnit(index) {
   return i18n.global.t("units." + BYTE_UNIT_KEYS[index]);
 }
 
-export function formatBytes(bytes, decimals = 2) {
-  if (+bytes) {
-    const k = 1000;
-    const dm = decimals < 0 ? 0 : decimals;
+/** Valeur ramenée au multiple de 1000 adapté (index du multiple dans la liste des unités) */
+function scaleByThousands(value, precision, unitCount) {
+  const index = Math.min(Math.max(Math.floor(Math.log(value) / Math.log(1000)), 0), unitCount - 1);
+  const scaled = value / Math.pow(1000, index);
 
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return { value: parseFloat((bytes / Math.pow(k, i)).toFixed(dm)), unit: byteUnit(i) };
-  } else {
-    return { value: 0, unit: byteUnit(0) };
-  }
+  return { value: parseFloat(scaled.toFixed(Math.max(precision, 0))), index };
 }
 
-export function formatValue({ value, unit, showUnit = false, decimals = 2 }) {
+export function formatBytes(bytes, precision = 2) {
+  if (!(bytes > 0)) {
+    return { value: 0, unit: byteUnit(0) };
+  }
+
+  const { value, index } = scaleByThousands(bytes, precision, BYTE_UNIT_KEYS.length);
+
+  return { value, unit: byteUnit(index) };
+}
+
+export function formatHertz(hertz, precision = 2) {
+  if (!(hertz > 0)) {
+    return { value: 0, unit: HERTZ_UNITS[0] };
+  }
+
+  const { value, index } = scaleByThousands(hertz, precision, HERTZ_UNITS.length);
+
+  return { value, unit: HERTZ_UNITS[index] };
+}
+
+/** Symbole traduit d'une unité (`UNITS`), indépendant de la valeur : « o » / « B », « Hz », « % »… */
+export function getUnitLabel(unit) {
+  const key = "units.labels." + unit;
+
+  return unit && i18n.global.te(key) ? i18n.global.t(key) : (unit ?? "");
+}
+
+export function formatValue({ value, unit, showUnit = false, precision = 2 }) {
   let formatedValue = value;
   switch (unit) {
-    case "%":
+    case UNITS.PERCENT:
       formatedValue = Math.round(value);
       break;
-    case "B":
-      formatedValue = formatBytes(value, decimals).value;
+    case UNITS.BYTES:
+      formatedValue = formatBytes(value, precision).value;
       break;
-    case "Mo":
-      formatedValue = formatBytes(value * 1024 * 1024, decimals).value;
+    case UNITS.HERTZ:
+      formatedValue = formatHertz(value, precision).value;
       break;
   }
 
   if (typeof formatedValue === "number") {
-    if (decimals > 0) {
-      formatedValue = parseFloat(formatedValue.toFixed(decimals));
+    if (precision > 0) {
+      formatedValue = parseFloat(formatedValue.toFixed(precision));
     } else {
       formatedValue = Math.round(formatedValue);
     }
@@ -113,14 +138,15 @@ export function formatValue({ value, unit, showUnit = false, decimals = 2 }) {
   }
 }
 
+/** Symbole de l'unité adapté à la valeur (multiples : Ko, Mo, Go… / MHz, GHz…) */
 export function getValueUnit(value, unit) {
   switch (unit) {
-    case "B":
+    case UNITS.BYTES:
       return formatBytes(value).unit;
-    case "Mo":
-      return formatBytes(value * 1000 * 1000).unit;
+    case UNITS.HERTZ:
+      return formatHertz(value).unit;
     default:
-      return unit;
+      return getUnitLabel(unit);
   }
 }
 
