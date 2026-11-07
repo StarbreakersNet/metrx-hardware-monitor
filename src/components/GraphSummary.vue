@@ -4,6 +4,7 @@ import ChartLine from "@/components/Charts/ChartLine.vue";
 import GraphSummaryMergeModal from "@/components/GraphSummaryMergeModal.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@/stores/system";
+import { mebibytesToBytes, UNITS } from "@/models/units";
 import { useUserStore } from "@/stores/user";
 import _ from "lodash";
 import { useLoadingBar } from "naive-ui";
@@ -34,7 +35,7 @@ function setSummary() {
       titleKey: "usage",
       description: "CPU",
       icon: "cpu",
-      unit: "%",
+      unit: UNITS.PERCENT,
       value: system.metrics.currentLoad.currentLoad,
     });
   }
@@ -45,7 +46,7 @@ function setSummary() {
       titleKey: "clock",
       description: "CPU",
       icon: "wave-square",
-      unit: "Ghz",
+      unit: UNITS.GIGAHERTZ,
       value: system.metrics.cpuCurrentSpeed?.avg,
     });
   }
@@ -56,7 +57,7 @@ function setSummary() {
       titleKey: "temperature",
       description: "CPU",
       icon: "temperature",
-      unit: "°C",
+      unit: UNITS.CELSIUS,
       value: system.metrics.cpuTemperature.main,
     });
   }
@@ -74,19 +75,19 @@ function setSummary() {
         titleKey: "usage",
         description: description,
         icon: "cpu2",
-        unit: "%",
+        unit: UNITS.PERCENT,
         value: controller.utilizationGpu ?? 0,
       });
 
       if (controller.vram) {
         getEntryList(list, {
-          max: controller.vram,
+          max: mebibytesToBytes(controller.vram),
           min: 0,
           titleKey: "vramUsage",
           icon: "section-filled",
           description: description,
-          unit: "Mo",
-          value: controller.memoryUsed,
+          unit: UNITS.BYTES,
+          value: mebibytesToBytes(controller.memoryUsed),
         });
       }
 
@@ -96,7 +97,7 @@ function setSummary() {
         titleKey: "temperature",
         description: description,
         icon: "temperature",
-        unit: "°C",
+        unit: UNITS.CELSIUS,
         value: controller.temperatureGpu ?? 0,
       });
 
@@ -107,7 +108,7 @@ function setSummary() {
           titleKey: "power",
           description: description,
           icon: "bolt-filled",
-          unit: "W",
+          unit: UNITS.WATT,
           value: controller.powerDraw ?? 0,
         });
       }
@@ -118,7 +119,7 @@ function setSummary() {
         titleKey: "clock",
         icon: "wave-square",
         description: description,
-        unit: "Mhz",
+        unit: UNITS.MEGAHERTZ,
         value: controller.clockCore,
       });
 
@@ -128,7 +129,7 @@ function setSummary() {
         titleKey: "fanSpeed",
         icon: "windmill-filled",
         description: description,
-        unit: "%",
+        unit: UNITS.PERCENT,
         value: controller.fanSpeed ?? 0,
       });
     });
@@ -140,7 +141,7 @@ function setSummary() {
       titleKey: "usage",
       description: "RAM",
       icon: "section-filled",
-      unit: "B",
+      unit: UNITS.BYTES,
       value: system.metrics.mem.used,
     });
   }
@@ -168,8 +169,19 @@ function processMergedCharts(list) {
       .map(id => allGraphs.find(item => item.id === id))
       .filter(Boolean);
 
+    const allLinked = [graph, ...linkedGraphs];
+
     return {
       ...graph,
+      // L'échelle couvre toutes les séries fusionnées (ex. VRAM 8 Go + RAM 32 Go)
+      min: getMergedBound(
+        allLinked.map(item => item.min),
+        Math.min
+      ),
+      max: getMergedBound(
+        allLinked.map(item => item.max),
+        Math.max
+      ),
       value: [
         { description: graph.description, value: graph.value },
         ...linkedGraphs.map(({ description, value }) => ({ description, value })),
@@ -184,6 +196,11 @@ function processMergedCharts(list) {
       })),
     };
   });
+}
+
+// Sans borne sur l'une des séries, l'échelle reste automatique
+function getMergedBound(bounds, pick) {
+  return bounds.every(Number.isFinite) ? pick(...bounds) : undefined;
 }
 
 // L'id (ordre, fusions) repose sur la clé du titre et non sur le texte traduit :

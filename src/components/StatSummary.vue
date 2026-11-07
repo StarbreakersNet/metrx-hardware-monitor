@@ -1,5 +1,6 @@
 <script setup>
-import { formatValue, getValueUnit, Loader } from "@/appUtils";
+import { formatValue, getUnitLabel, getValueUnit, Loader } from "@/appUtils";
+import { mebibytesToBytes, UNITS } from "@/models/units";
 import { useSystemStore } from "@/stores/system";
 import { NA, useLoadingBar } from "naive-ui";
 import { computed, h, onMounted, reactive, ref, watch } from "vue";
@@ -69,9 +70,25 @@ function setSummary() {
     getEntryList(listEntry, t("stats.cores"), system.info.cpu?.physicalCores);
     getEntryList(listEntry, t("stats.logicalProcessors"), system.info.cpu?.cores);
     getEntryList(listEntry, t("stats.socket"), system.info.cpu?.socket);
-    getEntryList(listEntry, t("stats.usage"), system.metrics.currentLoad?.currentLoad, "%");
-    getEntryList(listEntry, t("stats.temperature"), system.metrics.cpuTemperature?.main, "°C");
-    getEntryList(listEntry, t("stats.clock"), system.metrics.cpuCurrentSpeed?.avg, "Mhz");
+    getEntryList(
+      listEntry,
+      t("stats.usage"),
+      system.metrics.currentLoad?.currentLoad,
+      UNITS.PERCENT
+    );
+    getEntryList(
+      listEntry,
+      t("stats.temperature"),
+      system.metrics.cpuTemperature?.main,
+      UNITS.CELSIUS
+    );
+    getEntryList(
+      listEntry,
+      t("stats.clock"),
+      system.metrics.cpuCurrentSpeed?.avg,
+      UNITS.GIGAHERTZ,
+      2
+    );
     getEntryList(
       listEntry,
       t("stats.virtualization"),
@@ -101,13 +118,16 @@ function setSummary() {
       if (controller.vram !== undefined && controller.vram !== null) {
         let subEntry = [];
 
+        const memoryUsed = mebibytesToBytes(controller.memoryUsed);
+        const memoryTotal = mebibytesToBytes(controller.memoryTotal);
+
         subEntry.push({
           label: t("stats.used"),
-          value: getUsage(controller.memoryUsed, controller.memoryTotal, "Mo") ?? 0,
-          valueAppend: getValueUnit(controller.memoryUsed, "Mo"),
+          value: getUsage(memoryUsed, memoryTotal, UNITS.BYTES) ?? 0,
+          valueAppend: getValueUnit(memoryUsed, UNITS.BYTES),
         });
 
-        getEntryList(subEntry, t("stats.total"), controller.memoryTotal, "Mo", 2);
+        getEntryList(subEntry, t("stats.total"), memoryTotal, UNITS.BYTES, 2);
 
         listEntry.push({
           label: t("stats.vram"),
@@ -119,27 +139,27 @@ function setSummary() {
       listEntry.push({
         label: t("stats.usage"),
         value: formatValue({ value: controller.utilizationGpu ?? 0 }),
-        valueAppend: "%",
+        valueAppend: getUnitLabel(UNITS.PERCENT),
       });
       listEntry.push({
         label: t("stats.temperature"),
         value: formatValue({ value: controller.temperatureGpu ?? 0 }),
-        valueAppend: "°C",
+        valueAppend: getUnitLabel(UNITS.CELSIUS),
       });
       listEntry.push({
         label: t("stats.power"),
         value: formatValue({ value: controller.powerDraw ?? 0 }),
-        valueAppend: "W",
+        valueAppend: getUnitLabel(UNITS.WATT),
       });
       listEntry.push({
         label: t("stats.clock"),
         value: formatValue({ value: controller.clockCore ?? 0 }),
-        valueAppend: "Mhz",
+        valueAppend: getUnitLabel(UNITS.MEGAHERTZ),
       });
       listEntry.push({
         label: t("stats.fanSpeed"),
         value: formatValue({ value: controller.fanSpeed ?? 0 }),
-        valueAppend: "%",
+        valueAppend: getUnitLabel(UNITS.PERCENT),
       });
 
       list.push({
@@ -156,10 +176,10 @@ function setSummary() {
     getEntryList(
       listEntry,
       t("stats.used"),
-      getUsage(system.metrics.mem.used, system.metrics.mem.total, "B"),
-      getValueUnit(system.metrics.mem.used, "B")
+      getUsage(system.metrics.mem.used, system.metrics.mem.total, UNITS.BYTES),
+      getValueUnit(system.metrics.mem.used, UNITS.BYTES)
     );
-    getEntryList(listEntry, t("stats.total"), system.metrics.mem.total, "B", 2);
+    getEntryList(listEntry, t("stats.total"), system.metrics.mem.total, UNITS.BYTES, 2);
 
     list.push({
       label: t("stats.memory"),

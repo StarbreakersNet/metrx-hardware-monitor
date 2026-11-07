@@ -1,7 +1,9 @@
 <script setup>
+import { getUnitLabel } from "@/appUtils";
 import _ from "lodash";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { UNITS } from "@/models/units";
 import { useUserStore } from "@/stores/user";
 import { useSystemStore } from "@/stores/system";
 import AppScrollLayout from "@/components/Layouts/AppScrollLayout.vue";
@@ -25,21 +27,21 @@ const listSummary = computed(() => {
     getEntryList(list, {
       titleKey: "usage",
       description: "CPU",
-      unit: "%",
+      unit: UNITS.PERCENT,
     });
   }
   if (system.metrics.cpuCurrentSpeed) {
     getEntryList(list, {
       titleKey: "clock",
       description: "CPU",
-      unit: "Ghz",
+      unit: UNITS.GIGAHERTZ,
     });
   }
   if (system.metrics.cpuTemperature) {
     getEntryList(list, {
       titleKey: "temperature",
       description: "CPU",
-      unit: "°C",
+      unit: UNITS.CELSIUS,
     });
   }
   if (system.metrics.gpu?.length) {
@@ -53,37 +55,37 @@ const listSummary = computed(() => {
       getEntryList(list, {
         titleKey: "usage",
         description: description,
-        unit: "%",
+        unit: UNITS.PERCENT,
       });
 
       getEntryList(list, {
         titleKey: "vramUsage",
         description: description,
-        unit: "Mo",
+        unit: UNITS.BYTES,
       });
 
       getEntryList(list, {
         titleKey: "temperature",
         description: description,
-        unit: "°C",
+        unit: UNITS.CELSIUS,
       });
 
       getEntryList(list, {
         titleKey: "power",
         description: description,
-        unit: "W",
+        unit: UNITS.WATT,
       });
 
       getEntryList(list, {
         titleKey: "clock",
         description: description,
-        unit: "Mhz",
+        unit: UNITS.MEGAHERTZ,
       });
 
       getEntryList(list, {
         titleKey: "fanSpeed",
         description: description,
-        unit: "%",
+        unit: UNITS.PERCENT,
       });
     });
   }
@@ -91,7 +93,7 @@ const listSummary = computed(() => {
     getEntryList(list, {
       titleKey: "usage",
       description: "RAM",
-      unit: "B",
+      unit: UNITS.BYTES,
     });
   }
 
@@ -170,7 +172,7 @@ function getSelectValues(id) {
                   <n-text :delete="item.disabled">{{ item.title }} {{ item.description }}</n-text>
                 </template>
                 <template #header-extra>
-                  {{ item.unit }}
+                  {{ getUnitLabel(item.unit) }}
                 </template>
                 <template #default>
                   <n-select
