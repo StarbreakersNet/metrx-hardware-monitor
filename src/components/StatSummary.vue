@@ -1,6 +1,6 @@
 <script setup>
 import { formatValue, getUnitLabel, getValueUnit, Loader } from "@/appUtils";
-import { mebibytesToBytes, UNITS } from "@/models/units";
+import { gigahertzToHertz, mebibytesToBytes, megahertzToHertz, UNITS } from "@/models/units";
 import { useSystemStore } from "@/stores/system";
 import { NA, useLoadingBar } from "naive-ui";
 import { computed, h, onMounted, reactive, ref, watch } from "vue";
@@ -85,8 +85,8 @@ function setSummary() {
     getEntryList(
       listEntry,
       t("stats.clock"),
-      system.metrics.cpuCurrentSpeed?.avg,
-      UNITS.GIGAHERTZ,
+      gigahertzToHertz(system.metrics.cpuCurrentSpeed?.avg),
+      UNITS.HERTZ,
       2
     );
     getEntryList(
@@ -151,10 +151,12 @@ function setSummary() {
         value: formatValue({ value: controller.powerDraw ?? 0 }),
         valueAppend: getUnitLabel(UNITS.WATT),
       });
+      const clockCore = megahertzToHertz(controller.clockCore ?? 0);
+
       listEntry.push({
         label: t("stats.clock"),
-        value: formatValue({ value: controller.clockCore ?? 0 }),
-        valueAppend: getUnitLabel(UNITS.MEGAHERTZ),
+        value: formatValue({ value: clockCore, unit: UNITS.HERTZ }),
+        valueAppend: getValueUnit(clockCore, UNITS.HERTZ),
       });
       listEntry.push({
         label: t("stats.fanSpeed"),

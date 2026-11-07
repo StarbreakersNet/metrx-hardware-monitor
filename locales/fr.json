@@ -22,7 +22,7 @@
       "reportIssue": "Signaler un problème sur GitHub"
     },
     "units": {
-      "b": "octets",
+      "b": "o",
       "kb": "Ko",
       "mb": "Mo",
       "gb": "Go",
@@ -33,11 +33,10 @@
       "yb": "Yo",
       "labels": {
         "percent": "%",
-        "bytes": "Octet",
+        "bytes": "o",
+        "hertz": "Hz",
         "celsius": "°C",
-        "watt": "W",
-        "megahertz": "MHz",
-        "gigahertz": "GHz"
+        "watt": "W"
       }
     },
     "charts": {

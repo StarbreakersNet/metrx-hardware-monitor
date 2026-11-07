@@ -65,27 +65,44 @@ export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Clés des multiples d'octets dans locales/*.json (units.*) : octets, Ko, Mo… / bytes, KB, MB…
+// Clés des multiples d'octets dans locales/*.json (units.*) : o, Ko, Mo… / B, KB, MB…
 const BYTE_UNIT_KEYS = ["b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"];
+// Les symboles des hertz sont les mêmes dans toutes les langues
+const HERTZ_UNITS = ["Hz", "kHz", "MHz", "GHz", "THz"];
 
 function byteUnit(index) {
   return i18n.global.t("units." + BYTE_UNIT_KEYS[index]);
 }
 
-export function formatBytes(bytes, precision = 2) {
-  if (+bytes) {
-    const k = 1000;
-    const dm = precision < 0 ? 0 : precision;
+/** Valeur ramenée au multiple de 1000 adapté (index du multiple dans la liste des unités) */
+function scaleByThousands(value, precision, unitCount) {
+  const index = Math.min(Math.max(Math.floor(Math.log(value) / Math.log(1000)), 0), unitCount - 1);
+  const scaled = value / Math.pow(1000, index);
 
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return { value: parseFloat((bytes / Math.pow(k, i)).toFixed(dm)), unit: byteUnit(i) };
-  } else {
-    return { value: 0, unit: byteUnit(0) };
-  }
+  return { value: parseFloat(scaled.toFixed(Math.max(precision, 0))), index };
 }
 
-/** Libellé traduit d'une unité (`UNITS`), indépendant de la valeur : « Octet » / « Byte », « % »… */
+export function formatBytes(bytes, precision = 2) {
+  if (!(bytes > 0)) {
+    return { value: 0, unit: byteUnit(0) };
+  }
+
+  const { value, index } = scaleByThousands(bytes, precision, BYTE_UNIT_KEYS.length);
+
+  return { value, unit: byteUnit(index) };
+}
+
+export function formatHertz(hertz, precision = 2) {
+  if (!(hertz > 0)) {
+    return { value: 0, unit: HERTZ_UNITS[0] };
+  }
+
+  const { value, index } = scaleByThousands(hertz, precision, HERTZ_UNITS.length);
+
+  return { value, unit: HERTZ_UNITS[index] };
+}
+
+/** Symbole traduit d'une unité (`UNITS`), indépendant de la valeur : « o » / « B », « Hz », « % »… */
 export function getUnitLabel(unit) {
   const key = "units.labels." + unit;
 
@@ -100,6 +117,9 @@ export function formatValue({ value, unit, showUnit = false, precision = 2 }) {
       break;
     case UNITS.BYTES:
       formatedValue = formatBytes(value, precision).value;
+      break;
+    case UNITS.HERTZ:
+      formatedValue = formatHertz(value, precision).value;
       break;
   }
 
@@ -118,11 +138,13 @@ export function formatValue({ value, unit, showUnit = false, precision = 2 }) {
   }
 }
 
-/** Libellé traduit de l'unité adapté à la valeur (multiple d'octets : Ko, Mo, Go…) */
+/** Symbole de l'unité adapté à la valeur (multiples : Ko, Mo, Go… / MHz, GHz…) */
 export function getValueUnit(value, unit) {
   switch (unit) {
     case UNITS.BYTES:
       return formatBytes(value).unit;
+    case UNITS.HERTZ:
+      return formatHertz(value).unit;
     default:
       return getUnitLabel(unit);
   }

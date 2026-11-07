@@ -4,7 +4,7 @@ import ChartLine from "@/components/Charts/ChartLine.vue";
 import GraphSummaryMergeModal from "@/components/GraphSummaryMergeModal.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@/stores/system";
-import { mebibytesToBytes, UNITS } from "@/models/units";
+import { getActiveMerges, getChartEntries } from "@/models/chartEntries";
 import { useUserStore } from "@/stores/user";
 import _ from "lodash";
 import { useLoadingBar } from "naive-ui";
@@ -26,125 +26,11 @@ const colNumber = computed(() => {
 });
 
 function setSummary() {
-  let list = [];
-
-  if (system.metrics.currentLoad) {
-    getEntryList(list, {
-      max: 100,
-      min: 0,
-      titleKey: "usage",
-      description: "CPU",
-      icon: "cpu",
-      unit: UNITS.PERCENT,
-      value: system.metrics.currentLoad.currentLoad,
-    });
-  }
-  if (system.metrics.cpuCurrentSpeed) {
-    getEntryList(list, {
-      max: system.metrics.cpuCurrentSpeed?.max,
-      min: 0,
-      titleKey: "clock",
-      description: "CPU",
-      icon: "wave-square",
-      unit: UNITS.GIGAHERTZ,
-      value: system.metrics.cpuCurrentSpeed?.avg,
-    });
-  }
-  if (system.metrics.cpuTemperature) {
-    getEntryList(list, {
-      max: 100,
-      min: 0,
-      titleKey: "temperature",
-      description: "CPU",
-      icon: "temperature",
-      unit: UNITS.CELSIUS,
-      value: system.metrics.cpuTemperature.main,
-    });
-  }
-  if (system.metrics.gpu?.length) {
-    system.metrics.gpu.forEach((controller, index) => {
-      let description = "GPU";
-
-      if (system.metrics.gpu.length > 1) {
-        description += " " + index;
-      }
-
-      getEntryList(list, {
-        max: 100,
-        min: 0,
-        titleKey: "usage",
-        description: description,
-        icon: "cpu2",
-        unit: UNITS.PERCENT,
-        value: controller.utilizationGpu ?? 0,
-      });
-
-      if (controller.vram) {
-        getEntryList(list, {
-          max: mebibytesToBytes(controller.vram),
-          min: 0,
-          titleKey: "vramUsage",
-          icon: "section-filled",
-          description: description,
-          unit: UNITS.BYTES,
-          value: mebibytesToBytes(controller.memoryUsed),
-        });
-      }
-
-      getEntryList(list, {
-        max: 100,
-        min: 0,
-        titleKey: "temperature",
-        description: description,
-        icon: "temperature",
-        unit: UNITS.CELSIUS,
-        value: controller.temperatureGpu ?? 0,
-      });
-
-      if (controller.powerLimit) {
-        getEntryList(list, {
-          max: controller.powerLimit,
-          min: 0,
-          titleKey: "power",
-          description: description,
-          icon: "bolt-filled",
-          unit: UNITS.WATT,
-          value: controller.powerDraw ?? 0,
-        });
-      }
-
-      getEntryList(list, {
-        max: 5000,
-        min: 0,
-        titleKey: "clock",
-        icon: "wave-square",
-        description: description,
-        unit: UNITS.MEGAHERTZ,
-        value: controller.clockCore,
-      });
-
-      getEntryList(list, {
-        max: 100,
-        min: 0,
-        titleKey: "fanSpeed",
-        icon: "windmill-filled",
-        description: description,
-        unit: UNITS.PERCENT,
-        value: controller.fanSpeed ?? 0,
-      });
-    });
-  }
-  if (system.metrics.mem) {
-    getEntryList(list, {
-      max: system.metrics.mem.total,
-      min: 0,
-      titleKey: "usage",
-      description: "RAM",
-      icon: "section-filled",
-      unit: UNITS.BYTES,
-      value: system.metrics.mem.used,
-    });
-  }
+  let list = getChartEntries(system.metrics).map(entry => ({
+    ...entry,
+    title: t(`charts.titles.${entry.titleKey}`),
+    order: user.settings.chartsOrder[entry.id] ?? 0,
+  }));
 
   list = _.sortBy(list, "order");
   list = processMergedCharts(list);
@@ -154,21 +40,18 @@ function setSummary() {
 }
 
 function processMergedCharts(list) {
-  const mergedIds = Object.values(user.settings.chartsMerged).flat();
-  const allGraphs = [...list];
+  const merges = getActiveMerges(user.settings.chartsMerged, list);
+  const mergedIds = Object.values(merges).flat();
   const filteredList = list.filter(item => !mergedIds.includes(item.id));
 
   return filteredList.map(graph => {
-    const linkedGraphIds = user.settings.chartsMerged[graph.id] || [];
+    const linkedGraphIds = merges[graph.id] ?? [];
 
     if (!linkedGraphIds.length) {
       return graph;
     }
 
-    const linkedGraphs = linkedGraphIds
-      .map(id => allGraphs.find(item => item.id === id))
-      .filter(Boolean);
-
+    const linkedGraphs = linkedGraphIds.map(id => list.find(item => item.id === id));
     const allLinked = [graph, ...linkedGraphs];
 
     return {
@@ -201,23 +84,6 @@ function processMergedCharts(list) {
 // Sans borne sur l'une des séries, l'échelle reste automatique
 function getMergedBound(bounds, pick) {
   return bounds.every(Number.isFinite) ? pick(...bounds) : undefined;
-}
-
-// L'id (ordre, fusions) repose sur la clé du titre et non sur le texte traduit :
-// changer de langue ne fait pas perdre la configuration des graphiques.
-function getEntryList(list, { titleKey, description, icon, value, unit, min, max }) {
-  let id = (titleKey + "#" + description).toLowerCase();
-  list.push({
-    id,
-    title: t(`charts.titles.${titleKey}`),
-    description,
-    icon,
-    value: value ?? 0,
-    unit,
-    min,
-    max,
-    order: user.settings.chartsOrder[id] ?? 0,
-  });
 }
 
 function getFormatedStyle(index) {

@@ -449,7 +449,6 @@ function getValueColorType(value) {
 
 const labelPrecision = computed(() => {
   switch (props.unit) {
-    case UNITS.MEGAHERTZ:
     case UNITS.CELSIUS:
     case UNITS.PERCENT:
       return 0;

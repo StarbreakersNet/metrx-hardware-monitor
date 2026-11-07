@@ -3,7 +3,7 @@ import { getUnitLabel } from "@/appUtils";
 import _ from "lodash";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { UNITS } from "@/models/units";
+import { getActiveMerges, getChartEntries } from "@/models/chartEntries";
 import { useUserStore } from "@/stores/user";
 import { useSystemStore } from "@/stores/system";
 import AppScrollLayout from "@/components/Layouts/AppScrollLayout.vue";
@@ -20,113 +20,35 @@ const user = useUserStore();
 const system = useSystemStore();
 const { t } = useI18n();
 
+// Mêmes graphiques que l'accueil (GraphSummary.vue) : on ne propose que ce qui est affiché
+const entries = computed(() => getChartEntries(system.metrics));
+const activeMerges = computed(() => getActiveMerges(user.settings.chartsMerged, entries.value));
+
 const listSummary = computed(() => {
-  let list = [];
-
-  if (system.metrics.currentLoad) {
-    getEntryList(list, {
-      titleKey: "usage",
-      description: "CPU",
-      unit: UNITS.PERCENT,
-    });
-  }
-  if (system.metrics.cpuCurrentSpeed) {
-    getEntryList(list, {
-      titleKey: "clock",
-      description: "CPU",
-      unit: UNITS.GIGAHERTZ,
-    });
-  }
-  if (system.metrics.cpuTemperature) {
-    getEntryList(list, {
-      titleKey: "temperature",
-      description: "CPU",
-      unit: UNITS.CELSIUS,
-    });
-  }
-  if (system.metrics.gpu?.length) {
-    system.metrics.gpu.forEach((controller, index) => {
-      let description = "GPU";
-
-      if (system.metrics.gpu.length > 1) {
-        description += " " + index;
-      }
-
-      getEntryList(list, {
-        titleKey: "usage",
-        description: description,
-        unit: UNITS.PERCENT,
-      });
-
-      getEntryList(list, {
-        titleKey: "vramUsage",
-        description: description,
-        unit: UNITS.BYTES,
-      });
-
-      getEntryList(list, {
-        titleKey: "temperature",
-        description: description,
-        unit: UNITS.CELSIUS,
-      });
-
-      getEntryList(list, {
-        titleKey: "power",
-        description: description,
-        unit: UNITS.WATT,
-      });
-
-      getEntryList(list, {
-        titleKey: "clock",
-        description: description,
-        unit: UNITS.MEGAHERTZ,
-      });
-
-      getEntryList(list, {
-        titleKey: "fanSpeed",
-        description: description,
-        unit: UNITS.PERCENT,
-      });
-    });
-  }
-  if (system.metrics.mem) {
-    getEntryList(list, {
-      titleKey: "usage",
-      description: "RAM",
-      unit: UNITS.BYTES,
-    });
-  }
-
-  return _.sortBy(list, "order");
-});
-
-// Même id que dans GraphSummary.vue (clé du titre + description)
-function getEntryList(list, { titleKey, description, unit }) {
-  let id = (titleKey + "#" + description).toLowerCase();
-  list.push({
+  const list = entries.value.map(({ id, titleKey, description, unit }) => ({
     id,
     title: t(`charts.titles.${titleKey}`),
     description,
     unit,
     order: user.settings.chartsOrder[id] ?? 0,
     disabled: isEntryDisabled(id),
-  });
-}
+  }));
+
+  return _.sortBy(list, "order");
+});
 
 function isEntryDisabled(id) {
-  return Object.entries(user.settings.chartsMerged).some(([graphId, mergedIds]) => {
+  return Object.entries(activeMerges.value).some(([graphId, mergedIds]) => {
     return mergedIds.includes(id) && graphId !== id;
   });
 }
 
 function isOptionDisabled(entryId, currentGraphId) {
-  const isMergedInOtherGraph = Object.entries(user.settings.chartsMerged).some(
-    ([graphId, mergedIds]) => {
-      return mergedIds.includes(entryId) && graphId !== currentGraphId;
-    }
-  );
+  const isMergedInOtherGraph = Object.entries(activeMerges.value).some(([graphId, mergedIds]) => {
+    return mergedIds.includes(entryId) && graphId !== currentGraphId;
+  });
 
-  const hasMergedGraphs = user.settings.chartsMerged[entryId]?.length > 0;
+  const hasMergedGraphs = activeMerges.value[entryId]?.length > 0;
 
   return isMergedInOtherGraph || hasMergedGraphs;
 }
@@ -150,7 +72,7 @@ function onModalConfirm() {
 }
 
 function getSelectValues(id) {
-  return user.settings.chartsMerged[id] ?? [];
+  return activeMerges.value[id] ?? [];
 }
 </script>
 
