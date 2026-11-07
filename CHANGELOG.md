@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The RAM and GPU VRAM charts can now be merged: the VRAM is displayed in bytes like the RAM (#78)
 - The CPU and GPU clock charts can now be merged: both are displayed in hertz (MHz, GHz)
 - macOS: GPU usage of Apple Silicon chips, read from `ioreg` (no administrator rights needed)
+- macOS: optional advanced metrics in Settings > Danger zone. With administrator rights, limited by a sudoers rule to `powermetrics` with fixed arguments, Metrx shows the actual CPU frequency, the CPU and GPU power and the GPU clock. The setting lists the metrics it unlocks on the computer and whether it is worth enabling
 
 ### Fixed
 

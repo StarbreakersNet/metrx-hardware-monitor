@@ -90,6 +90,7 @@ function setSummary() {
       UNITS.HERTZ,
       2
     );
+    getEntryList(listEntry, t("stats.power"), system.metrics.cpuPower?.draw, UNITS.WATT, 2);
     getEntryList(
       listEntry,
       t("stats.virtualization"),
