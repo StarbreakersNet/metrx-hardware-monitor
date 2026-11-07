@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-07
+
 ### Added
 
 - English translation: the application is now available in French and English, following the system language by default, with a new "Language" setting (interface, tray menu, notifications and macOS menu bar)
