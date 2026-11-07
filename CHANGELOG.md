@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - "Data" page redesigned: it shows every value systeminformation reports, in three views. Summary gives the essentials of each component, Table puts every value in a single table with its unit, and Detailed shows one card per systeminformation source with per-core charts. Search, component filters, lib keys shown or hidden, and copy as JSON
 - "Probes" page redesigned: choose which tiles the home page shows, with the current value of each one, counters, and "Hide unavailable" / "Show all" buttons
 - Metrics are only collected for the tiles shown on the home page, and all of them while the Data or Probes page is open
+- macOS: optional advanced metrics in Settings > Danger zone. With administrator rights, limited by a sudoers rule to `powermetrics` with fixed arguments, Metrx shows the actual CPU frequency, the CPU and GPU power and the GPU clock. The setting lists the metrics it unlocks on the computer and whether it is worth enabling
 
 ### Changed
 

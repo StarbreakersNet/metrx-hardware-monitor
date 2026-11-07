@@ -368,6 +368,41 @@
         "charts": "chart configurations",
         "button": "Reset all settings",
         "confirm": "Are you sure you want to reset all your settings?"
+      },
+      "privileged": {
+        "label": "Advanced metrics (administrator rights)",
+        "description": "Lets Metrx read, with administrator rights, only the metrics that are not available otherwise",
+        "columns": {
+          "metric": "Metric",
+          "now": "Currently available"
+        },
+        "available": "Yes",
+        "unavailable": "No",
+        "metrics": {
+          "cpuClock": "Actual CPU frequency",
+          "cpuPower": "CPU power",
+          "gpuClock": "GPU clock",
+          "gpuPower": "GPU power",
+          "cpuTemperature": "CPU temperature"
+        },
+        "verdict": {
+          "useful": "Useful on this computer: {count} metric(s) unlocked",
+          "alreadyAvailable": "Not needed on this computer: these metrics are already available",
+          "active": "Enabled: the metrics below are read with administrator rights",
+          "low": "Of little use: on Windows, administrator rights only give the temperature of the motherboard ACPI thermal zone, often missing or stuck. Not offered for now.",
+          "notNeeded": "Not needed: on Linux, every Metrx metric can be read without administrator rights"
+        },
+        "details": {
+          "macos": "Metrx installs a sudoers rule that allows a single command without a password: powermetrics with fixed arguments. No other command can run as administrator. Turning the option off removes the rule.",
+          "windows": "The Windows CPU temperature comes from the MSAcpi_ThermalZoneTemperature WMI query, reserved to administrators.",
+          "linux": "Temperatures (hwmon) and NVIDIA GPUs (nvidia-smi) can be read without administrator rights."
+        },
+        "confirmEnable": "Metrx will install {file} with this rule:",
+        "confirmPassword": "macOS will ask for an administrator password.",
+        "confirmDisable": "Metrx will remove {file}. macOS will ask for an administrator password.",
+        "enabledMessage": "Advanced metrics enabled",
+        "disabledMessage": "Advanced metrics disabled",
+        "error": "Could not change the advanced metrics: {error}"
       }
     },
     "about": {
