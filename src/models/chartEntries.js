@@ -31,7 +31,8 @@ export function getGpuMetric(controller, key) {
  * sur le texte traduit : changer de langue ne fait pas perdre la configuration des graphiques.
  *
  * `nominalCpuClock` : la fréquence CPU remontée est la fréquence nominale, figée (macOS, où Node
- * lit `hw.cpufrequency`) ; son graphique serait une ligne plate, il n'est pas affiché.
+ * lit `hw.cpufrequency`) ; son graphique serait une ligne plate, il n'est pas affiché, sauf si
+ * la fréquence réelle est mesurée (`measured`, métriques avancées avec powermetrics).
  */
 export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
   const list = [];
@@ -55,9 +56,12 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
       value: metrics.currentLoad.currentLoad,
     });
   }
-  if (metrics.cpuCurrentSpeed && !nominalCpuClock) {
+  const measuredCpuClock = Boolean(metrics.cpuCurrentSpeed?.measured);
+
+  if (metrics.cpuCurrentSpeed && (!nominalCpuClock || measuredCpuClock)) {
     add({
-      max: gigahertzToHertz(metrics.cpuCurrentSpeed.max),
+      // Mesurée, la fréquence max change à chaque relevé : échelle automatique
+      max: measuredCpuClock ? undefined : gigahertzToHertz(metrics.cpuCurrentSpeed.max),
       min: 0,
       titleKey: "clock",
       description: "CPU",
@@ -76,6 +80,17 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
       icon: "temperature",
       unit: UNITS.CELSIUS,
       value: metrics.cpuTemperature.main,
+    });
+  }
+  // Puissance du CPU : métriques avancées seulement (powermetrics, absent de systeminformation)
+  if (metrics.cpuPower?.draw != null) {
+    add({
+      min: 0,
+      titleKey: "power",
+      description: "CPU",
+      icon: "bolt-filled",
+      unit: UNITS.WATT,
+      value: metrics.cpuPower.draw,
     });
   }
   if (metrics.gpu?.length) {
@@ -130,15 +145,17 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
         });
       }
 
-      if (controller.powerLimit && powerDraw !== undefined) {
+      // NVIDIA : la limite est connue, la consommation peut valoir 0 (absente). GPU Apple :
+      // consommation mesurée par powermetrics, sans limite (échelle automatique).
+      if (controller.powerLimit || controller.powerDraw != null) {
         add({
-          max: controller.powerLimit,
+          max: controller.powerLimit || undefined,
           min: 0,
           titleKey: "power",
           description,
           icon: "bolt-filled",
           unit: UNITS.WATT,
-          value: powerDraw,
+          value: powerDraw ?? 0,
         });
       }
 
