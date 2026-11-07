@@ -1,13 +1,39 @@
 import { gigahertzToHertz, mebibytesToBytes, megahertzToHertz, UNITS } from "@/models/units";
 
 /**
+ * GPU lu par nvidia-smi. systeminformation ne recopie ses valeurs que si elles sont non nulles
+ * (`if (nvidia.fanSpeed)` dans common/nvidia.js) : une valeur absente y vaut donc 0.
+ */
+function isReadByNvidiaSmi(controller) {
+  return /nvidia/i.test(controller.vendor ?? "") && controller.memoryTotal != null;
+}
+
+/**
+ * Valeur dynamique d'un GPU (utilisation, température, horloge, ventilateur…), ou `undefined`
+ * quand le GPU ne la fournit pas : Apple, AMD et Intel ne remontent pas tout, et afficher 0
+ * ferait croire à une vraie mesure.
+ */
+export function getGpuMetric(controller, key) {
+  const value = controller[key];
+
+  if (value !== undefined && value !== null) {
+    return value;
+  }
+
+  return isReadByNvidiaSmi(controller) ? 0 : undefined;
+}
+
+/**
  * Graphiques de l'accueil construits à partir des métriques. GraphSummary et la fenêtre de
  * fusion partagent cette liste : la fenêtre ne propose que des graphiques réellement affichés.
  *
  * L'id (ordre, fusions) repose sur la clé du titre (`charts.titles.*`) et la description, et non
  * sur le texte traduit : changer de langue ne fait pas perdre la configuration des graphiques.
+ *
+ * `nominalCpuClock` : la fréquence CPU remontée est la fréquence nominale, figée (macOS, où Node
+ * lit `hw.cpufrequency`) ; son graphique serait une ligne plate, il n'est pas affiché.
  */
-export function getChartEntries(metrics) {
+export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
   const list = [];
 
   function add(entry) {
@@ -29,7 +55,7 @@ export function getChartEntries(metrics) {
       value: metrics.currentLoad.currentLoad,
     });
   }
-  if (metrics.cpuCurrentSpeed) {
+  if (metrics.cpuCurrentSpeed && !nominalCpuClock) {
     add({
       max: gigahertzToHertz(metrics.cpuCurrentSpeed.max),
       min: 0,
@@ -40,7 +66,8 @@ export function getChartEntries(metrics) {
       value: gigahertzToHertz(metrics.cpuCurrentSpeed.avg),
     });
   }
-  if (metrics.cpuTemperature) {
+  // Sans capteur accessible (ex. Windows sans droits administrateur), `main` vaut null
+  if (metrics.cpuTemperature?.main != null) {
     add({
       max: 100,
       min: 0,
@@ -59,17 +86,27 @@ export function getChartEntries(metrics) {
         description += " " + index;
       }
 
-      add({
-        max: 100,
-        min: 0,
-        titleKey: "usage",
-        description,
-        icon: "cpu2",
-        unit: UNITS.PERCENT,
-        value: controller.utilizationGpu,
-      });
+      const usage = getGpuMetric(controller, "utilizationGpu");
+      const temperature = getGpuMetric(controller, "temperatureGpu");
+      const powerDraw = getGpuMetric(controller, "powerDraw");
+      const clock = getGpuMetric(controller, "clockCore");
+      const fanSpeed = getGpuMetric(controller, "fanSpeed");
+      const memoryUsed = getGpuMetric(controller, "memoryUsed");
 
-      if (controller.vram) {
+      if (usage !== undefined) {
+        add({
+          max: 100,
+          min: 0,
+          titleKey: "usage",
+          description,
+          icon: "cpu2",
+          unit: UNITS.PERCENT,
+          value: usage,
+        });
+      }
+
+      // La taille de la VRAM est souvent connue sans son utilisation (GPU AMD, Intel)
+      if (controller.vram && memoryUsed !== undefined) {
         add({
           max: mebibytesToBytes(controller.vram),
           min: 0,
@@ -77,21 +114,23 @@ export function getChartEntries(metrics) {
           description,
           icon: "section-filled",
           unit: UNITS.BYTES,
-          value: mebibytesToBytes(controller.memoryUsed),
+          value: mebibytesToBytes(memoryUsed),
         });
       }
 
-      add({
-        max: 100,
-        min: 0,
-        titleKey: "temperature",
-        description,
-        icon: "temperature",
-        unit: UNITS.CELSIUS,
-        value: controller.temperatureGpu,
-      });
+      if (temperature !== undefined) {
+        add({
+          max: 100,
+          min: 0,
+          titleKey: "temperature",
+          description,
+          icon: "temperature",
+          unit: UNITS.CELSIUS,
+          value: temperature,
+        });
+      }
 
-      if (controller.powerLimit) {
+      if (controller.powerLimit && powerDraw !== undefined) {
         add({
           max: controller.powerLimit,
           min: 0,
@@ -99,29 +138,33 @@ export function getChartEntries(metrics) {
           description,
           icon: "bolt-filled",
           unit: UNITS.WATT,
-          value: controller.powerDraw,
+          value: powerDraw,
         });
       }
 
-      add({
-        max: megahertzToHertz(5000),
-        min: 0,
-        titleKey: "clock",
-        description,
-        icon: "wave-square",
-        unit: UNITS.HERTZ,
-        value: megahertzToHertz(controller.clockCore),
-      });
+      if (clock !== undefined) {
+        add({
+          max: megahertzToHertz(5000),
+          min: 0,
+          titleKey: "clock",
+          description,
+          icon: "wave-square",
+          unit: UNITS.HERTZ,
+          value: megahertzToHertz(clock),
+        });
+      }
 
-      add({
-        max: 100,
-        min: 0,
-        titleKey: "fanSpeed",
-        description,
-        icon: "windmill-filled",
-        unit: UNITS.PERCENT,
-        value: controller.fanSpeed,
-      });
+      if (fanSpeed !== undefined) {
+        add({
+          max: 100,
+          min: 0,
+          titleKey: "fanSpeed",
+          description,
+          icon: "windmill-filled",
+          unit: UNITS.PERCENT,
+          value: fanSpeed,
+        });
+      }
     });
   }
   if (metrics.mem) {

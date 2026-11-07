@@ -1,5 +1,6 @@
 <script setup>
-import { formatValue, getUnitLabel, getValueUnit, Loader } from "@/appUtils";
+import { formatValue, getValueUnit, Loader } from "@/appUtils";
+import { getGpuMetric } from "@/models/chartEntries";
 import { gigahertzToHertz, mebibytesToBytes, megahertzToHertz, UNITS } from "@/models/units";
 import { useSystemStore } from "@/stores/system";
 import { NA, useLoadingBar } from "naive-ui";
@@ -118,14 +119,17 @@ function setSummary() {
       if (controller.vram !== undefined && controller.vram !== null) {
         let subEntry = [];
 
-        const memoryUsed = mebibytesToBytes(controller.memoryUsed);
-        const memoryTotal = mebibytesToBytes(controller.memoryTotal);
+        const memoryUsed = mebibytesToBytes(getGpuMetric(controller, "memoryUsed"));
+        const memoryTotal = mebibytesToBytes(controller.memoryTotal ?? controller.vram);
 
-        subEntry.push({
-          label: t("stats.used"),
-          value: getUsage(memoryUsed, memoryTotal, UNITS.BYTES) ?? 0,
-          valueAppend: getValueUnit(memoryUsed, UNITS.BYTES),
-        });
+        // L'utilisation n'est connue que pour certains GPU (NVIDIA) : sinon, seulement la taille
+        if (memoryUsed !== undefined) {
+          subEntry.push({
+            label: t("stats.used"),
+            value: getUsage(memoryUsed, memoryTotal, UNITS.BYTES),
+            valueAppend: getValueUnit(memoryUsed, UNITS.BYTES),
+          });
+        }
 
         getEntryList(subEntry, t("stats.total"), memoryTotal, UNITS.BYTES, 2);
 
@@ -135,34 +139,36 @@ function setSummary() {
         });
       }
 
-      // Obligé de toujours afficher les entry du GPU car l'API ne retourne pas de valeur à 0
-      listEntry.push({
-        label: t("stats.usage"),
-        value: formatValue({ value: controller.utilizationGpu ?? 0 }),
-        valueAppend: getUnitLabel(UNITS.PERCENT),
-      });
-      listEntry.push({
-        label: t("stats.temperature"),
-        value: formatValue({ value: controller.temperatureGpu ?? 0 }),
-        valueAppend: getUnitLabel(UNITS.CELSIUS),
-      });
-      listEntry.push({
-        label: t("stats.power"),
-        value: formatValue({ value: controller.powerDraw ?? 0 }),
-        valueAppend: getUnitLabel(UNITS.WATT),
-      });
-      const clockCore = megahertzToHertz(controller.clockCore ?? 0);
+      // Valeurs non disponibles (GPU Apple, AMD, Intel…) masquées, voir getGpuMetric
+      const clockCore = getGpuMetric(controller, "clockCore");
 
-      listEntry.push({
-        label: t("stats.clock"),
-        value: formatValue({ value: clockCore, unit: UNITS.HERTZ }),
-        valueAppend: getValueUnit(clockCore, UNITS.HERTZ),
-      });
-      listEntry.push({
-        label: t("stats.fanSpeed"),
-        value: formatValue({ value: controller.fanSpeed ?? 0 }),
-        valueAppend: getUnitLabel(UNITS.PERCENT),
-      });
+      getEntryList(
+        listEntry,
+        t("stats.usage"),
+        getGpuMetric(controller, "utilizationGpu"),
+        UNITS.PERCENT
+      );
+      getEntryList(
+        listEntry,
+        t("stats.temperature"),
+        getGpuMetric(controller, "temperatureGpu"),
+        UNITS.CELSIUS,
+        2
+      );
+      getEntryList(
+        listEntry,
+        t("stats.power"),
+        getGpuMetric(controller, "powerDraw"),
+        UNITS.WATT,
+        2
+      );
+      getEntryList(listEntry, t("stats.clock"), megahertzToHertz(clockCore), UNITS.HERTZ, 2);
+      getEntryList(
+        listEntry,
+        t("stats.fanSpeed"),
+        getGpuMetric(controller, "fanSpeed"),
+        UNITS.PERCENT
+      );
 
       list.push({
         label: title,

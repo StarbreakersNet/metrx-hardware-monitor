@@ -4,6 +4,7 @@ import ChartLine from "@/components/Charts/ChartLine.vue";
 import GraphSummaryMergeModal from "@/components/GraphSummaryMergeModal.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@/stores/system";
+import { currentPlatform } from "@/api/app";
 import { getActiveMerges, getChartEntries } from "@/models/chartEntries";
 import { useUserStore } from "@/stores/user";
 import _ from "lodash";
@@ -14,6 +15,8 @@ import { VueDraggable } from "vue-draggable-plus";
 
 const system = useSystemStore();
 const user = useUserStore();
+// macOS ne remonte que la fréquence nominale du CPU : pas de graphique d'horloge CPU
+const chartOptions = { nominalCpuClock: currentPlatform === "macos" };
 const loadingBar = useLoadingBar();
 const { t, locale } = useI18n();
 
@@ -26,7 +29,7 @@ const colNumber = computed(() => {
 });
 
 function setSummary() {
-  let list = getChartEntries(system.metrics).map(entry => ({
+  let list = getChartEntries(system.metrics, chartOptions).map(entry => ({
     ...entry,
     title: t(`charts.titles.${entry.titleKey}`),
     order: user.settings.chartsOrder[entry.id] ?? 0,
