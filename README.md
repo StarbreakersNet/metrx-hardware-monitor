@@ -1,6 +1,29 @@
 # metrx-hardware-monitor
 
+[![Live](https://img.shields.io/github/v/release/StarbreakersNet/metrx-hardware-monitor?label=live)](https://github.com/StarbreakersNet/metrx-hardware-monitor/releases/latest)
+[![Preview](https://img.shields.io/github/v/release/StarbreakersNet/metrx-hardware-monitor?include_prereleases&sort=semver&filter=!*-alpha*&label=preview)](https://github.com/StarbreakersNet/metrx-hardware-monitor/releases)
+[![Build & release](https://github.com/StarbreakersNet/metrx-hardware-monitor/actions/workflows/deploy.yml/badge.svg?event=push)](https://github.com/StarbreakersNet/metrx-hardware-monitor/actions/workflows/deploy.yml)
+[![License](https://img.shields.io/github/license/StarbreakersNet/metrx-hardware-monitor)](LICENSE)
+
 A [Tauri](https://tauri.app) application with Vue that allows users to monitor their hardware status in real-time. This application provides a user-friendly interface to display various hardware metrics, making it easier for users to keep an eye on their system's health and performance.
+
+## Download
+
+Download the installer for your system from the [latest release](https://github.com/StarbreakersNet/metrx-hardware-monitor/releases/latest):
+
+| System                            | File                                                                              |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| Windows 10 / 11 (x64)             | `Metrx_<version>_x64-setup.exe`                                                   |
+| macOS 13 or later (Apple Silicon) | `Metrx_<version>_aarch64.dmg`                                                     |
+| Linux (x64)                       | `Metrx_<version>_amd64.deb` (Debian, Ubuntu…) or `Metrx_<version>_amd64.AppImage` |
+
+Metrx then updates itself. To get pre-releases, choose the **Preview** (beta) or **Nightly** (alpha)
+update channel in Settings > Updates.
+
+- Windows: the installer is not signed yet. If SmartScreen warns about it, click "More info" then
+  "Run anyway".
+- macOS: the application is signed but not notarized yet. If macOS blocks it on first launch, open
+  System Settings > Privacy & Security and click "Open Anyway".
 
 ## Features
 
