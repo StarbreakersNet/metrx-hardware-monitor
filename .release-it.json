@@ -4,7 +4,7 @@
     "commitMessage": "docs(changelog): Prepare the ${version} release notes",
     "tagName": "${version}",
     "tagAnnotation": "Metrx ${version}",
-    "requireBranch": ["develop", "main"]
+    "requireBranch": ["main", "hotfix/*"]
   },
   "npm": false,
   "github": {
