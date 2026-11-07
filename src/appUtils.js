@@ -72,10 +72,10 @@ function byteUnit(index) {
   return i18n.global.t("units." + BYTE_UNIT_KEYS[index]);
 }
 
-export function formatBytes(bytes, decimals = 2) {
+export function formatBytes(bytes, precision = 2) {
   if (+bytes) {
     const k = 1000;
-    const dm = decimals < 0 ? 0 : decimals;
+    const dm = precision < 0 ? 0 : precision;
 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -92,20 +92,20 @@ export function getUnitLabel(unit) {
   return unit && i18n.global.te(key) ? i18n.global.t(key) : (unit ?? "");
 }
 
-export function formatValue({ value, unit, showUnit = false, decimals = 2 }) {
+export function formatValue({ value, unit, showUnit = false, precision = 2 }) {
   let formatedValue = value;
   switch (unit) {
     case UNITS.PERCENT:
       formatedValue = Math.round(value);
       break;
     case UNITS.BYTES:
-      formatedValue = formatBytes(value, decimals).value;
+      formatedValue = formatBytes(value, precision).value;
       break;
   }
 
   if (typeof formatedValue === "number") {
-    if (decimals > 0) {
-      formatedValue = parseFloat(formatedValue.toFixed(decimals));
+    if (precision > 0) {
+      formatedValue = parseFloat(formatedValue.toFixed(precision));
     } else {
       formatedValue = Math.round(formatedValue);
     }
