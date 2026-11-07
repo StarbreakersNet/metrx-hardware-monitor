@@ -30,7 +30,15 @@
       "pb": "Po",
       "eb": "Eo",
       "zb": "Zo",
-      "yb": "Yo"
+      "yb": "Yo",
+      "labels": {
+        "percent": "%",
+        "bytes": "Octet",
+        "celsius": "°C",
+        "watt": "W",
+        "megahertz": "MHz",
+        "gigahertz": "GHz"
+      }
     },
     "charts": {
       "titles": {

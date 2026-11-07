@@ -1,5 +1,6 @@
 import { naiveDark, naiveLight } from "@/assets/themes/naiveTheme";
 import { i18n } from "@/i18n";
+import { UNITS } from "@/models/units";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import _ from "lodash";
 import { darkTheme, lightTheme, NIcon } from "naive-ui";
@@ -64,7 +65,7 @@ export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Clés des unités dans locales/*.json (app.units) : octets, Ko, Mo… / bytes, KB, MB…
+// Clés des multiples d'octets dans locales/*.json (units.*) : octets, Ko, Mo… / bytes, KB, MB…
 const BYTE_UNIT_KEYS = ["b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"];
 
 function byteUnit(index) {
@@ -84,17 +85,21 @@ export function formatBytes(bytes, decimals = 2) {
   }
 }
 
+/** Libellé traduit d'une unité (`UNITS`), indépendant de la valeur : « Octet » / « Byte », « % »… */
+export function getUnitLabel(unit) {
+  const key = "units.labels." + unit;
+
+  return unit && i18n.global.te(key) ? i18n.global.t(key) : (unit ?? "");
+}
+
 export function formatValue({ value, unit, showUnit = false, decimals = 2 }) {
   let formatedValue = value;
   switch (unit) {
-    case "%":
+    case UNITS.PERCENT:
       formatedValue = Math.round(value);
       break;
-    case "B":
+    case UNITS.BYTES:
       formatedValue = formatBytes(value, decimals).value;
-      break;
-    case "Mo":
-      formatedValue = formatBytes(value * 1024 * 1024, decimals).value;
       break;
   }
 
@@ -113,14 +118,13 @@ export function formatValue({ value, unit, showUnit = false, decimals = 2 }) {
   }
 }
 
+/** Libellé traduit de l'unité adapté à la valeur (multiple d'octets : Ko, Mo, Go…) */
 export function getValueUnit(value, unit) {
   switch (unit) {
-    case "B":
+    case UNITS.BYTES:
       return formatBytes(value).unit;
-    case "Mo":
-      return formatBytes(value * 1000 * 1000).unit;
     default:
-      return unit;
+      return getUnitLabel(unit);
   }
 }
 
