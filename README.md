@@ -1,6 +1,29 @@
 # metrx-hardware-monitor
 
+[![Live](https://img.shields.io/github/v/release/StarbreakersNet/metrx-hardware-monitor?label=live)](https://github.com/StarbreakersNet/metrx-hardware-monitor/releases/latest)
+[![Preview](https://img.shields.io/github/v/release/StarbreakersNet/metrx-hardware-monitor?include_prereleases&sort=semver&filter=!*-alpha*&label=preview)](https://github.com/StarbreakersNet/metrx-hardware-monitor/releases)
+[![Build & release](https://github.com/StarbreakersNet/metrx-hardware-monitor/actions/workflows/deploy.yml/badge.svg?event=push)](https://github.com/StarbreakersNet/metrx-hardware-monitor/actions/workflows/deploy.yml)
+[![License](https://img.shields.io/github/license/StarbreakersNet/metrx-hardware-monitor)](LICENSE)
+
 A [Tauri](https://tauri.app) application with Vue that allows users to monitor their hardware status in real-time. This application provides a user-friendly interface to display various hardware metrics, making it easier for users to keep an eye on their system's health and performance.
+
+## Download
+
+Download the installer for your system from the [latest release](https://github.com/StarbreakersNet/metrx-hardware-monitor/releases/latest):
+
+| System                            | File                                                                              |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| Windows 10 / 11 (x64)             | `Metrx_<version>_x64-setup.exe`                                                   |
+| macOS 13 or later (Apple Silicon) | `Metrx_<version>_aarch64.dmg`                                                     |
+| Linux (x64)                       | `Metrx_<version>_amd64.deb` (Debian, Ubuntu…) or `Metrx_<version>_amd64.AppImage` |
+
+Metrx then updates itself. To get pre-releases, choose the **Preview** (beta) or **Nightly** (alpha)
+update channel in Settings > Updates.
+
+- Windows: the installer is not signed yet. If SmartScreen warns about it, click "More info" then
+  "Run anyway".
+- macOS: the application is signed but not notarized yet. If macOS blocks it on first launch, open
+  System Settings > Privacy & Security and click "Open Anyway".
 
 ## Features
 
@@ -108,10 +131,13 @@ yarn format
 Versions follow [Semantic Versioning](https://semver.org/): successive pre-releases of a version are
 numbered `2.1.0-alpha.1`, `2.1.0-beta.1`, `2.1.0-beta.2`… before `2.1.0`.
 
+`main` is the only long-lived branch: changes go through a branch (`feat/…`, `fix/…`) and a pull
+request to `main`, and every version, pre-release or release, is a tag on `main`.
+
 User-facing changes are listed under `## [Unreleased]` in `CHANGELOG.md` as they are merged. Tooling,
 CI or dev dependency changes are not listed and do not need a release.
 
-To publish a version, from an up-to-date `develop` (pre-releases) or `main` (releases):
+To publish a version, from an up-to-date `main`:
 
 ```bash
 yarn release 2.1.0-beta.1
@@ -119,7 +145,13 @@ yarn release 2.1.0-beta.1
 
 [release-it](https://github.com/release-it/release-it) renames the `[Unreleased]` section to the
 version and date, commits `docs(changelog): Prepare the 2.1.0-beta.1 release notes`, creates the tag
-and pushes both after confirmation. It stops if the `[Unreleased]` section is empty.
+and pushes both after confirmation. It stops if the `[Unreleased]` section is empty. If git is not
+authenticated in the terminal (when using a Git client such as GitKraken), answer "No" to the push,
+then push the branch and the tag from the client.
+
+To fix a release while `main` already holds unreleased work, start a branch from its tag
+(`git switch -c hotfix/2.1.1 2.1.0`), commit the fix with its `CHANGELOG.md` entry, run
+`yarn release 2.1.1` on that branch, then merge it into `main` with a pull request.
 
 Pushing the tag runs `.github/workflows/deploy.yml`. It first runs the same lint and tests as pull
 requests (`.github/workflows/ci.yml`), then builds, signs and publishes the release on the three

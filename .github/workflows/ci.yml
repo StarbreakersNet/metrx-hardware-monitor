@@ -1,6 +1,6 @@
 # Lint, format, Clippy et tests Rust, build du front et du sidecar, qui est lancé pour vérifier
 # qu'il répond (Linux). Tourne :
-# - sur les pull requests vers main / develop prêtes à être relues (pas en brouillon) et qui
+# - sur les pull requests vers main prêtes à être relues (pas en brouillon) et qui
 #   touchent autre chose que la documentation
 # - à chaque release : deploy.yml appelle ce workflow (workflow_call) avant les builds par OS,
 #   qui ne démarrent que s'il réussit
@@ -13,7 +13,6 @@ on:
   pull_request:
     branches:
       - main
-      - develop
     # ready_for_review : passage d'une PR brouillon à « Ready for review »
     types: [opened, reopened, synchronize, ready_for_review]
     # Une PR qui ne modifie que ces fichiers ne relance pas la CI
