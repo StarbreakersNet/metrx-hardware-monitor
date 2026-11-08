@@ -251,6 +251,19 @@ function powerInWatts(milliwatts, millijoules, elapsedNs) {
   return undefined;
 }
 
+/**
+ * Fréquence du GPU en MHz. Malgré son nom, `gpu.freq_hz` est en MHz sur Apple Silicon (776.9 sur
+ * un M4, quand les cœurs CPU sont bien en Hz : 4460000000) ; une valeur en Hz est convertie.
+ */
+function gpuFrequencyInMegahertz(value) {
+  const frequency = toNumber(value);
+
+  if (frequency === undefined) {
+    return undefined;
+  }
+  return frequency > 1e5 ? frequency / 1e6 : frequency;
+}
+
 /** Valeurs utiles d'un échantillon powermetrics (format plist, Apple Silicon et Intel) */
 export function extractMetrics(sample) {
   const processor = sample?.processor ?? {};
@@ -272,7 +285,7 @@ export function extractMetrics(sample) {
   return {
     cpuFrequencies,
     cpuPower: powerInWatts(processor.cpu_power, processor.cpu_energy, elapsedNs),
-    gpuFrequency: toNumber(gpu.freq_hz),
+    gpuFrequency: gpuFrequencyInMegahertz(gpu.freq_hz),
     gpuPower: powerInWatts(
       processor.gpu_power ?? gpu.gpu_power,
       processor.gpu_energy ?? gpu.gpu_energy,
@@ -319,7 +332,7 @@ export function enrich(data) {
       .filter(controller => controller?.bus === "Built-In")
       .forEach(controller => {
         if (sample.gpuFrequency !== undefined) {
-          controller.clockCore = round(sample.gpuFrequency / 1e6, 0);
+          controller.clockCore = round(sample.gpuFrequency, 0);
         }
         if (sample.gpuPower !== undefined) {
           controller.powerDraw = round(sample.gpuPower);
