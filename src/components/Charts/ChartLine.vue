@@ -93,9 +93,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // La machine ne remonte pas la valeur : tuile « Non disponible », sans courbe ni faux zéro
+  available: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const emit = defineEmits(["editOrders"]);
+const emit = defineEmits(["editOrders", "hide"]);
 
 const chartId = computed(() => {
   if (props.chartKey) {
@@ -433,6 +438,9 @@ watch(
 );
 
 function getValueColorType(value) {
+  if (value === null || value === undefined) {
+    return "default";
+  }
   if (chartTools.value) {
     let { warning, danger } = chartTools.value.thresholds;
 
@@ -494,7 +502,10 @@ onUnmounted(() => {
       </n-space>
     </template>
     <template #header-extra>
-      <n-flex :size="5" justify="end">
+      <n-tag v-if="!props.available" :bordered="false" round size="small" type="warning">
+        {{ t("charts.unavailable.tag") }}
+      </n-tag>
+      <n-flex v-else :size="5" justify="end">
         <chart-line-stats
           :animation-duration="numberAnimationDuration"
           :chart-id="chartId"
@@ -505,7 +516,31 @@ onUnmounted(() => {
       </n-flex>
     </template>
     <template #default>
-      <div v-show="isChartVisible" class="chart-wrapper">
+      <n-flex
+        v-if="!props.available"
+        :size="6"
+        align="center"
+        class="chart-unavailable"
+        justify="center"
+        vertical>
+        <n-text strong>{{ t("charts.unavailable.title") }}</n-text>
+        <n-text class="chart-unavailable-text" depth="3">
+          {{ t("charts.unavailable.description") }}
+        </n-text>
+        <n-flex justify="center" size="large">
+          <slot name="unavailable-actions" />
+          <n-button size="small" text @click="emit('hide')">
+            <template #icon>
+              <app-icon name="eye-off" />
+            </template>
+            {{ t("charts.unavailable.hide") }}
+          </n-button>
+        </n-flex>
+        <transition name="fade-skeleton">
+          <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
+        </transition>
+      </n-flex>
+      <div v-else v-show="isChartVisible" class="chart-wrapper">
         <Line ref="chartRef" :data="lineChartData" :options="lineChartOptions" />
         <transition name="fade-skeleton">
           <n-skeleton v-if="editMode" :animated="false" :sharp="false" class="chart-skeleton" />
@@ -524,7 +559,7 @@ onUnmounted(() => {
             :precision="labelPrecision"
             :unit="props.unit" />
         </n-flex>
-        <template v-if="!user.settings.showChartTitle">
+        <template v-if="!user.settings.showChartTitle && props.available">
           <n-flex :size="5" justify="end">
             <chart-line-stats
               :animation-duration="numberAnimationDuration"
@@ -572,6 +607,24 @@ onUnmounted(() => {
     left: 0
     right: 0
     bottom: 0
+    height: 100%
+    background-color: var(--n-color-embedded-modal)
+
+.chart-unavailable
+  position: relative
+  min-height: v-bind('user.settings.chartHeight + "em"')
+  padding: 1em
+  text-align: center
+  border: 1px dashed var(--n-border-color)
+  border-radius: var(--n-border-radius)
+
+  .chart-unavailable-text
+    max-width: 30em
+    font-size: .9em
+
+  .chart-skeleton
+    position: absolute
+    inset: 0
     height: 100%
     background-color: var(--n-color-embedded-modal)
 

@@ -23,24 +23,37 @@ export function getGpuMetric(controller, key) {
   return isReadByNvidiaSmi(controller) ? 0 : undefined;
 }
 
+/** Nom affiché d'un GPU : « GPU », ou « GPU 0 », « GPU 1 »… quand il y en a plusieurs */
+export function getGpuDescription(index, count) {
+  return count > 1 ? "GPU " + index : "GPU";
+}
+
 /**
- * Graphiques de l'accueil construits à partir des métriques. GraphSummary et la fenêtre de
- * fusion partagent cette liste : la fenêtre ne propose que des graphiques réellement affichés.
+ * Tuiles de l'accueil construites à partir des métriques. L'accueil, la fenêtre de fusion et la
+ * page Sondes partagent cette liste.
  *
- * L'id (ordre, fusions) repose sur la clé du titre (`charts.titles.*`) et la description, et non
- * sur le texte traduit : changer de langue ne fait pas perdre la configuration des graphiques.
+ * Chaque tuile d'une source collectée est listée, même quand la machine ne remonte pas sa valeur :
+ * elle est alors `available: false` et s'affiche « Non disponible ». C'est l'utilisateur qui
+ * choisit de la masquer (page Sondes), Metrx ne réinterprète pas ce que remonte systeminformation.
  *
- * `nominalCpuClock` : la fréquence CPU remontée est la fréquence nominale, figée (macOS, où Node
- * lit `hw.cpufrequency`) ; son graphique serait une ligne plate, il n'est pas affiché.
+ * L'id (ordre, fusions, masquage) repose sur la clé du titre (`charts.titles.*`) et la
+ * description, et non sur le texte traduit : changer de langue ne fait pas perdre la
+ * configuration des tuiles.
+ *
+ * `source` : fonction systeminformation qui fournit la valeur (sert à ne collecter que ce qui est
+ * affiché). `group` : regroupement de la page Sondes (un groupe par GPU).
  */
-export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
+export function getChartEntries(metrics) {
   const list = [];
 
   function add(entry) {
+    const available = entry.value !== undefined && entry.value !== null;
+
     list.push({
       ...entry,
       id: (entry.titleKey + "#" + entry.description).toLowerCase(),
-      value: entry.value ?? 0,
+      available,
+      value: available ? entry.value : null,
     });
   }
 
@@ -52,10 +65,12 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
       description: "CPU",
       icon: "cpu",
       unit: UNITS.PERCENT,
+      source: "currentLoad",
+      group: "cpu",
       value: metrics.currentLoad.currentLoad,
     });
   }
-  if (metrics.cpuCurrentSpeed && !nominalCpuClock) {
+  if (metrics.cpuCurrentSpeed) {
     add({
       max: gigahertzToHertz(metrics.cpuCurrentSpeed.max),
       min: 0,
@@ -63,11 +78,13 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
       description: "CPU",
       icon: "wave-square",
       unit: UNITS.HERTZ,
+      source: "cpuCurrentSpeed",
+      group: "cpu",
       value: gigahertzToHertz(metrics.cpuCurrentSpeed.avg),
     });
   }
   // Sans capteur accessible (ex. Windows sans droits administrateur), `main` vaut null
-  if (metrics.cpuTemperature?.main != null) {
+  if (metrics.cpuTemperature) {
     add({
       max: 100,
       min: 0,
@@ -75,96 +92,78 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
       description: "CPU",
       icon: "temperature",
       unit: UNITS.CELSIUS,
+      source: "cpuTemperature",
+      group: "cpu",
       value: metrics.cpuTemperature.main,
     });
   }
   if (metrics.gpu?.length) {
     metrics.gpu.forEach((controller, index) => {
-      let description = "GPU";
-
-      if (metrics.gpu.length > 1) {
-        description += " " + index;
-      }
-
-      const usage = getGpuMetric(controller, "utilizationGpu");
-      const temperature = getGpuMetric(controller, "temperatureGpu");
-      const powerDraw = getGpuMetric(controller, "powerDraw");
-      const clock = getGpuMetric(controller, "clockCore");
-      const fanSpeed = getGpuMetric(controller, "fanSpeed");
+      const description = getGpuDescription(index, metrics.gpu.length);
+      const gpu = {
+        description,
+        source: "gpu",
+        group: "gpu#" + index,
+        groupLabel: controller.model,
+      };
       const memoryUsed = getGpuMetric(controller, "memoryUsed");
+      const vram = controller.memoryTotal ?? controller.vram;
 
-      if (usage !== undefined) {
-        add({
-          max: 100,
-          min: 0,
-          titleKey: "usage",
-          description,
-          icon: "cpu2",
-          unit: UNITS.PERCENT,
-          value: usage,
-        });
-      }
-
+      add({
+        ...gpu,
+        max: 100,
+        min: 0,
+        titleKey: "usage",
+        icon: "cpu2",
+        unit: UNITS.PERCENT,
+        value: getGpuMetric(controller, "utilizationGpu"),
+      });
       // La taille de la VRAM est souvent connue sans son utilisation (GPU AMD, Intel)
-      if (controller.vram && memoryUsed !== undefined) {
-        add({
-          max: mebibytesToBytes(controller.vram),
-          min: 0,
-          titleKey: "vramUsage",
-          description,
-          icon: "section-filled",
-          unit: UNITS.BYTES,
-          value: mebibytesToBytes(memoryUsed),
-        });
-      }
-
-      if (temperature !== undefined) {
-        add({
-          max: 100,
-          min: 0,
-          titleKey: "temperature",
-          description,
-          icon: "temperature",
-          unit: UNITS.CELSIUS,
-          value: temperature,
-        });
-      }
-
-      if (controller.powerLimit && powerDraw !== undefined) {
-        add({
-          max: controller.powerLimit,
-          min: 0,
-          titleKey: "power",
-          description,
-          icon: "bolt-filled",
-          unit: UNITS.WATT,
-          value: powerDraw,
-        });
-      }
-
-      if (clock !== undefined) {
-        add({
-          max: megahertzToHertz(5000),
-          min: 0,
-          titleKey: "clock",
-          description,
-          icon: "wave-square",
-          unit: UNITS.HERTZ,
-          value: megahertzToHertz(clock),
-        });
-      }
-
-      if (fanSpeed !== undefined) {
-        add({
-          max: 100,
-          min: 0,
-          titleKey: "fanSpeed",
-          description,
-          icon: "windmill-filled",
-          unit: UNITS.PERCENT,
-          value: fanSpeed,
-        });
-      }
+      add({
+        ...gpu,
+        max: vram ? mebibytesToBytes(vram) : undefined,
+        min: 0,
+        titleKey: "vramUsage",
+        icon: "section-filled",
+        unit: UNITS.BYTES,
+        value: mebibytesToBytes(memoryUsed),
+      });
+      add({
+        ...gpu,
+        max: 100,
+        min: 0,
+        titleKey: "temperature",
+        icon: "temperature",
+        unit: UNITS.CELSIUS,
+        value: getGpuMetric(controller, "temperatureGpu"),
+      });
+      add({
+        ...gpu,
+        max: controller.powerLimit || undefined,
+        min: 0,
+        titleKey: "power",
+        icon: "bolt-filled",
+        unit: UNITS.WATT,
+        value: getGpuMetric(controller, "powerDraw"),
+      });
+      add({
+        ...gpu,
+        max: megahertzToHertz(5000),
+        min: 0,
+        titleKey: "clock",
+        icon: "wave-square",
+        unit: UNITS.HERTZ,
+        value: megahertzToHertz(getGpuMetric(controller, "clockCore")),
+      });
+      add({
+        ...gpu,
+        max: 100,
+        min: 0,
+        titleKey: "fanSpeed",
+        icon: "windmill-filled",
+        unit: UNITS.PERCENT,
+        value: getGpuMetric(controller, "fanSpeed"),
+      });
     });
   }
   if (metrics.mem) {
@@ -175,6 +174,8 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
       description: "RAM",
       icon: "section-filled",
       unit: UNITS.BYTES,
+      source: "mem",
+      group: "ram",
       value: metrics.mem.used,
     });
   }
@@ -182,10 +183,20 @@ export function getChartEntries(metrics, { nominalCpuClock = false } = {}) {
   return list;
 }
 
+/** Tuiles affichées sur l'accueil : toutes, sauf celles que l'utilisateur a masquées */
+export function getVisibleEntries(entries, chartsHidden) {
+  return entries.filter(entry => !chartsHidden?.[entry.id]);
+}
+
+/** Tuiles qu'on peut fusionner : affichées et dont la machine remonte la valeur */
+export function getMergeableEntries(entries, chartsHidden) {
+  return getVisibleEntries(entries, chartsHidden).filter(entry => entry.available);
+}
+
 /**
  * Fusions enregistrées limitées aux graphiques affichés (`chartsMerged` : id du graphique
- * principal → ids fusionnés dedans). Une fusion vers un graphique absent (GPU sans VRAM, autre
- * machine, GPU retiré…) est ignorée : sinon les graphiques fusionnés dedans disparaîtraient.
+ * principal → ids fusionnés dedans). Une fusion vers un graphique absent (masqué, non disponible,
+ * autre machine, GPU retiré…) est ignorée : sinon les graphiques fusionnés dedans disparaîtraient.
  * Les graphiques d'une autre unité sont ignorés aussi.
  */
 export function getActiveMerges(chartsMerged, entries) {

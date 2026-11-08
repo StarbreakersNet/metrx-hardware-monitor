@@ -1,9 +1,7 @@
 import { getAppInfo } from "@/api/app";
 import { getDesktopSettings, onDesktopSettingChanged, setDesktopSetting } from "@/api/desktop";
-import nodeAvailable from "@/models/nodeAvailable";
-import _ from "lodash";
 import { defineStore } from "pinia";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 
 let desktopListenerRegistered = false;
 
@@ -35,20 +33,13 @@ function getDefaultUserSettings() {
     chartsOrder: {},
     chartsMerged: {},
     chartsColors: {},
+    // Tuiles masquées par l'utilisateur (page Sondes) : id → true. Toutes sont visibles par défaut
+    chartsHidden: {},
+    // Page Données : vue choisie (summary, table, detailed) et affichage des clés de la lib
+    statsView: "summary",
+    statsShowKeys: true,
   };
 }
-
-const DEFAULT_NODE_SELECTED = [
-  "mem.*",
-  "gpu.*",
-  "cpuCurrentSpeed.*",
-  "cpuTemperature.*",
-  "currentLoad.currentLoad, currentLoadIdle",
-  "time.current",
-  "time.uptime",
-  "time.timezone",
-  "time.timezoneName",
-];
 
 /** Canal de mise à jour déduit de la version : 2.0.0 → latest, 2.0.0-beta.1 → beta */
 function getDefaultUpdateChannel() {
@@ -63,23 +54,10 @@ export const useUserStore = defineStore(
   () => {
     const desktop = reactive(getDesktopSettings());
     const settings = reactive(getDefaultUserSettings());
-    const nodeSelected = ref([...DEFAULT_NODE_SELECTED]);
 
     const isEnvDev = computed(() => {
       return import.meta.env.DEV;
     });
-
-    function useNode(node) {
-      nodeSelected.value.push(getNodeString(node));
-    }
-
-    function unuseNode(node) {
-      nodeSelected.value = _.filter(nodeSelected.value, value => getNodeString(node) !== value);
-    }
-
-    function getNodeString(node) {
-      return node?.apiKey + "." + node?.params.join(", ");
-    }
 
     // Répercute les changements de l'interface vers les réglages système (Rust)
     for (const key in desktop) {
@@ -103,15 +81,9 @@ export const useUserStore = defineStore(
 
     function resetAllSettings() {
       Object.assign(settings, getDefaultUserSettings());
-      nodeSelected.value = [...DEFAULT_NODE_SELECTED];
     }
 
     return {
-      nodeAvailable,
-      nodeSelected,
-      useNode,
-      unuseNode,
-      getNodeString,
       desktop,
       settings,
       isEnvDev,
@@ -121,7 +93,7 @@ export const useUserStore = defineStore(
   },
   {
     persist: {
-      pick: ["settings", "nodeSelected"],
+      pick: ["settings"],
       beforeHydrate: context => {
         const { store } = context;
         const defaultSettings = getDefaultUserSettings();

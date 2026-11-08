@@ -1,5 +1,7 @@
 import { getAppInfo } from "@/api/app";
 import metricsApi from "@/api/metrics";
+import { getChartEntries } from "@/models/chartEntries";
+import { SOURCE_PARAMS } from "@/models/metricSources";
 import staticData from "@/models/staticData";
 import { useUserStore } from "@/stores/user";
 import { defineStore } from "pinia";
@@ -16,26 +18,58 @@ export const useSystemStore = defineStore("system", () => {
   const metrics = ref({});
   const interval = computed(() => user.settings.nodeFrequency ?? 1000);
 
+  // Tuiles déjà vues (id → source) : une tuile masquée reste connue même quand sa source n'est
+  // plus collectée, pour savoir que l'utilisateur a masqué toutes celles de cette source.
+  const knownTiles = reactive({});
+  // Pages qui affichent toutes les données (Données, Sondes) : tant qu'il y en a une d'ouverte,
+  // toutes les sources sont collectées.
+  const fullCollectionRequests = reactive(new Set());
+
+  /**
+   * Sources collectées à chaque intervalle. La collecte suit l'affichage : les sources dont au
+   * moins une tuile est visible sur l'accueil, ou toutes quand une page qui les montre est ouverte.
+   */
   const nodeUsed = computed(() => {
-    let obj = {};
+    const sources = Object.keys(SOURCE_PARAMS).filter(source => {
+      if (fullCollectionRequests.size > 0) {
+        return true;
+      }
 
-    if (user.nodeSelected) {
-      user.nodeSelected.forEach(node => {
-        let extractedApiKey = node.split(".")[0];
-        let params = node.split(".")[1].split(",");
+      const tiles = Object.entries(knownTiles).filter(([, tileSource]) => tileSource === source);
 
-        if (obj[extractedApiKey]) {
-          let paramsAlreadyExtracted = obj[extractedApiKey].split(", ");
+      // Source jamais vue (premier lancement) : on la collecte pour découvrir ses tuiles
+      if (!tiles.length) {
+        return source !== "time";
+      }
+      return tiles.some(([id]) => !user.settings.chartsHidden[id]);
+    });
 
-          obj[extractedApiKey] = [...paramsAlreadyExtracted, ...params].join(", ");
-        } else {
-          obj[extractedApiKey] = node.split(".")[1];
-        }
-      });
-    }
-
-    return obj;
+    return Object.fromEntries(sources.map(source => [source, SOURCE_PARAMS[source]]));
   });
+  // Clé stable : le sidecar n'est relancé que si la liste des sources change vraiment
+  const nodeUsedKey = computed(() => JSON.stringify(nodeUsed.value));
+
+  function requestFullCollection(name) {
+    fullCollectionRequests.add(name);
+  }
+
+  function releaseFullCollection(name) {
+    fullCollectionRequests.delete(name);
+  }
+
+  /** Infos statiques du processeur (si.cpu()), lues une fois quand la page Données en a besoin */
+  async function loadCpuInfo() {
+    if (info.value.cpu) {
+      return;
+    }
+    try {
+      const { cpu } = await metricsApi.get({ cpu: "*" });
+
+      info.value = { ...info.value, cpu };
+    } catch (error) {
+      console.error("[metrics]", error);
+    }
+  }
 
   async function init() {
     await metricsApi.init();
@@ -56,7 +90,7 @@ export const useSystemStore = defineStore("system", () => {
     metricsApi.onData(storeCallback);
 
     watch(
-      [interval, nodeUsed],
+      [interval, nodeUsedKey],
       () => {
         metricsApi.start(nodeUsed.value, interval.value);
       },
@@ -70,6 +104,12 @@ export const useSystemStore = defineStore("system", () => {
 
   function storeCallback(apiData) {
     metrics.value = apiData;
+
+    getChartEntries(apiData).forEach(entry => {
+      if (knownTiles[entry.id] !== entry.source) {
+        knownTiles[entry.id] = entry.source;
+      }
+    });
   }
 
   async function destroy() {
@@ -84,5 +124,8 @@ export const useSystemStore = defineStore("system", () => {
     init,
     destroy,
     nodeUsed,
+    requestFullCollection,
+    releaseFullCollection,
+    loadCpuInfo,
   };
 });

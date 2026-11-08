@@ -1,4 +1,5 @@
 <script setup>
+import AppMasonry from "@/components/AppMasonry.vue";
 import InputSettings from "@/components/InputSettings.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import settingsAvailable from "@/models/settingsAvailable";
@@ -20,46 +21,49 @@ function translateOptions(options) {
     <template v-for="mainSetting in settingsAvailable" :key="mainSetting.key">
       <template v-if="mainSetting.type === 'categ'">
         <n-h1 prefix="bar">{{ t(`settings.categories.${mainSetting.key}`) }}</n-h1>
-        <n-flex>
-          <n-card v-for="setting in mainSetting.children" :key="setting.key">
-            <template #header>
-              <n-thing>
-                <template v-if="setting.icon" #avatar>
-                  <app-icon :name="setting.icon" size="1.5em" />
-                </template>
-                <template #header>
-                  <n-flex align="center">
-                    {{ t(`settings.items.${setting.key}.label`) }}
-                  </n-flex>
-                </template>
-                <template #description>
-                  {{ t(`settings.items.${setting.key}.description`) }}
-                </template>
-              </n-thing>
-            </template>
-            <template #header-extra>
-              <input-settings
-                :max="setting.max"
-                :min="setting.min"
-                :options="translateOptions(setting.options)"
-                :path="setting.storePath"
-                :store="user"
-                :type="setting.type" />
-            </template>
-            <template v-if="setting.info" #default>
-              <transition name="insert">
-                <n-alert type="info">
-                  <template #icon>
-                    <app-icon name="info-square-rounded" />
+        <!-- Colonnes équilibrées : pas d'espace vide sous les cartes plus courtes -->
+        <app-masonry :items="mainSetting.children" item-key="key">
+          <template #default="{ item: setting }">
+            <n-card>
+              <template #header>
+                <n-thing>
+                  <template v-if="setting.icon" #avatar>
+                    <app-icon :name="setting.icon" size="1.5em" />
                   </template>
-                  <template #default>
-                    {{ t(`settings.items.${setting.key}.info`) }}
+                  <template #header>
+                    <n-flex align="center">
+                      {{ t(`settings.items.${setting.key}.label`) }}
+                    </n-flex>
                   </template>
-                </n-alert>
-              </transition>
-            </template>
-          </n-card>
-        </n-flex>
+                  <template #description>
+                    {{ t(`settings.items.${setting.key}.description`) }}
+                  </template>
+                </n-thing>
+              </template>
+              <template #header-extra>
+                <input-settings
+                  :max="setting.max"
+                  :min="setting.min"
+                  :options="translateOptions(setting.options)"
+                  :path="setting.storePath"
+                  :store="user"
+                  :type="setting.type" />
+              </template>
+              <template v-if="setting.info" #default>
+                <transition name="insert">
+                  <n-alert type="info">
+                    <template #icon>
+                      <app-icon name="info-square-rounded" />
+                    </template>
+                    <template #default>
+                      {{ t(`settings.items.${setting.key}.info`) }}
+                    </template>
+                  </n-alert>
+                </transition>
+              </template>
+            </n-card>
+          </template>
+        </app-masonry>
       </template>
     </template>
     <n-h1 prefix="bar" type="error">{{ t("settings.categories.danger") }}</n-h1>
