@@ -283,7 +283,8 @@
         "ram": "Memory"
       },
       "groupSummary": "{shown} of {total} tiles shown",
-      "switchLabel": "Show “{name}” ({group}) on the home page"
+      "switchLabel": "Show “{name}” ({group}) on the home page",
+      "hiddenTag": "Hidden"
     },
     "settings": {
       "categories": {

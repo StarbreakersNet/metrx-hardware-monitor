@@ -173,7 +173,16 @@ function showAll() {
                 </n-thing>
                 <template #suffix>
                   <n-flex :wrap="false" align="center" size="large">
-                    <n-flex :size="2" align="end" class="row-value" vertical>
+                    <!-- Masquée : la mesure reste visible pour aider à choisir, mais en retrait -->
+                    <n-tag v-if="row.hidden" :bordered="false" round size="small">
+                      {{ t("probes.hiddenTag") }}
+                    </n-tag>
+                    <n-flex
+                      :class="{ 'row-hidden': row.hidden }"
+                      :size="2"
+                      align="end"
+                      class="row-value"
+                      vertical>
                       <n-text v-if="row.entry.available" strong>{{ row.value }}</n-text>
                       <n-tag v-else :bordered="false" round size="small" type="warning">
                         {{ t("charts.unavailable.tag") }}

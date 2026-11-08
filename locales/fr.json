@@ -283,7 +283,8 @@
         "ram": "Mémoire"
       },
       "groupSummary": "{shown} sur {total} tuiles affichées",
-      "switchLabel": "Afficher « {name} » ({group}) sur l'accueil"
+      "switchLabel": "Afficher « {name} » ({group}) sur l'accueil",
+      "hiddenTag": "Masquée"
     },
     "settings": {
       "categories": {
