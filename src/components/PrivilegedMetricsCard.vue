@@ -19,6 +19,8 @@ const status = ref(null);
 const loading = ref(false);
 
 const enabled = computed(() => Boolean(status.value?.enabled));
+// Fichier sudoers présent mais qui n'autorise plus la commande de cette version
+const outdated = computed(() => Boolean(status.value?.outdated));
 
 const metrics = computed(() =>
   platform.metrics.map(({ key, isAvailable }) => ({
@@ -56,18 +58,13 @@ async function refreshStatus() {
   }
 }
 
-async function toggle() {
+/** Installe (ou réinstalle) la règle, ou la supprime ; macOS demande le mot de passe */
+async function run(action, successKey) {
   loading.value = true;
 
   try {
-    status.value = enabled.value
-      ? await metricsApi.privilegedDisable()
-      : await metricsApi.privilegedEnable();
-    message.success(
-      t(
-        enabled.value ? "settings.privileged.enabledMessage" : "settings.privileged.disabledMessage"
-      )
-    );
+    status.value = await action();
+    message.success(t(successKey));
   } catch (error) {
     if (error?.message !== "canceled") {
       message.error(t("settings.privileged.error", { error: error?.message ?? error }));
@@ -76,6 +73,12 @@ async function toggle() {
   } finally {
     loading.value = false;
   }
+}
+
+function toggle() {
+  return enabled.value
+    ? run(metricsApi.privilegedDisable, "settings.privileged.disabledMessage")
+    : run(metricsApi.privilegedEnable, "settings.privileged.enabledMessage");
 }
 
 onMounted(() => {
@@ -121,6 +124,32 @@ onMounted(() => {
     </template>
     <template #default>
       <n-flex vertical>
+        <n-alert v-if="outdated" :title="t('settings.privileged.outdated.title')" type="warning">
+          <n-flex vertical>
+            <n-text>
+              {{ t("settings.privileged.outdated.description", { file: status?.file }) }}
+            </n-text>
+            <n-flex>
+              <n-button
+                :loading="loading"
+                size="small"
+                type="primary"
+                @click="
+                  run(metricsApi.privilegedEnable, 'settings.privileged.outdated.updatedMessage')
+                ">
+                {{ t("settings.privileged.outdated.update") }}
+              </n-button>
+              <n-button
+                :disabled="loading"
+                size="small"
+                @click="
+                  run(metricsApi.privilegedDisable, 'settings.privileged.outdated.removedMessage')
+                ">
+                {{ t("settings.privileged.outdated.remove") }}
+              </n-button>
+            </n-flex>
+          </n-flex>
+        </n-alert>
         <n-alert :type="verdict.type">{{ verdict.text }}</n-alert>
         <n-table v-if="metrics.length" :bordered="false" size="small">
           <thead>

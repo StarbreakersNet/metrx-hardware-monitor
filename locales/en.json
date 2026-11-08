@@ -393,7 +393,7 @@
           "notNeeded": "Not needed: on Linux, every Metrx metric can be read without administrator rights"
         },
         "details": {
-          "macos": "Metrx installs a sudoers rule that allows a single command without a password: powermetrics with fixed arguments. No other command can run as administrator. Turning the option off removes the rule.",
+          "macos": "Metrx installs a sudoers rule that allows a single command without a password: powermetrics with fixed arguments. No other command can run as administrator. Turning the option off removes the rule: do it before uninstalling Metrx, otherwise the rule stays on the system.",
           "windows": "The Windows CPU temperature comes from the MSAcpi_ThermalZoneTemperature WMI query, reserved to administrators.",
           "linux": "Temperatures (hwmon) and NVIDIA GPUs (nvidia-smi) can be read without administrator rights."
         },
@@ -402,7 +402,15 @@
         "confirmDisable": "Metrx will remove {file}. macOS will ask for an administrator password.",
         "enabledMessage": "Advanced metrics enabled",
         "disabledMessage": "Advanced metrics disabled",
-        "error": "Could not change the advanced metrics: {error}"
+        "error": "Could not change the advanced metrics: {error}",
+        "outdated": {
+          "title": "Rule to update",
+          "description": "The file {file} exists but no longer matches this version of Metrx: advanced metrics are off. Update the rule to turn them back on, or remove it.",
+          "update": "Update the rule",
+          "remove": "Remove the rule",
+          "updatedMessage": "Rule updated",
+          "removedMessage": "Rule removed"
+        }
       }
     },
     "about": {

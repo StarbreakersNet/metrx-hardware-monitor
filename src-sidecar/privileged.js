@@ -61,7 +61,20 @@ export function setLogger(logger) {
 function sudoersRule(user) {
   const args = POWERMETRICS_ARGS.map(arg => arg.replaceAll(",", "\\,")).join(" ");
 
-  return `${user} ALL=(root) NOPASSWD: ${POWERMETRICS} ${args}\n`;
+  return `${user} ALL=(root) NOPASSWD: ${POWERMETRICS} ${args}`;
+}
+
+/**
+ * Contenu du fichier installé : la règle, précédée d'un commentaire qui dit d'où elle vient et
+ * comment la retirer (elle reste si Metrx est mis à la corbeille avec l'option activée).
+ */
+function sudoersFile(user) {
+  return (
+    "# Added by Metrx (Settings > Danger Zone > Advanced metrics)\n" +
+    `# To remove it: disable the option in Metrx, or sudo rm ${SUDOERS_FILE}\n` +
+    sudoersRule(user) +
+    "\n"
+  );
 }
 
 function currentUser() {
@@ -120,16 +133,26 @@ async function runAsAdministrator(command) {
   }
 }
 
+/**
+ * `installed` : le fichier sudoers existe. `outdated` : il existe mais n'autorise plus la commande
+ * de cette version (arguments de powermetrics changés, autre utilisateur…) ; il faut le
+ * réinstaller ou le supprimer.
+ */
 export async function status() {
   if (!supported) {
-    return { supported: false, enabled: false, sampling: false };
+    return { supported: false, enabled: false, installed: false, outdated: false, sampling: false };
   }
+
+  const installed = existsSync(SUDOERS_FILE);
+  const enabled = await isAllowed();
 
   return {
     supported: true,
-    enabled: await isAllowed(),
+    enabled,
+    installed,
+    outdated: installed && !enabled,
     sampling: Boolean(state.sampler) && getSample() !== null,
-    rule: sudoersRule(currentUser()).trim(),
+    rule: sudoersRule(currentUser()),
     file: SUDOERS_FILE,
   };
 }
@@ -141,7 +164,7 @@ export async function enable() {
 
   const tempFile = join(tmpdir(), `metrx-sudoers-${process.pid}`);
 
-  writeFileSync(tempFile, sudoersRule(currentUser()), { mode: 0o600 });
+  writeFileSync(tempFile, sudoersFile(currentUser()), { mode: 0o600 });
 
   try {
     // visudo valide la syntaxe avant l'installation (root:wheel, 0440, comme l'exige sudo)
