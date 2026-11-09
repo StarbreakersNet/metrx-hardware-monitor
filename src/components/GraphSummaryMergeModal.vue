@@ -3,7 +3,7 @@ import { getUnitLabel } from "@/appUtils";
 import _ from "lodash";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { getActiveMerges, getChartEntries } from "@/models/chartEntries";
+import { getActiveMerges, getChartEntries, getMergeableEntries } from "@/models/chartEntries";
 import { useUserStore } from "@/stores/user";
 import { useSystemStore } from "@/stores/system";
 import AppScrollLayout from "@/components/Layouts/AppScrollLayout.vue";
@@ -20,8 +20,11 @@ const user = useUserStore();
 const system = useSystemStore();
 const { t } = useI18n();
 
-// Mêmes graphiques que l'accueil (GraphSummary.vue) : on ne propose que ce qui est affiché
-const entries = computed(() => getChartEntries(system.metrics));
+// Mêmes graphiques que l'accueil (GraphSummary.vue) : on ne propose que les tuiles affichées
+// dont la valeur est remontée
+const entries = computed(() =>
+  getMergeableEntries(getChartEntries(system.metrics), user.settings.chartsHidden)
+);
 const activeMerges = computed(() => getActiveMerges(user.settings.chartsMerged, entries.value));
 
 const listSummary = computed(() => {

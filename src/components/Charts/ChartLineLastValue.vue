@@ -93,6 +93,7 @@ function onSerieColorRemove(serie) {
         <template #trigger="{ onClick, ref: setTriggerRef }">
           <n-avatar
             :ref="setTriggerRef"
+            class="serie-avatar"
             :style="{
               background: 'transparent',
               color: getSerieColor(lastValue),
@@ -109,7 +110,14 @@ function onSerieColorRemove(serie) {
       <n-flex size="small">
         {{ lastValue.description }}
         <app-skeleton-input :show="props.editMode" round>
-          <n-flex class="number-container" justify="end">
+          <!-- Valeur non remontée par la machine : pas de faux zéro -->
+          <n-flex
+            v-if="lastValue.value === null || lastValue.value === undefined"
+            class="number-container"
+            justify="end">
+            —
+          </n-flex>
+          <n-flex v-else class="number-container" justify="end">
             <n-number-animation
               :duration="props.animationDuration"
               :from="animationValues[lastValue.description].fromFormated"
@@ -126,4 +134,9 @@ function onSerieColorRemove(serie) {
 <style lang="sass" scoped>
 .number-container
   min-width: 3em
+
+// La pastille de couleur ne doit pas rétrécir quand le texte du tag est long (Go, GHz, W…)
+:deep(.n-tag__avatar),
+.serie-avatar
+  flex-shrink: 0
 </style>

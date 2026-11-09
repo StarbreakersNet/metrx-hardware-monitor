@@ -16,11 +16,15 @@
  */
 // Doit rester le premier import (corrige child_process avant systeminformation)
 import "./bun-compat.js";
+import { execFile } from "node:child_process";
 import { createInterface } from "node:readline";
+import { promisify } from "node:util";
 import * as si from "systeminformation";
 import siPackage from "systeminformation/package.json" with { type: "json" };
 
 const MIN_INTERVAL = 500;
+
+const execFileAsync = promisify(execFile);
 
 const observer = {
   generation: 0,
@@ -48,7 +52,50 @@ async function get(valueObject = {}) {
     data.version = siPackage.version;
   }
 
+  if (Array.isArray(data.gpu)) {
+    await addAppleGpuUsage(data.gpu);
+  }
+
   return data;
+}
+
+let appleGpuUsageFailed = false;
+
+/**
+ * systeminformation ne donne pas l'utilisation des GPU Apple (system_profiler est statique).
+ * ioreg l'expose sans droits administrateur : PerformanceStatistics > "Device Utilization %".
+ */
+async function addAppleGpuUsage(controllers) {
+  const appleGpus = controllers.filter(
+    controller => controller?.vendor === "Apple" && controller.utilizationGpu == null
+  );
+
+  if (process.platform !== "darwin" || !appleGpus.length || appleGpuUsageFailed) {
+    return;
+  }
+
+  try {
+    const { stdout } = await execFileAsync("ioreg", [
+      "-r",
+      "-d",
+      "1",
+      "-w",
+      "0",
+      "-c",
+      "IOAccelerator",
+    ]);
+    const match = stdout.match(/"Device Utilization %"=(\d+)/);
+
+    if (match) {
+      appleGpus.forEach(controller => {
+        controller.utilizationGpu = Number(match[1]);
+      });
+    }
+  } catch (error) {
+    // Une seule tentative en échec suffit : inutile de relancer ioreg à chaque collecte
+    appleGpuUsageFailed = true;
+    log("Utilisation du GPU Apple indisponible (ioreg) :", error?.message ?? error);
+  }
 }
 
 /**

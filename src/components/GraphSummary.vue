@@ -4,7 +4,12 @@ import ChartLine from "@/components/Charts/ChartLine.vue";
 import GraphSummaryMergeModal from "@/components/GraphSummaryMergeModal.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import { useSystemStore } from "@/stores/system";
-import { getActiveMerges, getChartEntries } from "@/models/chartEntries";
+import {
+  getActiveMerges,
+  getChartEntries,
+  getMergeableEntries,
+  getVisibleEntries,
+} from "@/models/chartEntries";
 import { useUserStore } from "@/stores/user";
 import _ from "lodash";
 import { useLoadingBar } from "naive-ui";
@@ -26,11 +31,14 @@ const colNumber = computed(() => {
 });
 
 function setSummary() {
-  let list = getChartEntries(system.metrics).map(entry => ({
-    ...entry,
-    title: t(`charts.titles.${entry.titleKey}`),
-    order: user.settings.chartsOrder[entry.id] ?? 0,
-  }));
+  // Tuiles masquées depuis la page Sondes exclues ; les non disponibles restent affichées
+  let list = getVisibleEntries(getChartEntries(system.metrics), user.settings.chartsHidden).map(
+    entry => ({
+      ...entry,
+      title: t(`charts.titles.${entry.titleKey}`),
+      order: user.settings.chartsOrder[entry.id] ?? 0,
+    })
+  );
 
   list = _.sortBy(list, "order");
   list = processMergedCharts(list);
@@ -40,7 +48,11 @@ function setSummary() {
 }
 
 function processMergedCharts(list) {
-  const merges = getActiveMerges(user.settings.chartsMerged, list);
+  // Seules les tuiles dont la valeur est remontée se fusionnent
+  const merges = getActiveMerges(
+    user.settings.chartsMerged,
+    getMergeableEntries(list, user.settings.chartsHidden)
+  );
   const mergedIds = Object.values(merges).flat();
   const filteredList = list.filter(item => !mergedIds.includes(item.id));
 
@@ -114,7 +126,7 @@ function resetChartsOrder() {
 onMounted(() => {
   loadingBar.start();
   watch(
-    [() => system.metrics, locale],
+    [() => system.metrics, locale, () => JSON.stringify(user.settings.chartsHidden)],
     () => {
       setSummary();
     },
@@ -123,6 +135,10 @@ onMounted(() => {
     }
   );
 });
+
+function hideChart(id) {
+  user.settings.chartsHidden[id] = true;
+}
 </script>
 
 <template>
@@ -145,6 +161,7 @@ onMounted(() => {
           :buffer-size="user.settings.chartBufferSize"
           :chart-key="item.id"
           :data="item.value"
+          :available="item.available"
           :description="item.description"
           :edit-mode="editMode"
           :icon="item.icon"
@@ -155,7 +172,8 @@ onMounted(() => {
           :title="item.title"
           :unit="item.unit"
           class="graph-item"
-          @edit-orders="toggleEditMode()" />
+          @edit-orders="toggleEditMode()"
+          @hide="hideChart(item.id)" />
       </transition-group>
     </vue-draggable>
     <transition name="insert">
