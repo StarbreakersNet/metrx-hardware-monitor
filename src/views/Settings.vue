@@ -1,6 +1,7 @@
 <script setup>
 import AppMasonry from "@/components/AppMasonry.vue";
 import InputSettings from "@/components/InputSettings.vue";
+import PrivilegedMetricsCard from "@/components/PrivilegedMetricsCard.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import settingsAvailable from "@/models/settingsAvailable";
 import { useUserStore } from "@/stores/user";
@@ -68,6 +69,7 @@ function translateOptions(options) {
     </template>
     <n-h1 prefix="bar" type="error">{{ t("settings.categories.danger") }}</n-h1>
     <n-flex vertical>
+      <privileged-metrics-card />
       <n-alert :show-icon="false" type="info">
         <i18n-t keypath="settings.reset.info" scope="global" tag="span">
           <template #allSettings>

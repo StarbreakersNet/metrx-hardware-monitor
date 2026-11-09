@@ -19,6 +19,7 @@ import "./bun-compat.js";
 import { execFile } from "node:child_process";
 import { createInterface } from "node:readline";
 import { promisify } from "node:util";
+import * as privileged from "./privileged.js";
 import * as si from "systeminformation";
 import siPackage from "systeminformation/package.json" with { type: "json" };
 
@@ -55,6 +56,9 @@ async function get(valueObject = {}) {
   if (Array.isArray(data.gpu)) {
     await addAppleGpuUsage(data.gpu);
   }
+
+  // Métriques avancées (powermetrics), si l'utilisateur les a activées
+  privileged.enrich(data);
 
   return data;
 }
@@ -147,6 +151,9 @@ const methods = {
   get: params => get(params),
   start: ({ nodes, interval }) => startObserver(nodes, interval),
   stop: () => stopObserver(),
+  privilegedStatus: () => privileged.status(),
+  privilegedEnable: () => privileged.enable(),
+  privilegedDisable: () => privileged.disable(),
   versions: () => ({
     bun: process.versions.bun,
     systeminformation: siPackage.version,
@@ -215,8 +222,12 @@ input.on("line", async line => {
 input.on("close", () => {
   stdinClosed = true;
   stopObserver();
+  privileged.stopSampler();
   exitWhenIdle();
   setTimeout(() => process.exit(0), EXIT_TIMEOUT).unref();
 });
+
+privileged.setLogger(log);
+privileged.init().catch(error => log("Métriques avancées indisponibles :", error));
 
 send({ event: "ready", payload: { pid: process.pid } });
