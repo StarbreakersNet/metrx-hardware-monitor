@@ -283,7 +283,8 @@
       },
       "groupSummary": "{shown} of {total} tiles shown",
       "switchLabel": "Show “{name}” ({group}) on the home page",
-      "hiddenTag": "Hidden"
+      "hiddenTag": "Hidden",
+      "groupSwitchLabel": "Show every tile of “{group}” on the home page"
     },
     "settings": {
       "categories": {

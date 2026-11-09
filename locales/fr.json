@@ -283,7 +283,8 @@
       },
       "groupSummary": "{shown} sur {total} tuiles affichées",
       "switchLabel": "Afficher « {name} » ({group}) sur l'accueil",
-      "hiddenTag": "Masquée"
+      "hiddenTag": "Masquée",
+      "groupSwitchLabel": "Afficher toutes les tuiles de « {group} » sur l'accueil"
     },
     "settings": {
       "categories": {
