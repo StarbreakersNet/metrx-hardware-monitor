@@ -22,7 +22,7 @@
       "reportIssue": "Signaler un problème sur GitHub"
     },
     "units": {
-      "b": "octets",
+      "b": "o",
       "kb": "Ko",
       "mb": "Mo",
       "gb": "Go",
@@ -30,7 +30,14 @@
       "pb": "Po",
       "eb": "Eo",
       "zb": "Zo",
-      "yb": "Yo"
+      "yb": "Yo",
+      "labels": {
+        "percent": "%",
+        "bytes": "o",
+        "hertz": "Hz",
+        "celsius": "°C",
+        "watt": "W"
+      }
     },
     "charts": {
       "titles": {

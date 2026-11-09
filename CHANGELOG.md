@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The RAM and GPU VRAM charts can now be merged: the VRAM is displayed in bytes like the RAM (#78)
+- The CPU and GPU clock charts can now be merged: both are displayed in hertz (MHz, GHz)
+
+### Fixed
+
+- The vertical scale of a merged chart now covers all its series (e.g. 32 GB of RAM with 8 GB of VRAM)
+- The statistics showed the CPU clock with the MHz unit instead of GHz
+- The chart tooltip ignored the value precision (52.3 °C in the tooltip, 52 °C under the chart)
+- Units are shown as symbols that follow the application language: o / B for bytes, Hz, W, °C, %
+- The chart merge window offered charts missing from the home page, such as the VRAM of a GPU that does not report it: merging a chart into one of them made it disappear
+
 ## [2.0.0] - 2026-11-07
 
 ### Added

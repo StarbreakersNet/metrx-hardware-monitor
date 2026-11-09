@@ -1,5 +1,6 @@
 <script setup>
 import { formatValue, withOpacity } from "@/appUtils";
+import { UNITS } from "@/models/units";
 import { continuousRefresh, registerTooltipCustoms } from "@/components/Charts/ChartJsCustoms";
 import ChartLineLastValue from "@/components/Charts/ChartLineLastValue.vue";
 import ChartLineStats from "@/components/Charts/ChartLineStats.vue";
@@ -390,6 +391,21 @@ watch(
   }
 );
 
+// Les bornes changent quand on fusionne ou défusionne des graphiques
+watch(
+  () => [props.min, props.max],
+  ([min, max]) => {
+    lineChartOptions.value.scales.y.min = min;
+    lineChartOptions.value.scales.y.max = max;
+
+    if (chartRef.value) {
+      chartRef.value.chart.options.scales.y.min = min;
+      chartRef.value.chart.options.scales.y.max = max;
+      chartRef.value.chart.update("none");
+    }
+  }
+);
+
 watch(
   () => user.settings.nodeFrequency,
   () => {
@@ -433,9 +449,8 @@ function getValueColorType(value) {
 
 const labelPrecision = computed(() => {
   switch (props.unit) {
-    case "Mhz":
-    case "°C":
-    case "%":
+    case UNITS.CELSIUS:
+    case UNITS.PERCENT:
       return 0;
     default:
       return 2;
