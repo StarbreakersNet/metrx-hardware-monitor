@@ -149,7 +149,7 @@ async function copyJson() {
           round
           @update:checked="component = chip.key">
           {{ chip.key === "all" ? t("stats.all") : t(`stats.components.${chip.key}`) }}
-          <n-text class="chip-count" depth="3">{{ chip.count }}</n-text>
+          <span class="chip-count">{{ chip.count }}</span>
         </n-tag>
       </n-flex>
       <n-radio-group v-model:value="view" :aria-label="t('stats.views.label')">
@@ -193,8 +193,10 @@ async function copyJson() {
 .search
   width: 21em
 
+// Hérite de la couleur du tag, coché ou non : un gris fixe est illisible sur le tag coché
 .chip-count
   margin-left: .4em
+  opacity: .7
 
 .no-result
   padding: 3em 0

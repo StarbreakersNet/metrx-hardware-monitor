@@ -25,14 +25,21 @@ const data = computed(() => {
   const components = [];
 
   props.sections.forEach(section => {
-    let component = components.find(item => item.key === section.component);
+    // Clés préfixées : un composant et une source portent le même nom (cpu, mem, time), et deux
+    // lignes de même clé ne se replient pas l'une sans l'autre
+    let component = components.find(item => item.name === section.component);
 
     if (!component) {
-      component = { key: section.component, kind: "component", children: [] };
+      component = {
+        key: "component:" + section.component,
+        name: section.component,
+        kind: "component",
+        children: [],
+      };
       components.push(component);
     }
     component.children.push({
-      key: section.id,
+      key: "source:" + section.id,
       kind: "source",
       fn: section.fn,
       title: section.title,
@@ -82,7 +89,7 @@ function renderName(row) {
   switch (row.kind) {
     case "component":
       return h(NFlex, { align: "center", size: "small", inline: true }, () => [
-        h(NText, { strong: true }, () => t(`stats.components.${row.key}`)),
+        h(NText, { strong: true }, () => t(`stats.components.${row.name}`)),
         h(NText, { depth: 3 }, () => t("stats.valueCount", { count: row.count }, row.count)),
         row.missing
           ? h(NTag, { size: "small", round: true, bordered: false }, () =>

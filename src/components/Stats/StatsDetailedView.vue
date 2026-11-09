@@ -38,9 +38,9 @@ function getBarStyle(bars, bar) {
 <template>
   <app-masonry :items="props.sections">
     <template #default="{ item: section }">
-      <n-card size="small">
+      <n-card class="section-card" size="small">
         <template #header>
-          <n-flex :wrap="false" align="center">
+          <n-flex :wrap="false" align="center" class="section-header">
             <n-avatar :size="36" class="section-icon">
               <app-icon :name="section.icon" />
             </n-avatar>
@@ -123,6 +123,20 @@ function getBarStyle(bars, bar) {
 </template>
 
 <style lang="sass" scoped>
+// Le titre passe à la ligne ; le lien « Documentation » garde sa largeur
+.section-card
+  :deep(.n-card-header)
+    column-gap: 1em
+
+  :deep(.n-card-header__main)
+    min-width: 0
+
+  :deep(.n-card-header__extra)
+    flex-shrink: 0
+
+.section-header
+  min-width: 0
+
 .section-icon
   flex-shrink: 0
 
