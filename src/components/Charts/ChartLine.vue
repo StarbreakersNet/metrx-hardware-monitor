@@ -437,6 +437,41 @@ watch(
   }
 );
 
+/**
+ * Applique les couleurs du thème au graphique déjà affiché. Changer les valeurs par défaut de
+ * Chart.js (useChartTheme) ne suffit pas : un graphique créé garde les couleurs lues à sa création.
+ */
+function applyThemeToOptions(options) {
+  const theme = chartTheme.themeComputed.value;
+
+  ["x", "y"].forEach(axis => {
+    const scale = options.scales[axis];
+
+    scale.grid.color = theme.gridColor;
+    scale.ticks.color = theme.subtextColor;
+    scale.border = { ...scale.border, color: theme.borderColor };
+  });
+  Object.assign(options.plugins.tooltip, {
+    backgroundColor: theme.backgroundColor,
+    borderColor: theme.borderColor,
+    titleColor: theme.textColor,
+    bodyColor: theme.textColor,
+    footerColor: theme.textColor,
+  });
+  options.plugins.crosshair.line.color = theme.primaryColor;
+}
+
+watch(chartTheme.currentTheme, () => {
+  applyThemeToOptions(lineChartOptions.value);
+  // Les séries reprennent la palette du thème (sauf couleur choisie par l'utilisateur)
+  initializeDatasets();
+
+  if (chartRef.value?.chart) {
+    applyThemeToOptions(chartRef.value.chart.options);
+    chartRef.value.chart.update("none");
+  }
+});
+
 function getValueColorType(value) {
   if (value === null || value === undefined) {
     return "default";
@@ -528,7 +563,6 @@ onUnmounted(() => {
           {{ t("charts.unavailable.description") }}
         </n-text>
         <n-flex justify="center" size="large">
-          <slot name="unavailable-actions" />
           <n-button size="small" text @click="emit('hide')">
             <template #icon>
               <app-icon name="eye-off" />

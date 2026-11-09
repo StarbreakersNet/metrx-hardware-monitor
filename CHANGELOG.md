@@ -14,10 +14,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - "Data" page redesigned: it shows every value systeminformation reports, in three views. Summary gives the essentials of each component, Table puts every value in a single table with its unit, and Detailed shows one card per systeminformation source with per-core charts. Search, component filters, lib keys shown or hidden, and copy as JSON
 - "Probes" page redesigned: choose which tiles the home page shows, with the current value of each one, counters, and "Hide unavailable" / "Show all" buttons
 - Metrics are only collected for the tiles shown on the home page, and all of them while the Data or Probes page is open
+- Probes page: a switch on each group shows or hides all its tiles at once, for example a virtual GPU that reports nothing (#37, #83)
 
 ### Changed
 
-- The cards of the Data, Probes and Settings pages are stacked in balanced columns, without empty space under the shorter ones
+- The cards of the Data and Probes pages are stacked in balanced columns, without empty space under the shorter ones
+- Settings: one tab per section, with the settings in a single column (#100)
 
 ### Fixed
 
@@ -29,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Opening Metrx right after the computer starts showed an update error because the network was not ready yet: the automatic update check now waits for the network to be connected and for GitHub to be resolved by the DNS, retries silently every minute (5 times at most) if it still fails, and only a manual check shows errors
 - Metrics the hardware does not report showed 0: their tile now says "Unavailable" and can be hidden from the tile or the Probes page (GPU usage, temperature, clock, fan speed and VRAM usage of non-NVIDIA GPUs, CPU temperature without a sensor)
 - The color dot of the value tags under the charts was squeezed when the value was long (GB, GHz, W)
+- Changing the theme now updates the charts at once, without reloading the application (#81)
+- The CPU clock chart was always close to its alert thresholds: its scale and thresholds now use the maximum frequency of the processor instead of the highest frequency of the current reading (#79)
 
 ## [2.0.0] - 2026-11-07
 
