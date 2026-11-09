@@ -88,6 +88,9 @@ export const useSystemStore = defineStore("system", () => {
     };
 
     metricsApi.onData(storeCallback);
+    // Fréquence maximale du processeur, pour l'échelle et les seuils de son horloge. Sans attendre :
+    // la lecture ne doit pas retarder le démarrage
+    loadCpuInfo();
 
     watch(
       [interval, nodeUsedKey],
