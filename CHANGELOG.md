@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Changing the theme now updates the charts at once, without reloading the application (#81)
 - Memory sizes were computed in base 1000, so 16 GB of RAM showed as 17.18 GB: RAM, VRAM and caches now use base 1024 like macOS and Windows, with chart ticks in round values (4 GB, 8 GB…)
 - The RAM tile counted the file cache as used memory, so it always looked almost full on macOS: it now shows the memory in active use (`active`, cache excluded), like the summary of the Data page. Every memory value stays listed in the Data page
+- The minimum, maximum and average above the charts compared values already scaled to different units (900 MHz against 4.4 GHz gave a minimum of 4.4): they are now computed on the raw values and shown with their unit, in the order minimum, maximum, average. A value the hardware does not report no longer counts as 0
 - The CPU clock chart was always close to its alert thresholds: its scale and thresholds now use the maximum frequency of the processor instead of the highest frequency of the current reading (#79)
 
 ## [2.0.0] - 2026-11-07

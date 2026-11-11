@@ -1,5 +1,6 @@
 <script setup>
-import { formatValue } from "@/appUtils";
+import { getCommonScale } from "@/appUtils";
+import { UNITS } from "@/models/units";
 import AppSkeletonInput from "@/components/AppSkeletonInput.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
 import { useUserStore } from "@/stores/user";
@@ -39,137 +40,103 @@ const chartConfigValues = computed(() => {
   return chartConfig ?? settings.chartsDefault;
 });
 
-const seriesStats = ref({});
+/**
+ * Statistiques calculées sur les valeurs brutes (octets, hertz…), puis affichées sur un multiple
+ * commun avec leur unité : comparer des nombres déjà mis à l'échelle mélangeait les ordres de
+ * grandeur (900 MHz contre 4,4 GHz donnait un minimum de 4,4).
+ */
+const MAX_VALUES = 60;
+const seriesValues = ref({});
+const previous = ref({ min: 0, max: 0, average: 0 });
+const current = ref({ min: 0, max: 0, average: 0 });
 
 watch(
   () => props.lastValueCollection,
   newCollection => {
     newCollection.forEach(item => {
-      if (!seriesStats.value[item.description]) {
-        seriesStats.value[item.description] = {
-          values: [],
-          min: { value: item.value, previous: item.value },
-          max: { value: item.value, previous: item.value },
-          average: { value: item.value, previous: item.value },
-        };
+      // Valeur non remontée (tuile « Non disponible ») : ignorée, pas comptée comme 0
+      if (!Number.isFinite(item.value)) {
+        return;
       }
 
-      const stats = seriesStats.value[item.description];
-      stats.values.push(item.value);
+      const values = (seriesValues.value[item.description] ??= []);
 
-      // Limit the size of values array
-      if (stats.values.length > 60) {
-        stats.values.shift();
+      values.push(item.value);
+      if (values.length > MAX_VALUES) {
+        values.shift();
       }
-
-      // Update min, max and average
-      const newMin = Math.min(...stats.values);
-      if (newMin !== stats.min.value) {
-        stats.min.previous = stats.min.value;
-        stats.min.value = newMin;
-      }
-
-      const newMax = Math.max(...stats.values);
-      if (newMax !== stats.max.value) {
-        stats.max.previous = stats.max.value;
-        stats.max.value = newMax;
-      }
-
-      const newAverage = stats.values.reduce((sum, val) => sum + val, 0) / stats.values.length;
-      stats.average.previous = stats.average.value;
-      stats.average.value = newAverage;
     });
+
+    // Toutes les séries d'un graphique fusionné ensemble
+    const allValues = Object.values(seriesValues.value).flat();
+
+    if (!allValues.length) {
+      return;
+    }
+
+    previous.value = current.value;
+    current.value = {
+      min: Math.min(...allValues),
+      max: Math.max(...allValues),
+      average: allValues.reduce((sum, value) => sum + value, 0) / allValues.length,
+    };
   },
   { immediate: true, deep: true }
 );
 
-const combinedStats = computed(() => {
-  if (Object.keys(seriesStats.value).length === 0) {
-    return {
-      min: { value: 0, previous: 0 },
-      max: { value: 0, previous: 0 },
-      average: { value: 0, previous: 0 },
-    };
-  }
+const scale = computed(() =>
+  getCommonScale(Math.max(Math.abs(current.value.min), Math.abs(current.value.max)), props.unit)
+);
 
-  const allSeries = Object.values(seriesStats.value);
-  const minValues = allSeries.map(series =>
-    formatValue({ value: series.min.value, unit: props.unit })
-  );
-  const maxValues = allSeries.map(series =>
-    formatValue({ value: series.max.value, unit: props.unit })
-  );
-  const allValues = allSeries.flatMap(series => series.values);
-  const averageValue =
-    allValues.length > 0 ? allValues.reduce((sum, val) => sum + val, 0) / allValues.length : 0;
+/** Ordre d'affichage : minimum, maximum, moyenne */
+const stats = computed(() =>
+  [
+    { key: "min", icon: "arrow-down", type: "info", visible: chartConfigValues.value.showMinMax },
+    { key: "max", icon: "arrow-up", type: "warning", visible: chartConfigValues.value.showMinMax },
+    {
+      key: "average",
+      icon: "divide",
+      type: "default",
+      visible: chartConfigValues.value.showAverage,
+    },
+  ]
+    .filter(stat => stat.visible)
+    .map(stat => ({
+      ...stat,
+      from: previous.value[stat.key] / scale.value.divisor,
+      to: current.value[stat.key] / scale.value.divisor,
+    }))
+);
 
-  return {
-    min: {
-      value: formatValue({ value: Math.min(...minValues), unit: props.unit }),
-      previous: formatValue({
-        value: Math.min(...allSeries.map(s => s.min.previous)),
-        unit: props.unit,
-      }),
-    },
-    max: {
-      value: formatValue({ value: Math.max(...maxValues), unit: props.unit }),
-      previous: formatValue({
-        value: Math.max(...allSeries.map(s => s.max.previous)),
-        unit: props.unit,
-      }),
-    },
-    average: {
-      value: formatValue({ value: averageValue, unit: props.unit }),
-      previous: formatValue({ value: averageValue, unit: props.unit }),
-    },
-  };
-});
+// Pourcentages et températures arrondis ; octets et hertz gardent leurs décimales une fois mis
+// à l'échelle (2,4 GHz)
+const displayPrecision = computed(() =>
+  [UNITS.BYTES, UNITS.HERTZ].includes(props.unit) ? 2 : props.precision
+);
 </script>
 
 <template>
   <transition-group name="insert">
-    <n-tag
-      v-if="chartConfigValues.showAverage"
-      key="average"
-      :bordered="false"
-      round
-      type="default">
+    <n-tag v-for="stat in stats" :key="stat.key" :bordered="false" :type="stat.type" round>
       <app-skeleton-input :show="editMode" round>
-        <n-flex align="center" size="small">
-          <app-icon name="divide" />
-          <n-number-animation
-            :duration="animationDuration"
-            :from="combinedStats.average.previous"
-            :precision="precision"
-            :to="combinedStats.average.value" />
-        </n-flex>
-      </app-skeleton-input>
-    </n-tag>
-    <n-tag v-if="chartConfigValues.showMinMax" key="min" :bordered="false" round type="info">
-      <app-skeleton-input :show="editMode" round>
-        <n-flex align="center" size="small">
-          <app-icon name="arrow-down" />
-          <n-number-animation
-            :duration="animationDuration"
-            :from="combinedStats.min.previous"
-            :precision="precision"
-            :to="combinedStats.min.value" />
-        </n-flex>
-      </app-skeleton-input>
-    </n-tag>
-    <n-tag v-if="chartConfigValues.showMinMax" key="max" :bordered="false" round type="warning">
-      <app-skeleton-input :show="editMode" round>
-        <n-flex align="center" size="small">
-          <app-icon name="arrow-up" />
-          <n-number-animation
-            :duration="animationDuration"
-            :from="combinedStats.max.previous"
-            :precision="precision"
-            :to="combinedStats.max.value" />
+        <n-flex :wrap="false" align="center" size="small">
+          <app-icon :name="stat.icon" />
+          <span class="stat-value">
+            <n-number-animation
+              :duration="animationDuration"
+              :from="stat.from"
+              :precision="displayPrecision"
+              :to="stat.to" />
+            {{ scale.symbol }}
+          </span>
         </n-flex>
       </app-skeleton-input>
     </n-tag>
   </transition-group>
 </template>
 
-<style lang="sass" scoped></style>
+<style lang="sass" scoped>
+.stat-value
+  white-space: nowrap
+  font-variant-numeric: tabular-nums
+</style>

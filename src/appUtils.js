@@ -109,6 +109,34 @@ export function formatHertz(hertz, precision = 2) {
   return { value, unit: HERTZ_UNITS[index] };
 }
 
+/**
+ * Multiple commun pour afficher plusieurs valeurs côte à côte (min, max, moyenne) : celui de
+ * `reference`, en général la plus grande. Sans lui, 900 MHz et 4,4 GHz s'affichaient 900 et 4,4,
+ * et le minimum était pris sur ces nombres sans unité.
+ *
+ * `divisor` : à appliquer aux valeurs brutes ; `symbol` : unité à afficher (« GHz », « Go », « W »…).
+ */
+export function getCommonScale(reference, unit) {
+  const value = Math.abs(reference);
+  const multiple = (base, count) =>
+    value > 0 ? Math.min(Math.max(Math.floor(Math.log(value) / Math.log(base)), 0), count - 1) : 0;
+
+  switch (unit) {
+    case UNITS.BYTES: {
+      const index = multiple(BYTES_BASE, BYTE_UNIT_KEYS.length);
+
+      return { divisor: Math.pow(BYTES_BASE, index), symbol: byteUnit(index) };
+    }
+    case UNITS.HERTZ: {
+      const index = multiple(1000, HERTZ_UNITS.length);
+
+      return { divisor: Math.pow(1000, index), symbol: HERTZ_UNITS[index] };
+    }
+    default:
+      return { divisor: 1, symbol: getUnitLabel(unit) };
+  }
+}
+
 /** Symbole traduit d'une unité (`UNITS`), indépendant de la valeur : « o » / « B », « Hz », « % »… */
 export function getUnitLabel(unit) {
   const key = "units.labels." + unit;
