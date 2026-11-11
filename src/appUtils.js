@@ -74,20 +74,27 @@ function byteUnit(index) {
   return i18n.global.t("units." + BYTE_UNIT_KEYS[index]);
 }
 
-/** Valeur ramenée au multiple de 1000 adapté (index du multiple dans la liste des unités) */
-function scaleByThousands(value, precision, unitCount) {
-  const index = Math.min(Math.max(Math.floor(Math.log(value) / Math.log(1000)), 0), unitCount - 1);
-  const scaled = value / Math.pow(1000, index);
+/** Valeur ramenée au multiple adapté de `base` (index du multiple dans la liste des unités) */
+function scaleByMultiple(value, precision, unitCount, base) {
+  const index = Math.min(Math.max(Math.floor(Math.log(value) / Math.log(base)), 0), unitCount - 1);
+  const scaled = value / Math.pow(base, index);
 
   return { value: parseFloat(scaled.toFixed(Math.max(precision, 0))), index };
 }
+
+/**
+ * Les octets affichés sont tous de la mémoire (RAM, VRAM, caches du CPU, swap) : base 1024, comme
+ * macOS et Windows, avec leurs symboles (Go / GB). En base 1000, 16 Go de RAM s'affichaient
+ * 17,18 Go.
+ */
+export const BYTES_BASE = 1024;
 
 export function formatBytes(bytes, precision = 2) {
   if (!(bytes > 0)) {
     return { value: 0, unit: byteUnit(0) };
   }
 
-  const { value, index } = scaleByThousands(bytes, precision, BYTE_UNIT_KEYS.length);
+  const { value, index } = scaleByMultiple(bytes, precision, BYTE_UNIT_KEYS.length, BYTES_BASE);
 
   return { value, unit: byteUnit(index) };
 }
@@ -97,7 +104,7 @@ export function formatHertz(hertz, precision = 2) {
     return { value: 0, unit: HERTZ_UNITS[0] };
   }
 
-  const { value, index } = scaleByThousands(hertz, precision, HERTZ_UNITS.length);
+  const { value, index } = scaleByMultiple(hertz, precision, HERTZ_UNITS.length, 1000);
 
   return { value, unit: HERTZ_UNITS[index] };
 }

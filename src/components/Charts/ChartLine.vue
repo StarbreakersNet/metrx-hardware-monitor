@@ -1,5 +1,5 @@
 <script setup>
-import { formatValue, withOpacity } from "@/appUtils";
+import { BYTES_BASE, formatValue, withOpacity } from "@/appUtils";
 import { UNITS } from "@/models/units";
 import { continuousRefresh, registerTooltipCustoms } from "@/components/Charts/ChartJsCustoms";
 import ChartLineLastValue from "@/components/Charts/ChartLineLastValue.vue";
@@ -190,6 +190,7 @@ const lineChartOptions = ref({
       min: props.min,
       max: props.max,
       ticks: {
+        stepSize: getBinaryStepSize(props.unit, props.max),
         callback(value) {
           return formatValue({
             unit: props.unit,
@@ -396,16 +397,42 @@ watch(
   }
 );
 
+/**
+ * Pas des graduations pour des octets : un multiple de 1024 (1, 2, 4… Go), pour des graduations
+ * rondes une fois affichées en base 1024. Chart.js choisit sinon des multiples de 10 (2 000 000 000
+ * octets, affichés 1,86 Go). Sans borne haute, pas de pas imposé.
+ */
+function getBinaryStepSize(unit, max) {
+  if (unit !== UNITS.BYTES || !(max > 0)) {
+    return undefined;
+  }
+
+  const MAX_TICKS = 6;
+  let step = Math.pow(BYTES_BASE, Math.floor(Math.log(max) / Math.log(BYTES_BASE)));
+
+  while (max / step > MAX_TICKS) {
+    step *= 2;
+  }
+  while (max / step < MAX_TICKS / 2 && step > 1) {
+    step /= 2;
+  }
+  return step;
+}
+
 // Les bornes changent quand on fusionne ou défusionne des graphiques
 watch(
   () => [props.min, props.max],
   ([min, max]) => {
+    const stepSize = getBinaryStepSize(props.unit, max);
+
     lineChartOptions.value.scales.y.min = min;
     lineChartOptions.value.scales.y.max = max;
+    lineChartOptions.value.scales.y.ticks.stepSize = stepSize;
 
     if (chartRef.value) {
       chartRef.value.chart.options.scales.y.min = min;
       chartRef.value.chart.options.scales.y.max = max;
+      chartRef.value.chart.options.scales.y.ticks.stepSize = stepSize;
       chartRef.value.chart.update("none");
     }
   }
