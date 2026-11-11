@@ -13,6 +13,14 @@ export function checkForUpdates(channel, onEvent) {
   return invoke("updater_check", { channel, onEvent: events });
 }
 
+/**
+ * Attend qu'Internet soit joignable (résolution DNS de l'API GitHub), au plus `timeoutSecs`
+ * secondes. Renvoie `false` si le délai est dépassé.
+ */
+export function waitForNetwork(timeoutSecs) {
+  return invoke("updater_wait_for_network", { timeoutSecs });
+}
+
 /** Installe la mise à jour téléchargée et relance l'application */
 export function installUpdate() {
   return invoke("updater_install");

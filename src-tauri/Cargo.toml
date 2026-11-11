@@ -32,7 +32,7 @@ semver = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["raw_value"] }
 sys-locale = "0.3"
-tokio = { version = "1", features = ["time"] }
+tokio = { version = "1", features = ["net", "time"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2.7"
