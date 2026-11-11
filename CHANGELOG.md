@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Metrics the hardware does not report showed 0: their tile now says "Unavailable" and can be hidden from the tile or the Probes page (GPU usage, temperature, clock, fan speed and VRAM usage of non-NVIDIA GPUs, CPU temperature without a sensor)
 - The color dot of the value tags under the charts was squeezed when the value was long (GB, GHz, W)
 - Changing the theme now updates the charts at once, without reloading the application (#81)
+- Memory sizes were computed in base 1000, so 16 GB of RAM showed as 17.18 GB: RAM, VRAM and caches now use base 1024 like macOS and Windows, with chart ticks in round values (4 GB, 8 GB…)
+- The RAM tile counted the file cache as used memory, so it always looked almost full on macOS: it now shows the memory in active use (`active`, cache excluded), like the summary of the Data page. Every memory value stays listed in the Data page
 - The CPU clock chart was always close to its alert thresholds: its scale and thresholds now use the maximum frequency of the processor instead of the highest frequency of the current reading (#79)
 
 ## [2.0.0] - 2026-11-07

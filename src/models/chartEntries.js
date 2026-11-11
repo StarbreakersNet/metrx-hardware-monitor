@@ -202,7 +202,9 @@ export function getChartEntries(metrics, { cpuInfo } = {}) {
       unit: UNITS.BYTES,
       source: "mem",
       group: "ram",
-      value: metrics.mem.used,
+      // Mémoire réellement utilisée, hors tampons et cache (`active`, définition de systeminformation).
+      // `used` compte le cache de fichiers : sur macOS, il est toujours proche du total.
+      value: metrics.mem.active,
     });
   }
 

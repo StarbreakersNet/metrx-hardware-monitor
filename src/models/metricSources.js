@@ -149,10 +149,11 @@ export const STAT_SOURCES = [
     component: "mem",
     icon: "section-filled",
     doc: DOC.mem,
+    // Comme la tuile RAM : la mémoire active, hors cache (`used` compte le cache de fichiers)
     figure: {
-      key: "used",
-      progress: data => (data.total ? (data.used / data.total) * 100 : undefined),
-      sub: ["available", "swapused"],
+      key: "active",
+      progress: data => (data.total ? (data.active / data.total) * 100 : undefined),
+      sub: ["buffcache", "available", "swapused"],
     },
     fields: [
       field("total", "bytes"),
@@ -545,7 +546,7 @@ export function getStatSummary(metrics, info) {
 
   if (metrics.mem) {
     const mem = metrics.mem;
-    const usedPercent = mem.total ? (mem.used / mem.total) * 100 : undefined;
+    const usedPercent = mem.total ? (mem.active / mem.total) * 100 : undefined;
     const swap = mem.swaptotal
       ? formatField(mem.swapused, "bytes").number +
         " " +
@@ -563,7 +564,7 @@ export function getStatSummary(metrics, info) {
       title: t("stats.components.mem"),
       sources: "mem",
       rows: [
-        summaryRow("used", "stats.summary.used", mem.used, "bytes", {
+        summaryRow("active", "stats.summary.used", mem.active, "bytes", {
           percent: usedPercent,
           suffix: usedPercent !== undefined ? ` (${toLocaleNumber(usedPercent, 1)} %)` : "",
           warn: usedPercent >= 90,
