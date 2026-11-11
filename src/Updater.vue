@@ -2,6 +2,7 @@
 import {
   checkForUpdates as checkUpdates,
   installUpdate as installDownloadedUpdate,
+  waitForNetwork,
 } from "@/api/updater";
 import AppUtils, { delay, formatBytes } from "@/appUtils";
 import AppIcon from "@/components/Utils/AppIcon.vue";
@@ -31,6 +32,75 @@ const loaders = reactive({
 });
 const silentUpdate = ref(false);
 let message = null;
+
+// Au démarrage de l'ordinateur, Metrx s'ouvre souvent avant que le réseau soit connecté : la
+// vérification automatique attend la connexion, puis qu'Internet réponde (le DNS peut ne pas
+// être prêt alors que le Wi-Fi est connecté). Si elle échoue quand même (GitHub injoignable,
+// portail captif...), elle est retentée plus tard, sans erreur.
+const NETWORK_WAIT_TIMEOUT = 2 * 60;
+const SILENT_RETRY_DELAY = 60 * 1000;
+const SILENT_RETRY_MAX = 5;
+let silentRetryAttempt = 0;
+let silentRetryTimer = null;
+let onlineListener = null;
+// Incrémenté à chaque annulation, pour ignorer une attente du réseau devenue inutile
+let networkWaitId = 0;
+
+function checkWhenOnline() {
+  cancelSilentRetry();
+
+  if (navigator.onLine) {
+    checkWhenReachable();
+    return;
+  }
+
+  console.log("[Updater]: Waiting for the network to check for updates");
+  onlineListener = () => {
+    onlineListener = null;
+    checkWhenReachable();
+  };
+  window.addEventListener("online", onlineListener, { once: true });
+}
+
+async function checkWhenReachable() {
+  const waitId = networkWaitId;
+  let reachable = false;
+
+  try {
+    reachable = await waitForNetwork(NETWORK_WAIT_TIMEOUT);
+  } catch (error) {
+    console.error("[Updater]:", String(error));
+  }
+
+  if (waitId !== networkWaitId) {
+    return;
+  }
+  if (!reachable) {
+    console.log("[Updater]: Internet still unreachable, checking for updates anyway");
+  }
+  checkForUpdates(true);
+}
+
+function scheduleSilentRetry() {
+  if (silentRetryAttempt >= SILENT_RETRY_MAX) {
+    return;
+  }
+
+  silentRetryAttempt++;
+  console.log(`[Updater]: Silent check failed, retrying in ${SILENT_RETRY_DELAY / 1000}s`);
+  silentRetryTimer = setTimeout(checkWhenOnline, SILENT_RETRY_DELAY);
+}
+
+function cancelSilentRetry() {
+  networkWaitId++;
+  clearTimeout(silentRetryTimer);
+  silentRetryTimer = null;
+
+  if (onlineListener) {
+    window.removeEventListener("online", onlineListener);
+    onlineListener = null;
+  }
+}
 
 function createMessage(type, content) {
   removeMessage();
@@ -120,9 +190,13 @@ function onUpdaterEvent({ event, data }) {
       break;
 
     case "error":
-      createMessage("error", t("updater.error", { message: data.message }));
       console.error("[Updater]:", data.message);
       loaders.main.stop();
+      if (silentUpdate.value) {
+        scheduleSilentRetry();
+      } else {
+        createMessage("error", t("updater.error", { message: data.message }));
+      }
       break;
 
     case "log":
@@ -173,6 +247,10 @@ async function onUpdateDownloaded() {
 }
 
 async function checkForUpdates(isSilent = false) {
+  cancelSilentRetry();
+  if (!isSilent) {
+    silentRetryAttempt = 0;
+  }
   silentUpdate.value = isSilent;
   loaders.main.start();
 
@@ -184,6 +262,8 @@ async function checkForUpdates(isSilent = false) {
 }
 
 async function installUpdate() {
+  // L'installation est demandée par l'utilisateur : ses erreurs doivent s'afficher
+  silentUpdate.value = false;
   loaders.main.start();
 
   try {
@@ -230,11 +310,12 @@ const buildType = computed(() => {
 
 onMounted(() => {
   if (user.settings.autoUpdate) {
-    checkForUpdates(true);
+    checkWhenOnline();
   }
 });
 
 onBeforeUnmount(() => {
+  cancelSilentRetry();
   removeMessage();
 });
 

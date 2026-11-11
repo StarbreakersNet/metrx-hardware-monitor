@@ -8,7 +8,7 @@
 
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,10 @@ const RELEASES_API: &str =
     "https://api.github.com/repos/StarbreakersNet/metrx-hardware-monitor/releases?per_page=50";
 const MANIFEST_NAME: &str = "latest.json";
 const USER_AGENT: &str = "Metrx-Updater";
+/// Hôte de `RELEASES_API`, résolu pour savoir si Internet est joignable
+const NETWORK_HOST: &str = "api.github.com:443";
+const NETWORK_POLL_INTERVAL: Duration = Duration::from_secs(5);
+const NETWORK_LOOKUP_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Default)]
 pub struct UpdaterState {
@@ -122,6 +126,39 @@ impl UpdateChannel {
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) {
     app.manage(UpdaterState::default());
+}
+
+/// Attend qu'Internet soit joignable, au plus `timeout_secs` secondes. Renvoie `false` si le délai
+/// est dépassé.
+///
+/// Au démarrage de l'ordinateur, le réseau peut être connecté avant que le DNS réponde : on
+/// résout l'hôte de l'API GitHub toutes les 5 s. Une résolution DNS ne coûte qu'un petit paquet
+/// et ne compte pas dans la limite d'appels de l'API GitHub (60 par heure sans compte).
+#[tauri::command]
+pub async fn updater_wait_for_network(timeout_secs: u64) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+
+    loop {
+        if is_internet_reachable().await {
+            return true;
+        }
+        if Instant::now() >= deadline {
+            return false;
+        }
+        tokio::time::sleep(NETWORK_POLL_INTERVAL).await;
+    }
+}
+
+async fn is_internet_reachable() -> bool {
+    let lookup = tokio::time::timeout(
+        NETWORK_LOOKUP_TIMEOUT,
+        tokio::net::lookup_host(NETWORK_HOST),
+    );
+
+    match lookup.await {
+        Ok(Ok(mut addresses)) => addresses.next().is_some(),
+        _ => false,
+    }
 }
 
 #[tauri::command]

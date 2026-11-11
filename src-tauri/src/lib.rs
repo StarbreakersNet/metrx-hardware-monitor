@@ -46,6 +46,7 @@ pub fn run() {
             sidecar::metrics_send,
             updater::updater_check,
             updater::updater_install,
+            updater::updater_wait_for_network,
             window::open_devtools,
             window::window_ready,
         ])

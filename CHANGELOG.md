@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The chart tooltip ignored the value precision (52.3 °C in the tooltip, 52 °C under the chart)
 - Units are shown as symbols that follow the application language: o / B for bytes, Hz, W, °C, %
 - The chart merge window offered charts missing from the home page, such as the VRAM of a GPU that does not report it: merging a chart into one of them made it disappear
+- Opening Metrx right after the computer starts showed an update error because the network was not ready yet: the automatic update check now waits for the network to be connected and for GitHub to be resolved by the DNS, retries silently every minute (5 times at most) if it still fails, and only a manual check shows errors
 - Metrics the hardware does not report showed 0: their tile now says "Unavailable" and can be hidden from the tile or the Probes page (GPU usage, temperature, clock, fan speed and VRAM usage of non-NVIDIA GPUs, CPU temperature without a sensor)
 - The color dot of the value tags under the charts was squeezed when the value was long (GB, GHz, W)
 
