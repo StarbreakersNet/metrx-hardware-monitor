@@ -29,13 +29,13 @@ const { t } = useI18n();
 <template>
   <app-masonry :items="props.groups">
     <template #default="{ item: group }">
-      <n-card size="small">
+      <n-card class="summary-card" size="small">
         <template #header>
-          <n-flex :wrap="false" align="center">
+          <n-flex :wrap="false" align="center" class="group-header">
             <n-avatar :size="36" class="group-icon">
               <app-icon :name="group.icon" />
             </n-avatar>
-            <n-flex :size="0" align="start" vertical>
+            <n-flex :size="0" align="start" class="group-titles" vertical>
               <n-text strong>{{ group.title }}</n-text>
               <n-text class="group-sources" code depth="3">{{ group.sources }}</n-text>
             </n-flex>
@@ -75,6 +75,21 @@ const { t } = useI18n();
 </template>
 
 <style lang="sass" scoped>
+// Le titre et les sources passent à la ligne ; le bouton « Détails » garde sa largeur
+.summary-card
+  :deep(.n-card-header)
+    column-gap: 1em
+
+  :deep(.n-card-header__main)
+    min-width: 0
+
+  :deep(.n-card-header__extra)
+    flex-shrink: 0
+
+.group-header,
+.group-titles
+  min-width: 0
+
 .group-icon
   flex-shrink: 0
   color: var(--n-color-target, currentColor)

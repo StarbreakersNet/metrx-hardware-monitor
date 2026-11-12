@@ -9,8 +9,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 const REQUEST_TIMEOUT = 30000;
-// Activer / désactiver les métriques avancées attend la saisie du mot de passe administrateur
-const ADMIN_PROMPT_TIMEOUT = 5 * 60 * 1000;
 
 const pending = new Map();
 let nextId = 1;
@@ -52,7 +50,7 @@ function handleMessage(message) {
   }
 }
 
-async function request(method, params = {}, timeout = REQUEST_TIMEOUT) {
+async function request(method, params = {}) {
   await ensureListener();
 
   const id = nextId++;
@@ -61,7 +59,7 @@ async function request(method, params = {}, timeout = REQUEST_TIMEOUT) {
     const timer = setTimeout(() => {
       pending.delete(id);
       reject(new Error(`[metrics] Pas de réponse du sidecar pour « ${method} »`));
-    }, timeout);
+    }, REQUEST_TIMEOUT);
 
     pending.set(id, {
       resolve: value => {
@@ -93,10 +91,6 @@ export default {
   },
   get: valueObject => request("get", valueObject),
   versions: () => request("versions"),
-  /** Métriques avancées (macOS, powermetrics) : `{ supported, enabled, sampling, rule, file }` */
-  privilegedStatus: () => request("privilegedStatus"),
-  privilegedEnable: () => request("privilegedEnable", {}, ADMIN_PROMPT_TIMEOUT),
-  privilegedDisable: () => request("privilegedDisable", {}, ADMIN_PROMPT_TIMEOUT),
   onData: callback => {
     dataCallback = callback;
   },

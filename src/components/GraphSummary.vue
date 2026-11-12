@@ -32,13 +32,14 @@ const colNumber = computed(() => {
 
 function setSummary() {
   // Tuiles masquées depuis la page Sondes exclues ; les non disponibles restent affichées
-  let list = getVisibleEntries(getChartEntries(system.metrics), user.settings.chartsHidden).map(
-    entry => ({
-      ...entry,
-      title: t(`charts.titles.${entry.titleKey}`),
-      order: user.settings.chartsOrder[entry.id] ?? 0,
-    })
-  );
+  let list = getVisibleEntries(
+    getChartEntries(system.metrics, { cpuInfo: system.info.cpu }),
+    user.settings.chartsHidden
+  ).map(entry => ({
+    ...entry,
+    title: t(`charts.titles.${entry.titleKey}`),
+    order: user.settings.chartsOrder[entry.id] ?? 0,
+  }));
 
   list = _.sortBy(list, "order");
   list = processMergedCharts(list);

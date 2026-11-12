@@ -26,11 +26,8 @@ const query = ref("");
 const component = ref("all");
 
 // La page montre tout ce que remonte la lib : toutes les sources sont collectées tant qu'elle est
-// ouverte, et les infos statiques du processeur sont lues une fois
-onActivated(() => {
-  system.requestFullCollection("nodes");
-  system.loadCpuInfo();
-});
+// ouverte (les infos statiques du processeur sont lues au démarrage, avec les données statiques)
+onActivated(() => system.requestFullCollection("nodes"));
 onDeactivated(() => system.releaseFullCollection("nodes"));
 
 // `locale` : les libellés et les formats de nombre suivent la langue
@@ -149,7 +146,7 @@ async function copyJson() {
           round
           @update:checked="component = chip.key">
           {{ chip.key === "all" ? t("stats.all") : t(`stats.components.${chip.key}`) }}
-          <n-text class="chip-count" depth="3">{{ chip.count }}</n-text>
+          <span class="chip-count">{{ chip.count }}</span>
         </n-tag>
       </n-flex>
       <n-radio-group v-model:value="view" :aria-label="t('stats.views.label')">
@@ -193,8 +190,10 @@ async function copyJson() {
 .search
   width: 21em
 
+// Hérite de la couleur du tag, coché ou non : un gris fixe est illisible sur le tag coché
 .chip-count
   margin-left: .4em
+  opacity: .7
 
 .no-result
   padding: 3em 0

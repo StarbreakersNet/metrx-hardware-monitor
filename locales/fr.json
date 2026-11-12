@@ -102,8 +102,7 @@
       "no": "Non",
       "duration": "{days} j {hours} h {minutes} min",
       "notes": {
-        "nominalClock": "Fréquence nominale sur macOS",
-        "ioreg": "via ioreg"
+        "nominalClock": "Fréquence nominale sur macOS"
       },
       "bars": {
         "currentLoad": "Charge par cœur",
@@ -143,7 +142,7 @@
         "vram": "VRAM",
         "vramUsed": "VRAM utilisée",
         "fanSpeed": "Ventilateur",
-        "used": "Utilisée",
+        "used": "Utilisée (hors cache)",
         "total": "Totale",
         "available": "Disponible",
         "swap": "Swap",
@@ -244,8 +243,8 @@
         },
         "mem": {
           "total": "Totale",
-          "used": "Utilisée",
-          "active": "Active",
+          "used": "Utilisée (cache compris)",
+          "active": "Active (hors cache)",
           "available": "Disponible",
           "free": "Libre",
           "buffcache": "Cache et tampons",
@@ -284,7 +283,8 @@
       },
       "groupSummary": "{shown} sur {total} tuiles affichées",
       "switchLabel": "Afficher « {name} » ({group}) sur l'accueil",
-      "hiddenTag": "Masquée"
+      "hiddenTag": "Masquée",
+      "groupSwitchLabel": "Afficher toutes les tuiles de « {group} » sur l'accueil"
     },
     "settings": {
       "categories": {
@@ -368,49 +368,6 @@
         "charts": "configurations des graphiques",
         "button": "Réinitialiser tous les paramètres",
         "confirm": "Êtes-vous sûr de vouloir réinitialiser tous vos paramètres ?"
-      },
-      "privileged": {
-        "label": "Métriques avancées (droits administrateur)",
-        "description": "Autorise Metrx à lire, avec les droits administrateur, uniquement les métriques inaccessibles autrement",
-        "columns": {
-          "metric": "Métrique",
-          "now": "Disponible actuellement"
-        },
-        "available": "Oui",
-        "unavailable": "Non",
-        "metrics": {
-          "cpuClock": "Fréquence CPU réelle",
-          "cpuPower": "Puissance CPU",
-          "gpuClock": "Horloge GPU",
-          "gpuPower": "Puissance GPU",
-          "cpuTemperature": "Température CPU"
-        },
-        "verdict": {
-          "useful": "Utile sur cette machine : {count} métrique(s) débloquée(s)",
-          "alreadyAvailable": "Pas nécessaire sur cette machine : ces métriques sont déjà disponibles",
-          "active": "Activé : les métriques ci-dessous sont lues avec les droits administrateur",
-          "low": "Peu utile : sous Windows, les droits administrateur ne donnent que la température de la zone thermique ACPI de la carte mère, souvent absente ou figée. Non proposé pour l'instant.",
-          "notNeeded": "Pas nécessaire : sous Linux, toutes les métriques de Metrx sont lisibles sans droits administrateur"
-        },
-        "details": {
-          "macos": "Metrx installe une règle sudoers qui autorise une seule commande, sans mot de passe : powermetrics avec des arguments fixes. Aucune autre commande ne peut tourner en administrateur. Désactiver l'option supprime la règle : pense à le faire avant de désinstaller Metrx, sinon la règle reste sur le système.",
-          "windows": "La température CPU de Windows vient de la requête WMI MSAcpi_ThermalZoneTemperature, réservée aux administrateurs.",
-          "linux": "Températures (hwmon) et GPU NVIDIA (nvidia-smi) sont lisibles sans droits administrateur."
-        },
-        "confirmEnable": "Metrx va installer {file} avec cette règle :",
-        "confirmPassword": "macOS va demander le mot de passe d'un administrateur.",
-        "confirmDisable": "Metrx va supprimer {file}. macOS va demander le mot de passe d'un administrateur.",
-        "enabledMessage": "Métriques avancées activées",
-        "disabledMessage": "Métriques avancées désactivées",
-        "error": "Impossible de modifier les métriques avancées : {error}",
-        "outdated": {
-          "title": "Règle à mettre à jour",
-          "description": "Le fichier {file} existe mais ne correspond plus à cette version de Metrx : les métriques avancées sont coupées. Mets la règle à jour pour les réactiver, ou supprime-la.",
-          "update": "Mettre à jour la règle",
-          "remove": "Supprimer la règle",
-          "updatedMessage": "Règle mise à jour",
-          "removedMessage": "Règle supprimée"
-        }
       }
     },
     "about": {

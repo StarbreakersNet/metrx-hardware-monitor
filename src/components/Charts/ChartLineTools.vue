@@ -15,9 +15,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  // Borne haute du graphique ; absente quand l'échelle est automatique (pas de seuils alors)
   max: {
     type: Number,
-    required: true,
+    default: undefined,
   },
 });
 
@@ -49,6 +50,11 @@ const thresholdDanger = computed(() => {
 const thresholds = computed(() => {
   let warningThreshold = thresholdWarning.value / 100;
   let dangerThreshold = thresholdDanger.value / 100;
+
+  // Sans borne haute, un pourcentage du maximum n'a pas de sens : pas de seuils
+  if (!Number.isFinite(props.max)) {
+    return {};
+  }
 
   return {
     warning: props.max * warningThreshold,

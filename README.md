@@ -186,16 +186,6 @@ macOS notarization requires an active Apple Developer Program membership. To pub
 not notarized macOS build, create the repository variable `MACOS_NOTARIZE` with the value `false`
 (Settings > Secrets and variables > Actions > Variables).
 
-## Uninstall (macOS)
-
-Move Metrx to the Trash. If the advanced metrics (Settings > Danger Zone) were enabled, turn the
-option off first: it installs a sudoers rule that stays on the system otherwise. To remove a rule
-left behind:
-
-```bash
-sudo rm /etc/sudoers.d/metrx
-```
-
 ## Configuration
 
 User settings can be adjusted in the application's settings menu. Interface settings are persisted

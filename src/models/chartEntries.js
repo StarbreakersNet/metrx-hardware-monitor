@@ -43,11 +43,9 @@ export function getGpuDescription(index, count) {
  * `source` : fonction systeminformation qui fournit la valeur (sert à ne collecter que ce qui est
  * affiché). `group` : regroupement de la page Sondes (un groupe par GPU).
  *
- * Métriques avancées (macOS, powermetrics) : la fréquence CPU est alors mesurée (`measured`),
- * l'horloge et la puissance du GPU intégré sont renseignées, et la puissance du CPU (`cpuPower`)
- * ajoute une tuile.
+ * `cpuInfo` : infos statiques du processeur (`si.cpu()`), pour la borne de son horloge.
  */
-export function getChartEntries(metrics) {
+export function getChartEntries(metrics, { cpuInfo } = {}) {
   const list = [];
 
   function add(entry) {
@@ -75,11 +73,9 @@ export function getChartEntries(metrics) {
     });
   }
   if (metrics.cpuCurrentSpeed) {
-    const measured = Boolean(metrics.cpuCurrentSpeed.measured);
-
     add({
-      // Mesurée, la fréquence max change à chaque relevé : échelle automatique
-      max: measured ? undefined : gigahertzToHertz(metrics.cpuCurrentSpeed.max),
+      // Fréquence maximale du matériel (si.cpu()) ; sans elle, échelle automatique et pas de seuils
+      max: cpuInfo?.speedMax > 0 ? gigahertzToHertz(cpuInfo.speedMax) : undefined,
       min: 0,
       titleKey: "clock",
       description: "CPU",
@@ -102,20 +98,6 @@ export function getChartEntries(metrics) {
       source: "cpuTemperature",
       group: "cpu",
       value: metrics.cpuTemperature.main,
-    });
-  }
-  // Puissance du CPU : métriques avancées seulement (powermetrics, absent de systeminformation).
-  // Le sidecar l'ajoute quand la charge ou la fréquence CPU est collectée.
-  if (metrics.cpuPower) {
-    add({
-      min: 0,
-      titleKey: "power",
-      description: "CPU",
-      icon: "bolt-filled",
-      unit: UNITS.WATT,
-      source: "currentLoad",
-      group: "cpu",
-      value: metrics.cpuPower.draw,
     });
   }
   if (metrics.gpu?.length) {
@@ -158,7 +140,7 @@ export function getChartEntries(metrics) {
         unit: UNITS.CELSIUS,
         value: getGpuMetric(controller, "temperatureGpu"),
       });
-      // GPU Apple : consommation mesurée par powermetrics, sans limite (échelle automatique)
+      // Sans limite de puissance connue, l'échelle est automatique
       add({
         ...gpu,
         max: controller.powerLimit || undefined,
@@ -198,7 +180,9 @@ export function getChartEntries(metrics) {
       unit: UNITS.BYTES,
       source: "mem",
       group: "ram",
-      value: metrics.mem.used,
+      // Mémoire réellement utilisée, hors tampons et cache (`active`, définition de systeminformation).
+      // `used` compte le cache de fichiers : sur macOS, il est toujours proche du total.
+      value: metrics.mem.active,
     });
   }
 

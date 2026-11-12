@@ -11,15 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - The RAM and GPU VRAM charts can now be merged: the VRAM is displayed in bytes like the RAM (#78)
 - The CPU and GPU clock charts can now be merged: both are displayed in hertz (MHz, GHz)
-- macOS: GPU usage of Apple Silicon chips, read from `ioreg` (no administrator rights needed)
-- macOS: optional advanced metrics in Settings > Danger zone. With administrator rights, limited by a sudoers rule to `powermetrics` with fixed arguments, Metrx shows the actual CPU frequency, the CPU and GPU power and the GPU clock. The setting lists the metrics it unlocks on the computer and whether it is worth enabling, and the tiles it would fill link to it. Turn it off before uninstalling Metrx (see the README), and update the rule from the setting if a new version no longer matches it
 - "Data" page redesigned: it shows every value systeminformation reports, in three views. Summary gives the essentials of each component, Table puts every value in a single table with its unit, and Detailed shows one card per systeminformation source with per-core charts. Search, component filters, lib keys shown or hidden, and copy as JSON
 - "Probes" page redesigned: choose which tiles the home page shows, with the current value of each one, counters, and "Hide unavailable" / "Show all" buttons
 - Metrics are only collected for the tiles shown on the home page, and all of them while the Data or Probes page is open
+- Probes page: a switch on each group shows or hides all its tiles at once, for example a virtual GPU that reports nothing (#37, #83)
 
 ### Changed
 
-- The cards of the Data, Probes and Settings pages are stacked in balanced columns, without empty space under the shorter ones
+- The cards of the Data and Probes pages are stacked in balanced columns, without empty space under the shorter ones
+- Settings: one tab per section, with the settings in a single column (#100)
 
 ### Fixed
 
@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Opening Metrx right after the computer starts showed an update error because the network was not ready yet: the automatic update check now waits for the network to be connected and for GitHub to be resolved by the DNS, retries silently every minute (5 times at most) if it still fails, and only a manual check shows errors
 - Metrics the hardware does not report showed 0: their tile now says "Unavailable" and can be hidden from the tile or the Probes page (GPU usage, temperature, clock, fan speed and VRAM usage of non-NVIDIA GPUs, CPU temperature without a sensor)
 - The color dot of the value tags under the charts was squeezed when the value was long (GB, GHz, W)
+- Changing the theme now updates the charts at once, without reloading the application (#81)
+- Memory sizes were computed in base 1000, so 16 GB of RAM showed as 17.18 GB: RAM, VRAM and caches now use base 1024 like macOS and Windows, with chart ticks in round values (4 GB, 8 GB…)
+- The RAM tile counted the file cache as used memory, so it always looked almost full on macOS: it now shows the memory in active use (`active`, cache excluded), like the summary of the Data page. Every memory value stays listed in the Data page
+- The minimum, maximum and average above the charts compared values already scaled to different units (900 MHz against 4.4 GHz gave a minimum of 4.4): they are now computed on the raw values and shown with their unit, in the order minimum, maximum, average. A value the hardware does not report no longer counts as 0
+- The CPU clock chart was always close to its alert thresholds: its scale and thresholds now use the maximum frequency of the processor instead of the highest frequency of the current reading (#79)
 
 ## [2.0.0] - 2026-11-07
 

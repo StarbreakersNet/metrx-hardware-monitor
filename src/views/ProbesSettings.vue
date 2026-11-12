@@ -51,11 +51,7 @@ function getValue(entry) {
 
 function getNote(entry) {
   // macOS ne remonte que la fréquence nominale du processeur, pas la fréquence mesurée
-  if (
-    entry.id === "clock#cpu" &&
-    currentPlatform === "macos" &&
-    !system.metrics.cpuCurrentSpeed?.measured
-  ) {
+  if (entry.id === "clock#cpu" && currentPlatform === "macos") {
     return t("stats.notes.nominalClock");
   }
   return "";
@@ -81,14 +77,21 @@ const groups = computed(() => {
     });
   });
 
-  return list.map(group => ({
-    ...group,
-    summary: t("probes.groupSummary", {
-      shown: group.rows.filter(row => !row.hidden).length,
-      total: group.rows.length,
-    }),
-  }));
+  return list.map(group => {
+    const shown = group.rows.filter(row => !row.hidden).length;
+
+    return {
+      ...group,
+      shown,
+      summary: t("probes.groupSummary", { shown, total: group.rows.length }),
+    };
+  });
 });
+
+/** Affiche ou masque d'un coup toutes les tuiles d'un groupe (ex. un GPU virtuel sans mesures) */
+function setGroupVisible(group, visible) {
+  group.rows.forEach(row => setVisible(row.entry, visible));
+}
 
 const counters = computed(() => {
   const hidden = entries.value.filter(isHidden).length;
@@ -162,7 +165,13 @@ function showAll() {
         <template #default="{ item: group }">
           <n-card :title="group.title" size="small">
             <template #header-extra>
-              <n-text depth="3">{{ group.summary }}</n-text>
+              <n-flex :wrap="false" align="center">
+                <n-text depth="3">{{ group.summary }}</n-text>
+                <n-switch
+                  :aria-label="t('probes.groupSwitchLabel', { group: group.title })"
+                  :value="group.shown > 0"
+                  @update:value="setGroupVisible(group, $event)" />
+              </n-flex>
             </template>
             <n-list>
               <n-list-item v-for="row in group.rows" :key="row.entry.id">
