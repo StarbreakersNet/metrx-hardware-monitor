@@ -305,17 +305,10 @@ export function makeRow({ id, label, key, value, format, note, percent }) {
   };
 }
 
-function getNote(sourceKey, key, data) {
-  if (
-    sourceKey === "cpuCurrentSpeed" &&
-    key === "avg" &&
-    currentPlatform === "macos" &&
-    !data?.measured
-  ) {
+function getNote(sourceKey, key) {
+  // macOS ne remonte que la fréquence nominale du processeur, pas la fréquence mesurée
+  if (sourceKey === "cpuCurrentSpeed" && key === "avg" && currentPlatform === "macos") {
     return t("stats.notes.nominalClock");
-  }
-  if (sourceKey === "gpu" && key === "utilizationGpu" && data?.vendor === "Apple") {
-    return t("stats.notes.ioreg");
   }
   return "";
 }
@@ -323,7 +316,7 @@ function getNote(sourceKey, key, data) {
 /** Champs connus puis champs supplémentaires renvoyés par la lib (tableaux et objets exclus) */
 function getFields(source, data) {
   const known = new Set(source.fields.map(item => item.key.split(".")[0]));
-  const ignored = new Set([source.bars?.key, "measured"]);
+  const ignored = new Set([source.bars?.key]);
   const extra = Object.entries(data ?? {})
     .filter(([key]) => !known.has(key) && !ignored.has(key))
     .filter(([, value]) => value === null || typeof value !== "object")
@@ -365,7 +358,7 @@ export function getStatSections(metrics, info) {
           key: item.key,
           value,
           format: item.format,
-          note: getNote(source.key, item.key, data),
+          note: getNote(source.key, item.key),
           percent,
         });
       });
@@ -417,7 +410,7 @@ function getFigure(source, data) {
     value: row.missing ? null : row.value,
     details: details.join(" · "),
     percent: isMissing(percent) ? undefined : Math.min(100, Math.max(0, percent)),
-    note: getNote(source.key, key, data),
+    note: getNote(source.key, key),
   };
 }
 
@@ -500,11 +493,8 @@ export function getStatSummary(metrics, info) {
           }
         ),
         summaryRow("cpuCurrentSpeed.avg", "stats.summary.clock", speed?.avg, "gigahertz", {
-          note: getNote("cpuCurrentSpeed", "avg", speed),
+          note: getNote("cpuCurrentSpeed", "avg"),
         }),
-        ...(metrics.cpuPower !== undefined
-          ? [summaryRow("cpuPower.draw", "stats.summary.power", metrics.cpuPower?.draw, "watt")]
-          : []),
         summaryRow(
           "cpu.virtualization",
           "stats.summary.virtualization",
@@ -532,7 +522,6 @@ export function getStatSummary(metrics, info) {
         summaryRow("driverVersion", "stats.summary.driver", controller.driverVersion),
         summaryRow("utilizationGpu", "stats.summary.usage", controller.utilizationGpu, "percent", {
           percent: controller.utilizationGpu,
-          note: getNote("gpu", "utilizationGpu", controller),
         }),
         summaryRow(
           "temperatureGpu",

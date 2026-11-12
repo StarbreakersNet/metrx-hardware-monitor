@@ -51,11 +51,7 @@ function getValue(entry) {
 
 function getNote(entry) {
   // macOS ne remonte que la fréquence nominale du processeur, pas la fréquence mesurée
-  if (
-    entry.id === "clock#cpu" &&
-    currentPlatform === "macos" &&
-    !system.metrics.cpuCurrentSpeed?.measured
-  ) {
+  if (entry.id === "clock#cpu" && currentPlatform === "macos") {
     return t("stats.notes.nominalClock");
   }
   return "";
