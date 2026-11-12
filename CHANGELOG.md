@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- When automatic updates are enabled, Metrx checks for a new version every 6 hours while it keeps running (for example hidden in the menu bar), and right away when the setting is turned on (#80)
+
 ## [2.1.0-beta.1] - 2026-11-12
 
 ### Added
