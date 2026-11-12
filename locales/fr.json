@@ -309,11 +309,16 @@
         },
         "nodeFrequency": {
           "label": "Fréquence de rafraîchissement",
-          "description": "Définit la fréquence de rafraîchissement des données"
+          "description": "Définit la fréquence de rafraîchissement des données et des valeurs affichées sous les graphiques"
         },
         "showSideMenu": {
           "label": "Menu latéral",
           "description": "Affiche le menu de l'application sur le côté gauche"
+        },
+        "chartFrequency": {
+          "label": "Fréquence des courbes",
+          "description": "Définit la fréquence d'ajout d'un point sur les courbes des graphiques",
+          "info": "Ne peut pas être plus rapide que la fréquence de rafraîchissement des données : la plus lente des deux s'applique. Une fréquence plus lente allège l'affichage des graphiques sans ralentir les valeurs"
         },
         "chartColumns": {
           "label": "Nombre de colonnes",

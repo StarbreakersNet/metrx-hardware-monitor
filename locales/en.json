@@ -309,11 +309,16 @@
         },
         "nodeFrequency": {
           "label": "Refresh rate",
-          "description": "Sets how often the data is refreshed"
+          "description": "Sets how often the data and the values under the charts are refreshed"
         },
         "showSideMenu": {
           "label": "Side menu",
           "description": "Shows the application menu on the left side"
+        },
+        "chartFrequency": {
+          "label": "Chart line rate",
+          "description": "Sets how often a point is added to the chart lines",
+          "info": "Cannot be faster than the data refresh rate: the slower of the two applies. A slower rate lightens chart rendering without slowing down the values"
         },
         "chartColumns": {
           "label": "Number of columns",

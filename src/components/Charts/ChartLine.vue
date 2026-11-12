@@ -137,6 +137,7 @@ function initChartData() {
 }
 
 const showTools = ref(false);
+// Les chiffres des tags suivent les sondes ; les courbes avancent à leur propre rythme (#72)
 const numberAnimationDuration = computed(() => {
   return user.settings.nodeFrequency;
 });
@@ -213,7 +214,7 @@ const lineChartOptions = ref({
   maintainAspectRatio: false,
   animations: {
     x: {
-      duration: computed(() => (user.settings.chartAnimation ? numberAnimationDuration.value : 0)),
+      duration: computed(() => (user.settings.chartAnimation ? user.chartInterval : 0)),
     },
     y: {
       duration: 0,
@@ -339,7 +340,7 @@ function initializeDatasets() {
 
 function updateDatasets(newData) {
   const updateDate = new Date();
-  const maxPoints = (props.bufferSize * 60 * 1000) / user.settings.nodeFrequency;
+  const maxPoints = (props.bufferSize * 60 * 1000) / user.chartInterval;
 
   function updateDataset(description, value) {
     if (rawChartData[description]) {
@@ -382,7 +383,7 @@ function initUpdateInterval() {
 
   updateIntervalId = setInterval(() => {
     updateDatasets(props.data);
-  }, user.settings.nodeFrequency);
+  }, user.chartInterval);
 }
 
 watch(
@@ -439,7 +440,7 @@ watch(
 );
 
 watch(
-  () => user.settings.nodeFrequency,
+  () => user.chartInterval,
   () => {
     initUpdateInterval();
   }

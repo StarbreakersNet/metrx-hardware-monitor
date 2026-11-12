@@ -12,6 +12,8 @@ function getDefaultUserSettings() {
     autoUpdate: false,
     updateChannel: getDefaultUpdateChannel(),
     nodeFrequency: 1000,
+    // Ajout des points sur les courbes, décorrélé de la collecte des sondes (#72)
+    chartFrequency: 1000,
     chartColumns: 2,
     chartHeight: 10,
     chartBufferSize: 5,
@@ -79,6 +81,14 @@ export const useUserStore = defineStore(
       desktopListenerRegistered = true;
     }
 
+    /**
+     * Intervalle effectif des courbes : jamais plus court que celui des sondes, sinon les
+     * nouveaux points répéteraient la même valeur.
+     */
+    const chartInterval = computed(() =>
+      Math.max(settings.chartFrequency ?? settings.nodeFrequency, settings.nodeFrequency)
+    );
+
     function resetAllSettings() {
       Object.assign(settings, getDefaultUserSettings());
     }
@@ -87,6 +97,7 @@ export const useUserStore = defineStore(
       desktop,
       settings,
       isEnvDev,
+      chartInterval,
       resetAllSettings,
       getDefaultUpdateChannel,
     };
