@@ -57,20 +57,6 @@ export const useSystemStore = defineStore("system", () => {
     fullCollectionRequests.delete(name);
   }
 
-  /** Infos statiques du processeur (si.cpu()), lues une fois quand la page Données en a besoin */
-  async function loadCpuInfo() {
-    if (info.value.cpu) {
-      return;
-    }
-    try {
-      const { cpu } = await metricsApi.get({ cpu: "*" });
-
-      info.value = { ...info.value, cpu };
-    } catch (error) {
-      console.error("[metrics]", error);
-    }
-  }
-
   async function init() {
     await metricsApi.init();
 
@@ -88,9 +74,6 @@ export const useSystemStore = defineStore("system", () => {
     };
 
     metricsApi.onData(storeCallback);
-    // Fréquence maximale du processeur, pour l'échelle et les seuils de son horloge. Sans attendre :
-    // la lecture ne doit pas retarder le démarrage
-    loadCpuInfo();
 
     watch(
       [interval, nodeUsedKey],
@@ -129,6 +112,5 @@ export const useSystemStore = defineStore("system", () => {
     nodeUsed,
     requestFullCollection,
     releaseFullCollection,
-    loadCpuInfo,
   };
 });

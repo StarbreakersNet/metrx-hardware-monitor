@@ -3,7 +3,9 @@ export default {
   // baseboard: "*",
   // bios: "*",
   // chassis: "*",
-  // cpu: "brand, cache, cores, efficiencyCores, family, flags, governor, manufacturer, model, performanceCores, physicalCores, processors, revision, socket, speed, speedMax, speedMin, stepping, virtualization, voltage",
+  // Fréquence maximale (horloge CPU de l'accueil) et page Données. Réactivé avec systeminformation v6
+  // et le sidecar de Tauri : à surveiller sous Windows
+  cpu: "*",
   // diskLayout: "*",
   // memLayout: "*",
   // net: "*",

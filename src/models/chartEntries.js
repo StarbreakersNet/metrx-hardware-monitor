@@ -1,4 +1,3 @@
-import { currentPlatform } from "@/api/app";
 import { gigahertzToHertz, mebibytesToBytes, megahertzToHertz, UNITS } from "@/models/units";
 
 /**
@@ -22,28 +21,6 @@ export function getGpuMetric(controller, key) {
   }
 
   return isReadByNvidiaSmi(controller) ? 0 : undefined;
-}
-
-/**
- * Borne haute de l'horloge du CPU, en hertz : la fréquence maximale du matériel (`si.cpu()`,
- * `cpuInfo`). L'échelle et les seuils d'alerte (75 % et 90 % du maximum) en dépendent : avec la
- * fréquence maximale du relevé en cours, la valeur était toujours proche du « maximum » et la
- * tuile restait en alerte.
- *
- * Sans maximum fiable, pas de borne (échelle automatique, pas de seuils) :
- * - macOS ne remonte que la fréquence nominale ;
- * - infos du CPU pas encore lues ;
- * - relevé au-dessus du maximum annoncé. Sous Windows, `speedMax` vient de WMI (MaxClockSpeed),
- *   qui vaut souvent la fréquence de base : en turbo, le relevé le dépasse, et le reprendre comme
- *   borne remettait la tuile en alerte.
- */
-function getCpuClockMax(speed, cpuInfo) {
-  const hardwareMax = cpuInfo?.speedMax;
-
-  if (currentPlatform === "macos" || !(hardwareMax > 0) || speed.max > hardwareMax) {
-    return undefined;
-  }
-  return gigahertzToHertz(hardwareMax);
 }
 
 /** Nom affiché d'un GPU : « GPU », ou « GPU 0 », « GPU 1 »… quand il y en a plusieurs */
@@ -97,7 +74,8 @@ export function getChartEntries(metrics, { cpuInfo } = {}) {
   }
   if (metrics.cpuCurrentSpeed) {
     add({
-      max: getCpuClockMax(metrics.cpuCurrentSpeed, cpuInfo),
+      // Fréquence maximale du matériel (si.cpu()) ; sans elle, échelle automatique et pas de seuils
+      max: cpuInfo?.speedMax > 0 ? gigahertzToHertz(cpuInfo.speedMax) : undefined,
       min: 0,
       titleKey: "clock",
       description: "CPU",

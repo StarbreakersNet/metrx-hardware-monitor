@@ -26,11 +26,8 @@ const query = ref("");
 const component = ref("all");
 
 // La page montre tout ce que remonte la lib : toutes les sources sont collectées tant qu'elle est
-// ouverte, et les infos statiques du processeur sont lues une fois
-onActivated(() => {
-  system.requestFullCollection("nodes");
-  system.loadCpuInfo();
-});
+// ouverte (les infos statiques du processeur sont lues au démarrage, avec les données statiques)
+onActivated(() => system.requestFullCollection("nodes"));
 onDeactivated(() => system.releaseFullCollection("nodes"));
 
 // `locale` : les libellés et les formats de nombre suivent la langue
