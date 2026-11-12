@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.0-beta.1] - 2026-11-12
+
 ### Added
 
 - The RAM and GPU VRAM charts can now be merged: the VRAM is displayed in bytes like the RAM (#78)
