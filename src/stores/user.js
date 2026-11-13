@@ -12,7 +12,6 @@ function getDefaultUserSettings() {
     autoUpdate: false,
     updateChannel: getDefaultUpdateChannel(),
     nodeFrequency: 1000,
-    // Ajout des points sur les courbes, décorrélé de la collecte des sondes (#72)
     chartFrequency: 1000,
     chartColumns: 2,
     chartHeight: 10,

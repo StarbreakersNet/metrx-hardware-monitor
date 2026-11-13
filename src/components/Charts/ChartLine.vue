@@ -137,7 +137,6 @@ function initChartData() {
 }
 
 const showTools = ref(false);
-// Les chiffres des tags suivent les sondes ; les courbes avancent à leur propre rythme (#72)
 const numberAnimationDuration = computed(() => {
   return user.settings.nodeFrequency;
 });
