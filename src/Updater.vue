@@ -46,6 +46,47 @@ let onlineListener = null;
 // Incrémenté à chaque annulation, pour ignorer une attente du réseau devenue inutile
 let networkWaitId = 0;
 
+// Metrx peut rester des jours dans la barre des menus sans redémarrer : tant que la mise à jour
+// auto est activée, la vérification silencieuse est refaite toutes les 6 h. Le minuteur passe
+// plus souvent et compare l'heure de la dernière vérification, pour rattraper une mise en veille
+// de l'ordinateur (un minuteur de 6 h repartirait de zéro au réveil).
+const PERIODIC_CHECK_INTERVAL = 6 * 60 * 60 * 1000;
+const PERIODIC_CHECK_TICK = 15 * 60 * 1000;
+let lastCheckAt = 0;
+let periodicCheckTimer = null;
+
+function startPeriodicCheck() {
+  stopPeriodicCheck();
+  periodicCheckTimer = setInterval(onPeriodicCheckTick, PERIODIC_CHECK_TICK);
+}
+
+function stopPeriodicCheck() {
+  clearInterval(periodicCheckTimer);
+  periodicCheckTimer = null;
+}
+
+/** Vérification automatique, sauf si une autre est en cours ou qu'une mise à jour attend déjà */
+function checkSilentlyIfIdle() {
+  if (isUpdateAvailable.value || loaders.main.loading) {
+    return;
+  }
+
+  silentRetryAttempt = 0;
+  checkWhenOnline();
+}
+
+function onPeriodicCheckTick() {
+  // Une nouvelle tentative ou l'attente du réseau est déjà prévue
+  if (silentRetryTimer || onlineListener) {
+    return;
+  }
+
+  if (user.settings.autoUpdate && Date.now() - lastCheckAt >= PERIODIC_CHECK_INTERVAL) {
+    console.log("[Updater]: Periodic update check");
+    checkSilentlyIfIdle();
+  }
+}
+
 function checkWhenOnline() {
   cancelSilentRetry();
 
@@ -252,6 +293,7 @@ async function checkForUpdates(isSilent = false) {
     silentRetryAttempt = 0;
   }
   silentUpdate.value = isSilent;
+  lastCheckAt = Date.now();
   loaders.main.start();
 
   try {
@@ -312,12 +354,26 @@ onMounted(() => {
   if (user.settings.autoUpdate) {
     checkWhenOnline();
   }
+  startPeriodicCheck();
 });
 
 onBeforeUnmount(() => {
+  stopPeriodicCheck();
   cancelSilentRetry();
   removeMessage();
 });
+
+// Activer la mise à jour auto vérifie tout de suite ; la désactiver annule les nouvelles tentatives
+watch(
+  () => user.settings.autoUpdate,
+  enabled => {
+    if (enabled) {
+      checkSilentlyIfIdle();
+    } else {
+      cancelSilentRetry();
+    }
+  }
+);
 
 watch(
   () => user.settings.updateChannel,

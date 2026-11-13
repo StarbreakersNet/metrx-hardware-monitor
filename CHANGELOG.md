@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- When automatic updates are enabled, Metrx checks for a new version every 6 hours while it keeps running (for example hidden in the menu bar), and right away when the setting is turned on (#80)
+- New "Chart line rate" setting: the chart lines can move forward more slowly than the data, which keeps refreshing the values under the charts at the "Refresh rate". The slower of the two applies to the lines (#72)
+
+### Changed
+
+- The minimum, maximum and average above the charts no longer repeat the unit already shown in the current value tag, to save width. The unit stays when they use another multiple (GHz against MHz, GB against MB) (#103)
+
 ## [2.1.0-beta.1] - 2026-11-12
 
 ### Added

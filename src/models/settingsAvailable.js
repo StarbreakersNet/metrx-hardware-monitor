@@ -5,6 +5,20 @@
  * ou le réglage (`settings.items.*.label`, `.description` et `.info` si `info: true`).
  * Les options utilisent `labelKey` (traduit) ou `label` (affiché tel quel).
  */
+/** Fréquences proposées pour les sondes et pour les courbes */
+const FREQUENCY_OPTIONS = [
+  { label: "500ms", value: 500 },
+  { label: "1s", value: 1000 },
+  { label: "2s", value: 2000 },
+  { label: "3s", value: 3000 },
+  { label: "4s", value: 4000 },
+  { label: "5s", value: 5000 },
+  { label: "10s", value: 10000 },
+  { label: "20s", value: 20000 },
+  { label: "30s", value: 30000 },
+  { label: "1min", value: 60000 },
+];
+
 export default [
   {
     type: "categ",
@@ -36,18 +50,7 @@ export default [
         type: "select",
         icon: "metronome",
         key: "nodeFrequency",
-        options: [
-          { label: "500ms", value: 500 },
-          { label: "1s", value: 1000 },
-          { label: "2s", value: 2000 },
-          { label: "3s", value: 3000 },
-          { label: "4s", value: 4000 },
-          { label: "5s", value: 5000 },
-          { label: "10s", value: 10000 },
-          { label: "20s", value: 20000 },
-          { label: "30s", value: 30000 },
-          { label: "1min", value: 60000 },
-        ],
+        options: FREQUENCY_OPTIONS,
         storePath: ["settings", "nodeFrequency"],
       },
       {
@@ -62,6 +65,14 @@ export default [
     type: "categ",
     key: "charts",
     children: [
+      {
+        type: "select",
+        icon: "chart-line",
+        key: "chartFrequency",
+        info: true,
+        options: FREQUENCY_OPTIONS,
+        storePath: ["settings", "chartFrequency"],
+      },
       {
         type: "number",
         icon: "table-filled",

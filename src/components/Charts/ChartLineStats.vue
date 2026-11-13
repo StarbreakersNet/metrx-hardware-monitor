@@ -1,5 +1,5 @@
 <script setup>
-import { getCommonScale } from "@/appUtils";
+import { getCommonScale, getValueUnit } from "@/appUtils";
 import { UNITS } from "@/models/units";
 import AppSkeletonInput from "@/components/AppSkeletonInput.vue";
 import AppIcon from "@/components/Utils/AppIcon.vue";
@@ -88,6 +88,19 @@ const scale = computed(() =>
   getCommonScale(Math.max(Math.abs(current.value.min), Math.abs(current.value.max)), props.unit)
 );
 
+/**
+ * L'unité est déjà dans le tag de la valeur actuelle : on ne la répète que si les statistiques
+ * sont sur un autre multiple (4,4 GHz au maximum pour 900 MHz actuellement), pour qu'un nombre
+ * seul ne soit jamais ambigu.
+ */
+const showUnit = computed(() => {
+  const currentUnits = props.lastValueCollection
+    .filter(item => Number.isFinite(item.value))
+    .map(item => getValueUnit(item.value, props.unit));
+
+  return !currentUnits.length || currentUnits.some(unit => unit !== scale.value.symbol);
+});
+
 /** Ordre d'affichage : minimum, maximum, moyenne */
 const stats = computed(() =>
   [
@@ -127,7 +140,7 @@ const displayPrecision = computed(() =>
               :from="stat.from"
               :precision="displayPrecision"
               :to="stat.to" />
-            {{ scale.symbol }}
+            <template v-if="showUnit">{{ scale.symbol }}</template>
           </span>
         </n-flex>
       </app-skeleton-input>
