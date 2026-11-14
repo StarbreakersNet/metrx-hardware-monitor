@@ -37,7 +37,9 @@ const { t } = useI18n();
             </n-avatar>
             <n-flex :size="0" align="start" class="group-titles" vertical>
               <n-text strong>{{ group.title }}</n-text>
-              <n-text class="group-sources" code depth="3">{{ group.sources }}</n-text>
+              <n-text v-if="props.showKeys" class="group-sources" code depth="3">
+                {{ group.sources }}
+              </n-text>
             </n-flex>
           </n-flex>
         </template>

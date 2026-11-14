@@ -47,8 +47,11 @@ function getBarStyle(bars, bar) {
             <n-flex :size="0" align="start" vertical>
               <n-text strong>{{ section.title }}</n-text>
               <n-text class="section-meta" depth="3">
-                <n-text code depth="3">{{ section.fn }}</n-text>
-                · {{ t("stats.valueCount", { count: section.rows.length }, section.rows.length) }}
+                <template v-if="props.showKeys">
+                  <n-text code depth="3">{{ section.fn }}</n-text>
+                  ·
+                </template>
+                {{ t("stats.valueCount", { count: section.rows.length }, section.rows.length) }}
               </n-text>
             </n-flex>
           </n-flex>

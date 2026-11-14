@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- On the Data page, "Hide keys" now also hides the systeminformation function names under each card title (Summary and Detailed views) and on the source rows of the Table view (#105)
+
 ## [2.1.0-beta.2] - 2026-11-13
 
 ### Added

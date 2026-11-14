@@ -99,7 +99,7 @@ function renderName(row) {
       ]);
     case "source":
       return h(NFlex, { align: "center", size: "small", inline: true }, () => [
-        h(NText, { code: true, type: "primary" }, () => row.fn),
+        props.showKeys ? h(NText, { code: true, type: "primary" }, () => row.fn) : null,
         h(NText, { depth: 3 }, () => row.title),
         h(NA, { href: row.doc, target: "_blank" }, () => t("stats.documentation")),
       ]);
