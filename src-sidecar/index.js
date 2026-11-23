@@ -16,6 +16,7 @@
  */
 // Doit rester le premier import (corrige child_process avant systeminformation)
 import "./bun-compat.js";
+import { freemem, totalmem } from "node:os";
 import { createInterface } from "node:readline";
 import * as si from "systeminformation";
 import siPackage from "systeminformation/package.json" with { type: "json" };
@@ -37,12 +38,37 @@ function log(...args) {
 }
 
 /**
+ * Sous Windows, `si.mem()` (v6.0.0-beta.21) ne lit que le fichier d'échange : total, free,
+ * used, active et available viennent d'un objet par défaut calculé une seule fois, au
+ * chargement du module. Ils restent donc figés à leur valeur du démarrage du sidecar.
+ * On les relit ici à chaque collecte, avec les mêmes définitions que systeminformation
+ * (`freemem()` correspond à la mémoire « Disponible » de Windows, cache de veille compris).
+ */
+function refreshWindowsMem(mem) {
+  if (process.platform !== "win32" || !mem || typeof mem !== "object") {
+    return;
+  }
+
+  const total = totalmem();
+  const free = freemem();
+  const live = { total, free, used: total - free, active: total - free, available: free };
+
+  for (const [key, value] of Object.entries(live)) {
+    if (key in mem) {
+      mem[key] = value;
+    }
+  }
+}
+
+/**
  * Équivalent de `si.get()`, avec la version de systeminformation figée au build :
  * `si.version()` lit son package.json sur le disque, qui n'existe pas dans le binaire compilé.
  */
 async function get(valueObject = {}) {
   const { version, ...rest } = valueObject;
   const data = await si.get(rest);
+
+  refreshWindowsMem(data.mem);
 
   if (version !== undefined) {
     data.version = siPackage.version;

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- On Windows, the RAM tile and the memory values of the Data page stayed frozen at their value when Metrx started (systeminformation 6.0.0-beta.21 only reads them once): they now follow the memory in use, like the Task Manager
+
 ## [2.1.0-beta.3] - 2026-11-14
 
 ### Fixed
